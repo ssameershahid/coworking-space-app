@@ -574,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/organizations", requireAuth, requireRole(["enterprise_administrator"]), async (req, res) => {
+  app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const result = schema.insertOrganizationSchema.safeParse(req.body);
       if (!result.success) {

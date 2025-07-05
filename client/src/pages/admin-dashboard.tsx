@@ -205,6 +205,13 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       setNewOrgDialog(false);
       toast({ title: "Organization created successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to create organization", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -432,8 +439,10 @@ export default function AdminDashboard() {
     const handleOrgSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const submitData = {
-        ...orgData,
-        team_members: orgData.team_members.filter(member => member.trim() !== '')
+        name: orgData.name,
+        email: orgData.email,
+        site: orgData.site,
+        // Remove fields that aren't in the database schema
       };
       createOrganization.mutate(submitData);
     };
