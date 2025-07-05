@@ -169,10 +169,27 @@ export default function AdminDashboard() {
     mutationFn: async (userData: any) => {
       return apiRequest('/api/admin/users', 'POST', userData);
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       setNewUserDialog(false);
-      toast({ title: "User created successfully" });
+      if (data.emailSent) {
+        toast({ 
+          title: "User created successfully!", 
+          description: `Welcome email sent to ${data.email} with login credentials.`
+        });
+      } else {
+        toast({ 
+          title: "User created successfully!", 
+          description: `Temporary password: ${data.tempPassword} (Please share manually with user)`
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to create user", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -232,7 +249,11 @@ export default function AdminDashboard() {
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      createUser.mutate(formData);
+      const submitData = {
+        ...formData,
+        organization_id: formData.organization_id || undefined
+      };
+      createUser.mutate(submitData);
     };
 
     return (
@@ -312,6 +333,60 @@ export default function AdminDashboard() {
         )}
         <Button type="submit" disabled={createUser.isPending}>
           {createUser.isPending ? "Creating..." : "Create User"}
+        </Button>
+      </form>
+    );
+  };
+
+  const NewOrganizationForm = () => {
+    const [orgData, setOrgData] = useState({
+      name: '',
+      email: '',
+      site: 'blue_area'
+    });
+
+    const handleOrgSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      createOrganization.mutate(orgData);
+    };
+
+    return (
+      <form onSubmit={handleOrgSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="org_name">Organization Name</Label>
+          <Input
+            id="org_name"
+            value={orgData.name}
+            onChange={(e) => setOrgData({...orgData, name: e.target.value})}
+            placeholder="Enter organization name"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="org_email">Email</Label>
+          <Input
+            id="org_email"
+            type="email"
+            value={orgData.email}
+            onChange={(e) => setOrgData({...orgData, email: e.target.value})}
+            placeholder="org@example.com"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="org_site">Site</Label>
+          <Select value={orgData.site} onValueChange={(value) => setOrgData({...orgData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button type="submit" disabled={createOrganization.isPending}>
+          {createOrganization.isPending ? "Creating..." : "Create Organization"}
         </Button>
       </form>
     );
@@ -496,29 +571,7 @@ export default function AdminDashboard() {
                     <DialogHeader>
                       <DialogTitle>Create New Organization</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="org_name">Organization Name</Label>
-                        <Input id="org_name" placeholder="Enter organization name" />
-                      </div>
-                      <div>
-                        <Label htmlFor="org_email">Email</Label>
-                        <Input id="org_email" type="email" placeholder="org@example.com" />
-                      </div>
-                      <div>
-                        <Label htmlFor="org_site">Site</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select site" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="blue_area">Blue Area</SelectItem>
-                            <SelectItem value="i_10">I-10</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button>Create Organization</Button>
-                    </div>
+                    <NewOrganizationForm />
                   </DialogContent>
                 </Dialog>
               </div>

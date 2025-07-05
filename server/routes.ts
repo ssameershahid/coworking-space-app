@@ -5,8 +5,10 @@ import bcrypt from "bcrypt";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { storage } from "./storage";
+import { storage, db } from "./storage";
 import * as schema from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
+import { emailService } from "./email-service";
 
 // Session configuration
 const sessionConfig = {
@@ -664,15 +666,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
       }
 
+      // Generate a temporary password if not provided
+      const tempPassword = result.data.password || Math.random().toString(36).slice(-8);
+      
       // Hash the password
-      const hashedPassword = await bcrypt.hash(result.data.password, 10);
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
       const userData = {
         ...result.data,
         password: hashedPassword,
       };
 
       const user = await storage.createUser(userData);
-      res.status(201).json(user);
+      
+      // Send welcome email with credentials (optional - only if email service is configured)
+      if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
+        try {
+          const { emailService } = await import("./email-service");
+          await emailService.sendWelcomeEmail(user.email, user.first_name, tempPassword);
+          console.log(`Welcome email sent to ${user.email}`);
+        } catch (emailError) {
+          console.warn("Failed to send welcome email:", emailError);
+          // Don't fail user creation if email fails
+        }
+      }
+      
+      res.status(201).json({ 
+        ...user, 
+        tempPassword: tempPassword, // Return temp password for admin to share manually if needed
+        emailSent: !!(process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD)
+      });
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(500).json({ message: "Failed to create user" });
