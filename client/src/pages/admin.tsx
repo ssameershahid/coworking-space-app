@@ -14,25 +14,25 @@ export default function AdminPage() {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ["/api/users"],
-    enabled: !!user && user.role === "enterprise_administrator",
+    enabled: !!user && user.role === "calmkaaj_admin",
   });
 
   const { data: allOrders = [] } = useQuery({
     queryKey: ["/api/cafe/orders"],
-    enabled: !!user && user.role === "enterprise_administrator",
+    enabled: !!user && user.role === "calmkaaj_admin",
   });
 
   const { data: allBookings = [] } = useQuery({
     queryKey: ["/api/bookings"],
-    enabled: !!user && user.role === "enterprise_administrator",
+    enabled: !!user && user.role === "calmkaaj_admin",
   });
 
   const { data: rooms = [] } = useQuery({
     queryKey: ["/api/rooms"],
-    enabled: !!user && user.role === "enterprise_administrator",
+    enabled: !!user && user.role === "calmkaaj_admin",
   });
 
-  if (!user || user.role !== "enterprise_administrator") {
+  if (!user || user.role !== "calmkaaj_admin") {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">

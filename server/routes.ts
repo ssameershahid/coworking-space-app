@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/rooms", requireAuth, requireRole(["enterprise_administrator"]), async (req, res) => {
+  app.post("/api/rooms", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const result = schema.insertMeetingRoomSchema.safeParse(req.body);
       if (!result.success) {
@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/rooms/:id", requireAuth, requireRole(["enterprise_administrator"]), async (req, res) => {
+  app.patch("/api/rooms/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;

@@ -140,6 +140,10 @@ Changelog:
   * Added new role to database schema for regular organization employees
   * Fixed form to assign correct role (member_organization vs member_organization_admin)
   * Organization employees now have limited permissions, not admin privileges
+- July 06, 2025. Consolidated admin roles - unified 'enterprise_administrator' and 'calmkaaj_admin':
+  * Standardized on 'calmkaaj_admin' role throughout the system
+  * Updated all API endpoints and frontend checks to use single admin role
+  * Fixed organization creation permissions and role display components
 ```
 
 ## User Preferences

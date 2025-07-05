@@ -64,7 +64,7 @@ export default function UserManagement({ users }: UserManagementProps) {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'enterprise_administrator':
+      case 'calmkaaj_admin':
         return 'bg-red-100 text-red-800';
       case 'cafe_manager':
         return 'bg-green-100 text-green-800';
