@@ -562,7 +562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Organization routes
-  app.get("/api/organizations", requireAuth, requireRole(["enterprise_administrator"]), async (req, res) => {
+  app.get("/api/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const organizations = await storage.getOrganizations();
       res.json(organizations);
@@ -619,6 +619,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating employee permissions:", error);
       res.status(500).json({ message: "Failed to update permissions" });
+    }
+  });
+
+  // Admin-only routes for CalmKaaj administrators
+  app.get("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      // Get all users with organization details
+      const users = await db
+        .select({
+          id: schema.users.id,
+          email: schema.users.email,
+          first_name: schema.users.first_name,
+          last_name: schema.users.last_name,
+          role: schema.users.role,
+          organization_id: schema.users.organization_id,
+          site: schema.users.site,
+          credits: schema.users.credits,
+          used_credits: schema.users.used_credits,
+          is_active: schema.users.is_active,
+          can_charge_cafe_to_org: schema.users.can_charge_cafe_to_org,
+          can_charge_room_to_org: schema.users.can_charge_room_to_org,
+          created_at: schema.users.created_at,
+          organization: {
+            id: schema.organizations.id,
+            name: schema.organizations.name,
+          },
+        })
+        .from(schema.users)
+        .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id))
+        .orderBy(desc(schema.users.created_at));
+
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const result = schema.insertUserSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(result.data.password, 10);
+      const userData = {
+        ...result.data,
+        password: hashedPassword,
+      };
+
+      const user = await storage.createUser(userData);
+      res.status(201).json(user);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const user = await storage.updateUser(userId, updates);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.get("/api/admin/bookings", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      // Get all bookings for admin dashboard
+      const bookings = await storage.getMeetingBookings();
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching all bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  app.get("/api/admin/stats", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      // Calculate comprehensive system statistics
+      const users = await db.select().from(schema.users);
+      const orders = await db.select().from(schema.cafe_orders);
+      const bookings = await db.select().from(schema.meeting_bookings);
+      const organizations = await db.select().from(schema.organizations);
+
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+      const monthlyOrders = orders.filter(order => new Date(order.created_at) >= startOfMonth);
+      const monthlyBookings = bookings.filter(booking => new Date(booking.created_at) >= startOfMonth);
+
+      const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
+      const monthlyRevenue = monthlyOrders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
+
+      const stats = {
+        totalUsers: users.length,
+        activeUsers: users.filter(u => u.is_active).length,
+        totalRevenue,
+        monthlyRevenue,
+        totalOrders: orders.length,
+        monthlyOrders: monthlyOrders.length,
+        totalBookings: bookings.length,
+        monthlyBookings: monthlyBookings.length,
+        organizationCount: organizations.length,
+        roomUtilization: 0 // TODO: Calculate based on booking hours vs available hours
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch statistics" });
+    }
+  });
+
+  app.post("/api/rooms", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const result = schema.insertMeetingRoomSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
+      }
+
+      const room = await storage.createMeetingRoom(result.data);
+      res.status(201).json(room);
+    } catch (error) {
+      console.error("Error creating meeting room:", error);
+      res.status(500).json({ message: "Failed to create meeting room" });
     }
   });
 
