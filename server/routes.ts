@@ -576,13 +576,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      const result = schema.insertOrganizationSchema.safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
+      const { name, email, site, admin_name, admin_email, team_members = [] } = req.body;
+      
+      // Validate organization data
+      const orgResult = schema.insertOrganizationSchema.safeParse({ name, email, site });
+      if (!orgResult.success) {
+        return res.status(400).json({ message: "Invalid organization data", errors: orgResult.error.issues });
       }
 
-      const organization = await storage.createOrganization(result.data);
-      res.status(201).json(organization);
+      // Create the organization first
+      const organization = await storage.createOrganization(orgResult.data);
+
+      // Create admin user account
+      if (admin_name && admin_email) {
+        const tempPassword = Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+        
+        const adminUser = await storage.createUser({
+          email: admin_email,
+          password: hashedPassword,
+          first_name: admin_name,
+          last_name: '',
+          role: 'member_organization_admin',
+          organization_id: organization.id,
+          site: site,
+          credits: 30,
+          can_charge_cafe_to_org: true,
+          can_charge_room_to_org: true
+        });
+
+        // Try to send welcome email to admin
+        try {
+          await emailService.sendWelcomeEmail(admin_email, admin_name, tempPassword);
+        } catch (emailError) {
+          console.error("Failed to send admin welcome email:", emailError);
+        }
+      }
+
+      // Create team member user accounts
+      for (const memberEmail of team_members) {
+        if (memberEmail && memberEmail.trim()) {
+          const tempPassword = Math.random().toString(36).slice(-8);
+          const hashedPassword = await bcrypt.hash(tempPassword, 10);
+          
+          const memberName = memberEmail.split('@')[0]; // Use email prefix as name
+          
+          await storage.createUser({
+            email: memberEmail.trim(),
+            password: hashedPassword,
+            first_name: memberName,
+            last_name: '',
+            role: 'member_organization',
+            organization_id: organization.id,
+            site: site,
+            credits: 30,
+            can_charge_cafe_to_org: false,
+            can_charge_room_to_org: true
+          });
+
+          // Try to send welcome email to team member
+          try {
+            await emailService.sendWelcomeEmail(memberEmail.trim(), memberName, tempPassword);
+          } catch (emailError) {
+            console.error("Failed to send team member welcome email:", emailError);
+          }
+        }
+      }
+
+      res.status(201).json({ 
+        organization,
+        message: `Organization created with admin and ${team_members.length} team members`
+      });
     } catch (error) {
       console.error("Error creating organization:", error);
       res.status(500).json({ message: "Failed to create organization" });

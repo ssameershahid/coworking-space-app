@@ -201,10 +201,14 @@ export default function AdminDashboard() {
       const response = await apiRequest('POST', '/api/organizations', orgData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       setNewOrgDialog(false);
-      toast({ title: "Organization created successfully" });
+      toast({ 
+        title: "Organization created successfully!", 
+        description: data.message || "Admin and team member accounts have been created"
+      });
     },
     onError: (error: any) => {
       toast({ 
@@ -442,7 +446,9 @@ export default function AdminDashboard() {
         name: orgData.name,
         email: orgData.email,
         site: orgData.site,
-        // Remove fields that aren't in the database schema
+        admin_name: orgData.admin_name,
+        admin_email: orgData.admin_email,
+        team_members: orgData.team_members.filter(member => member.trim() !== ''),
       };
       createOrganization.mutate(submitData);
     };
