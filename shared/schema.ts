@@ -5,7 +5,7 @@ import { z } from "zod";
 // Enums
 export const userRoleEnum = pgEnum("user_role", ["member_individual", "member_organization", "member_organization_admin", "cafe_manager", "calmkaaj_admin"]);
 export const billingTypeEnum = pgEnum("billing_type", ["personal", "organization"]);
-export const orderStatusEnum = pgEnum("order_status", ["pending", "preparing", "ready", "delivered", "cancelled"]);
+export const orderStatusEnum = pgEnum("order_status", ["pending", "accepted", "preparing", "ready", "delivered", "cancelled"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["confirmed", "cancelled", "completed"]);
 export const siteEnum = pgEnum("site", ["blue_area", "i_10"]);
 
@@ -74,6 +74,7 @@ export const cafe_orders = pgTable("cafe_orders", {
   org_id: uuid("org_id").references(() => organizations.id),
   handled_by: integer("handled_by").references(() => users.id),
   notes: text("notes"),
+  delivery_location: text("delivery_location"),
   site: siteEnum("site").notNull().default("blue_area"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),

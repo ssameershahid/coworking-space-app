@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -31,7 +32,8 @@ import {
   CreditCard,
   Trash2,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Package
 } from "lucide-react";
 import { MenuItem as MenuItemType, CafeOrder } from "@/lib/types";
 
@@ -49,6 +51,7 @@ export default function CafePage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
   const [orderNotes, setOrderNotes] = useState("");
+  const [deliveryLocation, setDeliveryLocation] = useState("");
   const [currentOrder, setCurrentOrder] = useState<CafeOrder | null>(null);
 
   const { data: categories = [] } = useQuery({
@@ -135,6 +138,7 @@ export default function CafePage() {
       billed_to: billingType,
       org_id: billingType === "organization" ? user?.organization_id : null,
       notes: orderNotes || null,
+      delivery_location: deliveryLocation || null,
       site: user?.site,
     };
 
@@ -452,6 +456,29 @@ export default function CafePage() {
                   </RadioGroup>
                 </div>
               )}
+
+              {/* Office Location */}
+              <div className="space-y-2">
+                <Label htmlFor="delivery-location" className="text-sm font-medium">Office Location</Label>
+                <select 
+                  id="delivery-location"
+                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={deliveryLocation}
+                  onChange={(e) => setDeliveryLocation(e.target.value)}
+                >
+                  <option value="">Select office location for delivery</option>
+                  <option value="Reception">Reception</option>
+                  <option value="Conference Room A">Conference Room A</option>
+                  <option value="Conference Room B">Conference Room B</option>
+                  <option value="Lounge Area">Lounge Area</option>
+                  <option value="Kitchen">Kitchen</option>
+                  <option value="Workspace Floor 1">Workspace Floor 1</option>
+                  <option value="Workspace Floor 2">Workspace Floor 2</option>
+                  <option value="Private Office 1">Private Office 1</option>
+                  <option value="Private Office 2">Private Office 2</option>
+                  <option value="Cafeteria">Cafeteria</option>
+                </select>
+              </div>
 
               {/* Order Notes */}
               <div className="space-y-2">

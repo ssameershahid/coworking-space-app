@@ -15,10 +15,11 @@ interface CafeOrder {
   id: number;
   user_id: number;
   total_amount: string;
-  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   billed_to: 'personal' | 'organization';
   org_id?: string;
   notes?: string;
+  delivery_location?: string;
   site: string;
   created_at: string;
   user?: {
@@ -44,8 +45,9 @@ interface CafeOrder {
 }
 
 const statusConfig = {
-  pending: { label: "Received", color: "bg-yellow-100 text-yellow-800", icon: Clock },
-  preparing: { label: "Started", color: "bg-blue-100 text-blue-800", icon: Package },
+  pending: { label: "New Order", color: "bg-orange-100 text-orange-800", icon: Clock },
+  accepted: { label: "Accepted", color: "bg-yellow-100 text-yellow-800", icon: CheckCircle },
+  preparing: { label: "Preparing", color: "bg-blue-100 text-blue-800", icon: Package },
   ready: { label: "Ready", color: "bg-green-100 text-green-800", icon: CheckCircle },
   delivered: { label: "Delivered", color: "bg-gray-100 text-gray-800", icon: Truck },
   cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800", icon: Clock }
@@ -158,6 +160,13 @@ export default function CafeManagerDashboard() {
             </div>
           )}
           
+          {order.delivery_location && (
+            <div className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
+              <Package className="h-3 w-3" />
+              Deliver to: {order.delivery_location}
+            </div>
+          )}
+          
           {order.notes && (
             <div className="mt-2 text-sm text-muted-foreground italic">
               Note: {order.notes}
@@ -166,6 +175,17 @@ export default function CafeManagerDashboard() {
           
           <div className="mt-3 flex gap-2">
             {order.status === 'pending' && (
+              <Button 
+                size="sm" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleStatusChange(order.id, 'accepted');
+                }}
+              >
+                Accept Order
+              </Button>
+            )}
+            {order.status === 'accepted' && (
               <Button 
                 size="sm" 
                 onClick={(e) => {

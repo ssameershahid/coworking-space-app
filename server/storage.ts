@@ -166,6 +166,7 @@ export class DatabaseStorage implements IStorage {
       org_id: schema.cafe_orders.org_id,
       handled_by: schema.cafe_orders.handled_by,
       notes: schema.cafe_orders.notes,
+      delivery_location: schema.cafe_orders.delivery_location,
       site: schema.cafe_orders.site,
       created_at: schema.cafe_orders.created_at,
       updated_at: schema.cafe_orders.updated_at,

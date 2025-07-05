@@ -405,7 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/cafe/orders/:id/status", requireAuth, requireRole(["cafe_manager", "enterprise_administrator"]), async (req, res) => {
+  app.patch("/api/cafe/orders/:id/status", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;
