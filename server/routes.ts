@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/menu/items", requireAuth, requireRole(["cafe_manager", "enterprise_administrator"]), async (req, res) => {
+  app.post("/api/menu/items", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
     try {
       const result = schema.insertMenuItemSchema.safeParse(req.body);
       if (!result.success) {
@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/menu/items/:id", requireAuth, requireRole(["cafe_manager", "enterprise_administrator"]), async (req, res) => {
+  app.patch("/api/menu/items/:id", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;

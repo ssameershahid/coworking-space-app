@@ -122,6 +122,9 @@ export default function AdminDashboard() {
   const [editOrgDialog, setEditOrgDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedOrg, setSelectedOrg] = useState<any>(null);
+  const [newMenuItemDialog, setNewMenuItemDialog] = useState(false);
+  const [editMenuItemDialog, setEditMenuItemDialog] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<any>(null);
 
   // Handle "View As User" functionality
   const handleViewAsUser = async (userId: number) => {
@@ -347,6 +350,62 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       toast({ title: "User updated successfully" });
+    }
+  });
+
+  const createMenuItem = useMutation({
+    mutationFn: async (menuItemData: any) => {
+      const response = await apiRequest('POST', '/api/menu/items', menuItemData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/menu/items'] });
+      setNewMenuItemDialog(false);
+      toast({ title: "Menu item created successfully!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to create menu item", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateMenuItem = useMutation({
+    mutationFn: async ({ itemId, updates }: { itemId: number; updates: any }) => {
+      const response = await apiRequest('PATCH', `/api/menu/items/${itemId}`, updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/menu/items'] });
+      setEditMenuItemDialog(false);
+      toast({ title: "Menu item updated successfully!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update menu item", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const toggleMenuItemAvailability = useMutation({
+    mutationFn: async ({ itemId, is_available }: { itemId: number; is_available: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/menu/items/${itemId}`, { is_available });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/menu/items'] });
+      toast({ title: "Menu item status updated!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update menu item", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -1137,6 +1196,192 @@ export default function AdminDashboard() {
     );
   };
 
+  const NewMenuItemForm = () => {
+    const [formData, setFormData] = useState({
+      name: '',
+      description: '',
+      price: '',
+      image_url: '',
+      is_available: true,
+      site: 'blue_area'
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      createMenuItem.mutate(formData);
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="name">Item Name</Label>
+          <Input
+            id="name"
+            placeholder="Cappuccino"
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            placeholder="Freshly brewed cappuccino"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            className="resize-none"
+            rows={2}
+          />
+        </div>
+        <div>
+          <Label htmlFor="price">Price (Rs.)</Label>
+          <Input
+            id="price"
+            type="number"
+            step="0.01"
+            placeholder="4.50"
+            value={formData.price}
+            onChange={(e) => setFormData({...formData, price: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="image_url">Image URL</Label>
+          <Input
+            id="image_url"
+            placeholder="https://example.com/image.jpg"
+            value={formData.image_url}
+            onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="is_available"
+            checked={formData.is_available}
+            onChange={(e) => setFormData({...formData, is_available: e.target.checked})}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="is_available">Available for ordering</Label>
+        </div>
+        <Button type="submit" disabled={createMenuItem.isPending}>
+          {createMenuItem.isPending ? "Creating..." : "Create Menu Item"}
+        </Button>
+      </form>
+    );
+  };
+
+  const EditMenuItemForm = ({ item, onClose }: { item: any; onClose: () => void }) => {
+    const [formData, setFormData] = useState({
+      name: item.name || '',
+      description: item.description || '',
+      price: item.price || '',
+      image_url: item.image_url || '',
+      is_available: item.is_available || true,
+      site: item.site || 'blue_area'
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        await updateMenuItem.mutateAsync({ itemId: item.id, updates: formData });
+        onClose();
+      } catch (error) {
+        console.error('Failed to update menu item:', error);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="edit_name">Item Name</Label>
+          <Input
+            id="edit_name"
+            placeholder="Cappuccino"
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_description">Description</Label>
+          <Textarea
+            id="edit_description"
+            placeholder="Freshly brewed cappuccino"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            className="resize-none"
+            rows={2}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_price">Price (Rs.)</Label>
+          <Input
+            id="edit_price"
+            type="number"
+            step="0.01"
+            placeholder="4.50"
+            value={formData.price}
+            onChange={(e) => setFormData({...formData, price: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_image_url">Image URL</Label>
+          <Input
+            id="edit_image_url"
+            placeholder="https://example.com/image.jpg"
+            value={formData.image_url}
+            onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="edit_is_available"
+            checked={formData.is_available}
+            onChange={(e) => setFormData({...formData, is_available: e.target.checked})}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="edit_is_available">Available for ordering</Label>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateMenuItem.isPending}>
+            {updateMenuItem.isPending ? "Updating..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -1455,7 +1700,23 @@ export default function AdminDashboard() {
         <TabsContent value="menu">
           <Card>
             <CardHeader>
-              <CardTitle>Menu Management</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Menu Management</CardTitle>
+                <Dialog open={newMenuItemDialog} onOpenChange={setNewMenuItemDialog}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Menu Item
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Menu Item</DialogTitle>
+                    </DialogHeader>
+                    <NewMenuItemForm />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -1465,7 +1726,6 @@ export default function AdminDashboard() {
                     <TableHead>Price</TableHead>
                     <TableHead>Site</TableHead>
                     <TableHead>Available</TableHead>
-                    <TableHead>Daily Special</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1486,17 +1746,36 @@ export default function AdminDashboard() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={item.is_daily_special ? "default" : "outline"}>
-                          {item.is_daily_special ? "Yes" : "No"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedMenuItem(item);
+                              setEditMenuItemDialog(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
-                            <Trash2 className="h-4 w-4" />
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => toggleMenuItemAvailability.mutate({
+                              itemId: item.id,
+                              is_available: !item.is_available
+                            })}
+                          >
+                            {item.is_available ? (
+                              <>
+                                <Ban className="h-4 w-4 mr-1" />
+                                Deactivate
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Activate
+                              </>
+                            )}
                           </Button>
                         </div>
                       </TableCell>
@@ -1712,6 +1991,24 @@ export default function AdminDashboard() {
               onClose={() => {
                 setEditOrgDialog(false);
                 setSelectedOrg(null);
+              }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Menu Item Dialog */}
+      <Dialog open={editMenuItemDialog} onOpenChange={setEditMenuItemDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Menu Item</DialogTitle>
+          </DialogHeader>
+          {selectedMenuItem && (
+            <EditMenuItemForm 
+              item={selectedMenuItem} 
+              onClose={() => {
+                setEditMenuItemDialog(false);
+                setSelectedMenuItem(null);
               }} 
             />
           )}
