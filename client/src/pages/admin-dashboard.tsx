@@ -355,6 +355,215 @@ export default function AdminDashboard() {
     }
   });
 
+  const EditUserForm = ({ user, onClose }: { user: any; onClose: () => void }) => {
+    const [formData, setFormData] = useState({
+      email: user.email || '',
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      role: user.role || 'member_individual',
+      site: user.site || 'blue_area',
+      organization_id: user.organization_id || '',
+      member_type: user.role === 'member_organization' || user.role === 'member_organization_admin' ? 'organization_employee' : 'individual',
+      office_type: user.office_type || 'hot_desk',
+      monthly_credits: user.credits || 10,
+      membership_fee: user.membership_fee || 0,
+      start_date: user.start_date ? new Date(user.start_date).toISOString().split('T')[0] : '',
+      notes: user.notes || '',
+      can_charge_cafe_to_org: user.can_charge_cafe_to_org || false,
+      can_charge_room_to_org: user.can_charge_room_to_org || false
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const { member_type, monthly_credits, membership_fee, notes, ...cleanData } = formData;
+      const submitData = {
+        ...cleanData,
+        organization_id: cleanData.organization_id || null,
+        credits: monthly_credits,
+        start_date: formData.start_date || null,
+      };
+      
+      try {
+        await updateUser.mutateAsync({ userId: user.id, updates: submitData });
+        onClose();
+        toast({
+          title: "Success",
+          description: "User updated successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Error", 
+          description: "Failed to update user",
+          variant: "destructive",
+        });
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="edit_first_name">Full Name</Label>
+          <Input
+            id="edit_first_name"
+            placeholder="John Doe"
+            value={formData.first_name}
+            onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_email">Email</Label>
+          <Input
+            id="edit_email"
+            type="email"
+            placeholder="john.doe@example.com"
+            value={formData.email}
+            onChange={(e) => setFormData({...formData, email: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_member_type">Member Type</Label>
+          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value, role: value === 'organization_employee' ? 'member_organization' : 'member_individual', monthly_credits: value === 'organization_employee' ? 0 : 10, membership_fee: value === 'organization_employee' ? 0 : 1500})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="individual">Individual</SelectItem>
+              <SelectItem value="organization_employee">Organization Employee</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {formData.member_type === 'organization_employee' && (
+          <div>
+            <Label htmlFor="edit_organization_id">Organization</Label>
+            <Select value={formData.organization_id} onValueChange={(value) => setFormData({...formData, organization_id: value})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select organization" />
+              </SelectTrigger>
+              <SelectContent>
+                {organizations.map((org) => (
+                  <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <div>
+          <Label htmlFor="edit_office_type">Space Selected</Label>
+          <Select value={formData.office_type} onValueChange={(value) => setFormData({...formData, office_type: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hot_desk">Hot Desk</SelectItem>
+              <SelectItem value="dedicated_desk">Dedicated Desk</SelectItem>
+              <SelectItem value="private_office">Private Office</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="edit_role">Role</Label>
+          <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="member_individual">Member Individual</SelectItem>
+              <SelectItem value="member_organization">Member Organization</SelectItem>
+              <SelectItem value="member_organization_admin">Member Organization Admin</SelectItem>
+              <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
+              <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="edit_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="edit_monthly_credits">Monthly Credits</Label>
+          <Input
+            id="edit_monthly_credits"
+            type="number"
+            value={formData.monthly_credits}
+            onChange={(e) => setFormData({...formData, monthly_credits: parseInt(e.target.value) || 0})}
+            min="0"
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_membership_fee">Membership Fee (PKR)</Label>
+          <Input
+            id="edit_membership_fee"
+            type="number"
+            value={formData.membership_fee}
+            onChange={(e) => setFormData({...formData, membership_fee: parseInt(e.target.value) || 0})}
+            min="0"
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_start_date">Start Date</Label>
+          <Input
+            id="edit_start_date"
+            type="date"
+            value={formData.start_date}
+            onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+          />
+        </div>
+        {formData.member_type === 'organization_employee' && (
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="edit_can_charge_cafe"
+                checked={formData.can_charge_cafe_to_org}
+                onChange={(e) => setFormData({...formData, can_charge_cafe_to_org: e.target.checked})}
+                className="rounded"
+              />
+              <Label htmlFor="edit_can_charge_cafe" className="text-sm">Can charge cafe orders to organization</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="edit_can_charge_room"
+                checked={formData.can_charge_room_to_org}
+                onChange={(e) => setFormData({...formData, can_charge_room_to_org: e.target.checked})}
+                className="rounded"
+              />
+              <Label htmlFor="edit_can_charge_room" className="text-sm">Can charge room bookings to organization</Label>
+            </div>
+          </div>
+        )}
+        <div>
+          <Label htmlFor="edit_notes">Notes</Label>
+          <Textarea
+            id="edit_notes"
+            placeholder="Additional notes about the member..."
+            value={formData.notes}
+            onChange={(e) => setFormData({...formData, notes: e.target.value})}
+            rows={3}
+          />
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateUser.isPending}>
+            {updateUser.isPending ? "Updating..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
+
   const NewUserForm = () => {
     const [formData, setFormData] = useState({
       email: '',
@@ -1233,98 +1442,18 @@ export default function AdminDashboard() {
 
       {/* Edit User Dialog */}
       <Dialog open={editUserDialog} onOpenChange={setEditUserDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
           {selectedUser && (
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const updates = {
-                first_name: formData.get('first_name'),
-                last_name: formData.get('last_name'),
-                email: formData.get('email'),
-                role: formData.get('role'),
-                site: formData.get('site'),
-                start_date: formData.get('start_date') || null,
-              };
-              
-              try {
-                await updateUser.mutateAsync({ userId: selectedUser.id, updates });
+            <EditUserForm 
+              user={selectedUser} 
+              onClose={() => {
                 setEditUserDialog(false);
                 setSelectedUser(null);
-                toast({
-                  title: "Success",
-                  description: "User updated successfully",
-                });
-              } catch (error) {
-                toast({
-                  title: "Error",
-                  description: "Failed to update user",
-                  variant: "destructive",
-                });
-              }
-            }}>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="first_name">First Name</Label>
-                    <Input id="first_name" name="first_name" defaultValue={selectedUser.first_name} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="last_name">Last Name</Label>
-                    <Input id="last_name" name="last_name" defaultValue={selectedUser.last_name} required />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" name="email" type="email" defaultValue={selectedUser.email} required />
-                </div>
-                <div>
-                  <Label htmlFor="role">Role</Label>
-                  <Select name="role" defaultValue={selectedUser.role}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member_individual">Member Individual</SelectItem>
-                      <SelectItem value="member_organization">Member Organization</SelectItem>
-                      <SelectItem value="member_organization_admin">Member Organization Admin</SelectItem>
-                      <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
-                      <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="site">Site</Label>
-                  <Select name="site" defaultValue={selectedUser.site}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="blue_area">Blue Area</SelectItem>
-                      <SelectItem value="i_10">I-10</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="start_date">Start Date (Optional)</Label>
-                  <Input 
-                    id="start_date" 
-                    name="start_date" 
-                    type="date"
-                    defaultValue={selectedUser.start_date ? new Date(selectedUser.start_date).toISOString().split('T')[0] : ''}
-                  />
-                </div>
-              </div>
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => setEditUserDialog(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">Save Changes</Button>
-              </DialogFooter>
-            </form>
+              }} 
+            />
           )}
         </DialogContent>
       </Dialog>
