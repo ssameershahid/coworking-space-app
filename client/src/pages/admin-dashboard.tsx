@@ -120,8 +120,8 @@ export default function AdminDashboard() {
     try {
       const response = await apiRequest('POST', `/api/admin/impersonate/${userId}`);
       if (response.ok) {
-        // Add flag to indicate impersonation mode and reload to dashboard
-        window.location.href = '/?impersonating=true';
+        // Force a complete page reload to restart the auth context
+        window.location.reload();
         toast({ 
           title: "Now viewing as user", 
           description: "You are now seeing the app from this user's perspective"
@@ -297,6 +297,17 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       toast({ title: "User status updated" });
+    }
+  });
+
+  const toggleOrgStatus = useMutation({
+    mutationFn: async ({ orgId, isActive }: { orgId: string; isActive: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/admin/organizations/${orgId}`, { is_active: isActive });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      toast({ title: "Organization status updated" });
     }
   });
 
@@ -860,14 +871,23 @@ export default function AdminDashboard() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleViewAsOrgAdmin(org.id)}
-                            title="View As Organization Admin"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => toggleOrgStatus.mutate({ orgId: org.id, isActive: !isActive })}
+                            >
+                              {isActive ? "Deactivate" : "Activate"}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleViewAsOrgAdmin(org.id)}
+                              title="View As Organization Admin"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

@@ -793,6 +793,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/admin/organizations/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const orgId = req.params.id;
+      const updates = req.body;
+      
+      const organization = await storage.updateOrganization(orgId, updates);
+      res.json(organization);
+    } catch (error) {
+      console.error("Error updating organization:", error);
+      res.status(500).json({ message: "Failed to update organization" });
+    }
+  });
+
   app.get("/api/admin/bookings", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       // Get all bookings for admin dashboard
@@ -943,11 +956,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log the impersonation for audit purposes
       console.log(`Admin ${(req.user as any).id} (${(req.user as any).email}) is impersonating user ${userId} (${userToImpersonate.email})`);
 
-      // Update the session to impersonate the user
+      // Store original admin info and update session
+      (req.session as any).originalAdminId = (req.user as any).id;
+      (req.session as any).originalUserObject = req.user;
       (req.session as any).userId = userId;
-      (req.session as any).originalAdminId = (req.user as any).id; // Store original admin ID for potential reversal
+      (req.session as any).impersonating = true;
       
-      res.json({ message: "Impersonation successful", user: userToImpersonate });
+      // Force session save
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+        }
+        res.json({ 
+          message: "Impersonation successful",
+          impersonatedUser: {
+            id: userToImpersonate.id,
+            email: userToImpersonate.email,
+            first_name: userToImpersonate.first_name,
+            last_name: userToImpersonate.last_name,
+            role: userToImpersonate.role
+          }
+        });
+      });
     } catch (error) {
       console.error("Error during impersonation:", error);
       res.status(500).json({ message: "Failed to impersonate user" });
@@ -966,9 +996,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Revert back to original admin
       (req.session as any).userId = originalAdminId;
       delete (req.session as any).originalAdminId;
+      delete (req.session as any).originalUserObject;
+      delete (req.session as any).impersonating;
       
-      const adminUser = await storage.getUserById(originalAdminId);
-      res.json({ message: "Impersonation reverted", user: adminUser });
+      // Force session save
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+        }
+        res.json({ message: "Impersonation reverted successfully" });
+      });
     } catch (error) {
       console.error("Error reverting impersonation:", error);
       res.status(500).json({ message: "Failed to revert impersonation" });

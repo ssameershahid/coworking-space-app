@@ -17,6 +17,7 @@ export interface IStorage {
   getOrganizations(): Promise<schema.Organization[]>;
   getOrganizationById(id: string): Promise<schema.Organization | undefined>;
   createOrganization(org: schema.InsertOrganization): Promise<schema.Organization>;
+  updateOrganization(id: string, updates: Partial<schema.Organization>): Promise<schema.Organization>;
   
   // Menu
   getMenuCategories(): Promise<schema.MenuCategory[]>;
@@ -88,6 +89,11 @@ export class DatabaseStorage implements IStorage {
   async createOrganization(org: schema.InsertOrganization): Promise<schema.Organization> {
     const [newOrg] = await db.insert(schema.organizations).values(org).returning();
     return newOrg;
+  }
+
+  async updateOrganization(id: string, updates: Partial<schema.Organization>): Promise<schema.Organization> {
+    const [updatedOrg] = await db.update(schema.organizations).set(updates).where(eq(schema.organizations.id, id)).returning();
+    return updatedOrg;
   }
 
   async getMenuCategories(): Promise<schema.MenuCategory[]> {
