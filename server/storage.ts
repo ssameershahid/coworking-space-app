@@ -28,7 +28,7 @@ export interface IStorage {
   // Cafe Orders
   createCafeOrder(order: schema.InsertCafeOrder): Promise<schema.CafeOrder>;
   createCafeOrderItem(item: schema.InsertCafeOrderItem): Promise<schema.CafeOrderItem>;
-  getCafeOrders(userId?: number, orgId?: string): Promise<any[]>;
+  getCafeOrders(userId?: number, orgId?: string, site?: string): Promise<any[]>;
   getCafeOrderById(id: number): Promise<any>;
   updateCafeOrderStatus(id: number, status: string, handledBy?: number): Promise<schema.CafeOrder>;
   
@@ -131,14 +131,19 @@ export class DatabaseStorage implements IStorage {
     return newItem;
   }
 
-  async getCafeOrders(userId?: number, orgId?: string): Promise<any[]> {
-    const query = db.select({
+  async getCafeOrders(userId?: number, orgId?: string, site?: string): Promise<any[]> {
+    let query = db.select({
       id: schema.cafe_orders.id,
+      user_id: schema.cafe_orders.user_id,
       total_amount: schema.cafe_orders.total_amount,
       status: schema.cafe_orders.status,
       billed_to: schema.cafe_orders.billed_to,
+      org_id: schema.cafe_orders.org_id,
+      handled_by: schema.cafe_orders.handled_by,
       notes: schema.cafe_orders.notes,
+      site: schema.cafe_orders.site,
       created_at: schema.cafe_orders.created_at,
+      updated_at: schema.cafe_orders.updated_at,
       user: {
         id: schema.users.id,
         first_name: schema.users.first_name,
@@ -155,13 +160,41 @@ export class DatabaseStorage implements IStorage {
     .leftJoin(schema.organizations, eq(schema.cafe_orders.org_id, schema.organizations.id));
 
     if (userId) {
-      query.where(eq(schema.cafe_orders.user_id, userId));
-    }
-    if (orgId) {
-      query.where(eq(schema.cafe_orders.org_id, orgId));
+      query = query.where(eq(schema.cafe_orders.user_id, userId));
+    } else if (orgId) {
+      query = query.where(eq(schema.cafe_orders.org_id, orgId));
+    } else if (site) {
+      query = query.where(eq(schema.cafe_orders.site, site));
     }
 
-    return await query.orderBy(desc(schema.cafe_orders.created_at));
+    const orders = await query.orderBy(desc(schema.cafe_orders.created_at));
+
+    // Get order items for each order
+    const ordersWithItems = await Promise.all(
+      orders.map(async (order) => {
+        const items = await db
+          .select({
+            id: schema.cafe_order_items.id,
+            quantity: schema.cafe_order_items.quantity,
+            price: schema.cafe_order_items.price,
+            menu_item: {
+              id: schema.menu_items.id,
+              name: schema.menu_items.name,
+              description: schema.menu_items.description,
+            },
+          })
+          .from(schema.cafe_order_items)
+          .leftJoin(schema.menu_items, eq(schema.cafe_order_items.menu_item_id, schema.menu_items.id))
+          .where(eq(schema.cafe_order_items.order_id, order.id));
+
+        return {
+          ...order,
+          items,
+        };
+      })
+    );
+
+    return ordersWithItems;
   }
 
   async getCafeOrderById(id: number): Promise<any> {

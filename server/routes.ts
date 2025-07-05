@@ -350,6 +350,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cafe manager endpoint to fetch all orders
+  app.get("/api/cafe/orders/all", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
+    try {
+      const user = req.user as schema.User;
+      
+      // Get all orders for the site (cafe managers manage site-specific orders)
+      const orders = await storage.getCafeOrders(undefined, undefined, user.site);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching all cafe orders:", error);
+      res.status(500).json({ message: "Failed to fetch cafe orders" });
+    }
+  });
+
   app.get("/api/cafe/orders/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
