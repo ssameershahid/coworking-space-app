@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -380,7 +380,7 @@ export default function AdminDashboard() {
     });
 
     // Initialize admin details
-    React.useEffect(() => {
+    useEffect(() => {
       const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'member_organization_admin');
       if (orgAdmin) {
         setOrgData(prev => ({
