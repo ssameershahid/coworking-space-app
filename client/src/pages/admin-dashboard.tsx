@@ -253,7 +253,7 @@ export default function AdminDashboard() {
       site: 'blue_area',
       organization_id: '',
       member_type: 'individual',
-      office_type: 'shared_desk',
+      office_type: 'hot_desk',
       monthly_credits: 10,
       membership_fee: 0,
       start_date: new Date().toISOString().split('T')[0],
@@ -294,61 +294,79 @@ export default function AdminDashboard() {
         </div>
         <div>
           <Label htmlFor="member_type">Member Type</Label>
-          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value})}>
+          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value, role: value === 'organization_employee' ? 'member_organization' : 'member_individual', monthly_credits: value === 'organization_employee' ? 0 : 10, membership_fee: value === 'organization_employee' ? 0 : 1500})}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="individual">Individual</SelectItem>
-              <SelectItem value="organization">Organization</SelectItem>
+              <SelectItem value="organization_employee">Organization Employee</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        {formData.member_type === 'organization_employee' && (
+          <div>
+            <Label htmlFor="organization_id">Organization</Label>
+            <Select value={formData.organization_id} onValueChange={(value) => setFormData({...formData, organization_id: value})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select organization" />
+              </SelectTrigger>
+              <SelectContent>
+                {organizations.map((org) => (
+                  <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div>
-          <Label htmlFor="office_type">Office Type</Label>
+          <Label htmlFor="office_type">Space Selected</Label>
           <Select value={formData.office_type} onValueChange={(value) => setFormData({...formData, office_type: value})}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="shared_desk">Shared Desk</SelectItem>
               <SelectItem value="hot_desk">Hot Desk</SelectItem>
+              <SelectItem value="dedicated_desk">Dedicated Desk</SelectItem>
               <SelectItem value="private_office">Private Office</SelectItem>
-              <SelectItem value="virtual_office">Virtual Office</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-sm text-muted-foreground mt-1">
             <strong>Note:</strong> Hot Desk is implemented as a Shared Office type in the system
           </p>
         </div>
-        <div>
-          <Label htmlFor="monthly_credits">Monthly Meeting Credits</Label>
-          <Input
-            id="monthly_credits"
-            type="number"
-            placeholder="10"
-            value={formData.monthly_credits}
-            onChange={(e) => setFormData({...formData, monthly_credits: parseInt(e.target.value) || 0})}
-            required
-          />
-          <p className="text-sm text-muted-foreground mt-1">
-            Number of meeting credits allocated to this member each month.
-          </p>
-        </div>
-        <div>
-          <Label htmlFor="membership_fee">Membership Fee (PKR)</Label>
-          <Input
-            id="membership_fee"
-            type="number"
-            placeholder="0"
-            value={formData.membership_fee}
-            onChange={(e) => setFormData({...formData, membership_fee: parseInt(e.target.value) || 0})}
-            required
-          />
-          <p className="text-sm text-muted-foreground mt-1">
-            Monthly fee for this member.
-          </p>
-        </div>
+        {formData.member_type === 'individual' && (
+          <>
+            <div>
+              <Label htmlFor="monthly_credits">Monthly Meeting Credits</Label>
+              <Input
+                id="monthly_credits"
+                type="number"
+                placeholder="10"
+                value={formData.monthly_credits}
+                onChange={(e) => setFormData({...formData, monthly_credits: parseInt(e.target.value) || 0})}
+                required
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Number of meeting credits allocated to this member each month.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="membership_fee">Membership Fee (PKR)</Label>
+              <Input
+                id="membership_fee"
+                type="number"
+                placeholder="1500"
+                value={formData.membership_fee}
+                onChange={(e) => setFormData({...formData, membership_fee: parseInt(e.target.value) || 0})}
+                required
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Monthly fee for this member.
+              </p>
+            </div>
+          </>
+        )}
         <div>
           <Label htmlFor="start_date">Start Date</Label>
           <Input
@@ -384,21 +402,7 @@ export default function AdminDashboard() {
             </SelectContent>
           </Select>
         </div>
-        {formData.role === 'member_organization_admin' && (
-          <div>
-            <Label htmlFor="organization_id">Organization</Label>
-            <Select value={formData.organization_id} onValueChange={(value) => setFormData({...formData, organization_id: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select organization" />
-              </SelectTrigger>
-              <SelectContent>
-                {organizations.map((org) => (
-                  <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+
         <Button type="submit" disabled={createUser.isPending}>
           {createUser.isPending ? "Creating..." : "Create Member"}
         </Button>
@@ -672,20 +676,7 @@ export default function AdminDashboard() {
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <div className="flex items-center justify-center gap-8 mb-6">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg">
-                          <UserIcon className="h-4 w-4" />
-                          New Individual
-                        </div>
-                        <div className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted" onClick={() => setNewOrgDialog(true)}>
-                          <Building2 className="h-4 w-4" />
-                          New Organization
-                        </div>
-                        <div className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted">
-                          <Users className="h-4 w-4" />
-                          Client List
-                        </div>
-                      </div>
+                      <DialogTitle>New User</DialogTitle>
                     </DialogHeader>
                     <NewUserForm />
                   </DialogContent>
@@ -750,20 +741,7 @@ export default function AdminDashboard() {
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <div className="flex items-center justify-center gap-8 mb-6">
-                        <div className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted" onClick={() => setNewUserDialog(true)}>
-                          <UserIcon className="h-4 w-4" />
-                          New Individual
-                        </div>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg">
-                          <Building2 className="h-4 w-4" />
-                          New Organization
-                        </div>
-                        <div className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted">
-                          <Users className="h-4 w-4" />
-                          Client List
-                        </div>
-                      </div>
+                      <DialogTitle>New Organization</DialogTitle>
                     </DialogHeader>
                     <NewOrganizationForm />
                   </DialogContent>
