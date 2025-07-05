@@ -59,6 +59,7 @@ interface User {
   organization_id?: string;
   site: string;
   is_active: boolean;
+  start_date?: string;
   created_at: string;
 }
 
@@ -67,6 +68,7 @@ interface Organization {
   name: string;
   email: string;
   site: string;
+  start_date?: string;
   created_at: string;
 }
 
@@ -112,6 +114,50 @@ export default function AdminDashboard() {
   const [newOrgDialog, setNewOrgDialog] = useState(false);
   const [newRoomDialog, setNewRoomDialog] = useState(false);
   const [newAnnouncementDialog, setNewAnnouncementDialog] = useState(false);
+
+  // Handle "View As User" functionality
+  const handleViewAsUser = async (userId: number) => {
+    try {
+      const response = await apiRequest('POST', `/api/admin/impersonate/${userId}`);
+      if (response.ok) {
+        // Add flag to indicate impersonation mode and reload to dashboard
+        window.location.href = '/?impersonating=true';
+        toast({ 
+          title: "Now viewing as user", 
+          description: "You are now seeing the app from this user's perspective"
+        });
+      }
+    } catch (error) {
+      toast({ 
+        title: "Failed to view as user", 
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handle "View As Organization Admin" functionality
+  const handleViewAsOrgAdmin = async (orgId: string) => {
+    try {
+      // Find the admin user for this organization
+      const orgAdmin = users.find(u => u.organization_id === orgId && u.role === 'member_organization_admin');
+      if (orgAdmin) {
+        await handleViewAsUser(orgAdmin.id);
+      } else {
+        toast({ 
+          title: "No admin found", 
+          description: "This organization doesn't have an admin user",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({ 
+        title: "Failed to view as organization admin", 
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Fetch all data
   const { data: stats } = useQuery<AdminStats>({
@@ -273,12 +319,13 @@ export default function AdminDashboard() {
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      const { member_type, monthly_credits, membership_fee, start_date, notes, ...cleanData } = formData;
+      const { member_type, monthly_credits, membership_fee, notes, ...cleanData } = formData;
       const submitData = {
         ...cleanData,
         organization_id: cleanData.organization_id || undefined,
         last_name: '', // Add empty last_name since we're using full name in first_name
         credits: monthly_credits, // Map monthly_credits to the credits field
+        start_date: formData.start_date, // Include start_date
         // Remove fields that aren't in the database schema
       };
       createUser.mutate(submitData);
@@ -449,6 +496,7 @@ export default function AdminDashboard() {
         admin_name: orgData.admin_name,
         admin_email: orgData.admin_email,
         team_members: orgData.team_members.filter(member => member.trim() !== ''),
+        start_date: orgData.start_date,
       };
       createOrganization.mutate(submitData);
     };
@@ -710,6 +758,7 @@ export default function AdminDashboard() {
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Site</TableHead>
+                    <TableHead>Member Since</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -724,18 +773,31 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>{user.site}</TableCell>
                       <TableCell>
+                        {user.start_date ? new Date(user.start_date).toLocaleDateString() : new Date(user.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
                         <Badge variant={user.is_active ? "default" : "secondary"}>
                           {user.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => toggleUserStatus.mutate({ userId: user.id, isActive: !user.is_active })}
-                        >
-                          {user.is_active ? "Deactivate" : "Activate"}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleUserStatus.mutate({ userId: user.id, isActive: !user.is_active })}
+                          >
+                            {user.is_active ? "Deactivate" : "Activate"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewAsUser(user.id)}
+                            title="View As User"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -774,24 +836,42 @@ export default function AdminDashboard() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Site</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>Member Since</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {organizations.map((org) => (
-                    <TableRow key={org.id}>
-                      <TableCell>{org.name}</TableCell>
-                      <TableCell>{org.email}</TableCell>
-                      <TableCell>{org.site}</TableCell>
-                      <TableCell>{format(new Date(org.created_at), 'MMM d, yyyy')}</TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {organizations.map((org) => {
+                    const orgAdmin = users.find(u => u.organization_id === org.id && u.role === 'member_organization_admin');
+                    const isActive = orgAdmin?.is_active || false;
+                    
+                    return (
+                      <TableRow key={org.id}>
+                        <TableCell>{org.name}</TableCell>
+                        <TableCell>{org.email}</TableCell>
+                        <TableCell>{org.site}</TableCell>
+                        <TableCell>
+                          {org.start_date ? new Date(org.start_date).toLocaleDateString() : new Date(org.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={isActive ? "default" : "secondary"}>
+                            {isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleViewAsOrgAdmin(org.id)}
+                            title="View As Organization Admin"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>

@@ -576,10 +576,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      const { name, email, site, admin_name, admin_email, team_members = [] } = req.body;
+      const { name, email, site, admin_name, admin_email, team_members = [], start_date } = req.body;
       
       // Validate organization data
-      const orgResult = schema.insertOrganizationSchema.safeParse({ name, email, site });
+      const orgData: any = { name, email, site };
+      if (start_date) {
+        orgData.start_date = new Date(start_date);
+      }
+      
+      const orgResult = schema.insertOrganizationSchema.safeParse(orgData);
       if (!orgResult.success) {
         return res.status(400).json({ message: "Invalid organization data", errors: orgResult.error.issues });
       }
@@ -602,7 +607,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           site: site,
           credits: 30,
           can_charge_cafe_to_org: true,
-          can_charge_room_to_org: true
+          can_charge_room_to_org: true,
+          start_date: start_date ? new Date(start_date) : new Date()
         });
 
         // Try to send welcome email to admin
@@ -631,7 +637,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             site: site,
             credits: 30,
             can_charge_cafe_to_org: false,
-            can_charge_room_to_org: true
+            can_charge_room_to_org: true,
+            start_date: start_date ? new Date(start_date) : new Date()
           });
 
           // Try to send welcome email to team member
@@ -725,7 +732,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      const result = schema.insertUserSchema.safeParse(req.body);
+      const { start_date, ...bodyData } = req.body;
+      
+      // Handle start_date conversion
+      const userData: any = bodyData;
+      if (start_date) {
+        userData.start_date = new Date(start_date);
+      }
+      
+      const result = schema.insertUserSchema.safeParse(userData);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
       }
@@ -735,12 +750,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Hash the password
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
-      const userData = {
+      const finalUserData = {
         ...result.data,
         password: hashedPassword,
       };
 
-      const user = await storage.createUser(userData);
+      const user = await storage.createUser(finalUserData);
       
       // Send welcome email with credentials (optional - only if email service is configured)
       if (process.env.EMAIL_USER && (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD)) {
@@ -912,6 +927,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching organization:", error);
       res.status(500).json({ message: "Failed to fetch organization" });
+    }
+  });
+
+  // Admin impersonation endpoint
+  app.post("/api/admin/impersonate/:userId", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userToImpersonate = await storage.getUserById(userId);
+      
+      if (!userToImpersonate) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Log the impersonation for audit purposes
+      console.log(`Admin ${(req.user as any).id} (${(req.user as any).email}) is impersonating user ${userId} (${userToImpersonate.email})`);
+
+      // Update the session to impersonate the user
+      (req.session as any).userId = userId;
+      (req.session as any).originalAdminId = (req.user as any).id; // Store original admin ID for potential reversal
+      
+      res.json({ message: "Impersonation successful", user: userToImpersonate });
+    } catch (error) {
+      console.error("Error during impersonation:", error);
+      res.status(500).json({ message: "Failed to impersonate user" });
+    }
+  });
+
+  // Revert impersonation endpoint
+  app.post("/api/admin/revert-impersonation", requireAuth, async (req, res) => {
+    try {
+      const originalAdminId = (req.session as any).originalAdminId;
+      
+      if (!originalAdminId) {
+        return res.status(400).json({ message: "No active impersonation session" });
+      }
+
+      // Revert back to original admin
+      (req.session as any).userId = originalAdminId;
+      delete (req.session as any).originalAdminId;
+      
+      const adminUser = await storage.getUserById(originalAdminId);
+      res.json({ message: "Impersonation reverted", user: adminUser });
+    } catch (error) {
+      console.error("Error reverting impersonation:", error);
+      res.status(500).json({ message: "Failed to revert impersonation" });
     }
   });
 

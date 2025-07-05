@@ -17,6 +17,7 @@ export const organizations = pgTable("organizations", {
   phone: text("phone"),
   address: text("address"),
   site: siteEnum("site").notNull().default("blue_area"),
+  start_date: timestamp("start_date").defaultNow(),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -36,6 +37,7 @@ export const users = pgTable("users", {
   is_active: boolean("is_active").default(true),
   can_charge_cafe_to_org: boolean("can_charge_cafe_to_org").default(false),
   can_charge_room_to_org: boolean("can_charge_room_to_org").default(true),
+  start_date: timestamp("start_date").defaultNow(),
   created_at: timestamp("created_at").defaultNow(),
 });
 

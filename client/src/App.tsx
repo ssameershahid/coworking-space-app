@@ -17,6 +17,7 @@ import CafeManagerDashboard from "@/pages/cafe-manager-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import Navigation from "@/components/layout/navigation";
 import MobileNav from "@/components/layout/mobile-nav";
+import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
 import { useAuth } from "@/hooks/use-auth";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   return (
     <div className="min-h-screen bg-gray-50">
+      <ImpersonationBanner />
       <Navigation />
       <main className="pb-16 md:pb-0">
         {children}
