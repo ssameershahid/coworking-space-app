@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -31,7 +32,8 @@ import {
   Trash2,
   Eye,
   Activity,
-  PieChart
+  PieChart,
+  User as UserIcon
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -249,7 +251,13 @@ export default function AdminDashboard() {
       last_name: '',
       role: 'member_individual',
       site: 'blue_area',
-      organization_id: ''
+      organization_id: '',
+      member_type: 'individual',
+      office_type: 'shared_desk',
+      monthly_credits: 10,
+      membership_fee: 0,
+      start_date: new Date().toISOString().split('T')[0],
+      notes: ''
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -263,63 +271,118 @@ export default function AdminDashboard() {
 
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="first_name">First Name</Label>
-            <Input
-              id="first_name"
-              value={formData.first_name}
-              onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="last_name">Last Name</Label>
-            <Input
-              id="last_name"
-              value={formData.last_name}
-              onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-              required
-            />
-          </div>
+        <div>
+          <Label htmlFor="first_name">Full Name</Label>
+          <Input
+            id="first_name"
+            placeholder="John Doe"
+            value={formData.first_name}
+            onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+            required
+          />
         </div>
         <div>
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
+            placeholder="john.doe@example.com"
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="role">Role</Label>
-            <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="member_individual">Member Individual</SelectItem>
-                <SelectItem value="member_organization_admin">Organization Admin</SelectItem>
-                <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
-                <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="site">Site</Label>
-            <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="blue_area">Blue Area</SelectItem>
-                <SelectItem value="i_10">I-10</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div>
+          <Label htmlFor="member_type">Member Type</Label>
+          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="individual">Individual</SelectItem>
+              <SelectItem value="organization">Organization</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="office_type">Office Type</Label>
+          <Select value={formData.office_type} onValueChange={(value) => setFormData({...formData, office_type: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="shared_desk">Shared Desk</SelectItem>
+              <SelectItem value="hot_desk">Hot Desk</SelectItem>
+              <SelectItem value="private_office">Private Office</SelectItem>
+              <SelectItem value="virtual_office">Virtual Office</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-muted-foreground mt-1">
+            <strong>Note:</strong> Hot Desk is implemented as a Shared Office type in the system
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="monthly_credits">Monthly Meeting Credits</Label>
+          <Input
+            id="monthly_credits"
+            type="number"
+            placeholder="10"
+            value={formData.monthly_credits}
+            onChange={(e) => setFormData({...formData, monthly_credits: parseInt(e.target.value) || 0})}
+            required
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Number of meeting credits allocated to this member each month.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="membership_fee">Membership Fee (PKR)</Label>
+          <Input
+            id="membership_fee"
+            type="number"
+            placeholder="0"
+            value={formData.membership_fee}
+            onChange={(e) => setFormData({...formData, membership_fee: parseInt(e.target.value) || 0})}
+            required
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Monthly fee for this member.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="start_date">Start Date</Label>
+          <Input
+            id="start_date"
+            type="date"
+            value={formData.start_date}
+            onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+            required
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            When the membership begins.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="notes">Notes</Label>
+          <Textarea
+            id="notes"
+            placeholder="Any additional information about this member..."
+            value={formData.notes}
+            onChange={(e) => setFormData({...formData, notes: e.target.value})}
+            className="resize-none"
+          />
+        </div>
+        <div>
+          <Label htmlFor="site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         {formData.role === 'member_organization_admin' && (
           <div>
@@ -337,7 +400,7 @@ export default function AdminDashboard() {
           </div>
         )}
         <Button type="submit" disabled={createUser.isPending}>
-          {createUser.isPending ? "Creating..." : "Create User"}
+          {createUser.isPending ? "Creating..." : "Create Member"}
         </Button>
       </form>
     );
@@ -347,12 +410,34 @@ export default function AdminDashboard() {
     const [orgData, setOrgData] = useState({
       name: '',
       email: '',
-      site: 'blue_area'
+      site: 'blue_area',
+      admin_name: '',
+      admin_email: '',
+      team_members: [''],
+      office_type: 'private_office',
+      monthly_credits: 10,
+      monthly_fee: 5000,
+      description: '',
+      start_date: new Date().toISOString().split('T')[0]
     });
 
     const handleOrgSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      createOrganization.mutate(orgData);
+      const submitData = {
+        ...orgData,
+        team_members: orgData.team_members.filter(member => member.trim() !== '')
+      };
+      createOrganization.mutate(submitData);
+    };
+
+    const addTeamMember = () => {
+      setOrgData({...orgData, team_members: [...orgData.team_members, '']});
+    };
+
+    const updateTeamMember = (index: number, value: string) => {
+      const updated = [...orgData.team_members];
+      updated[index] = value;
+      setOrgData({...orgData, team_members: updated});
     };
 
     return (
@@ -367,29 +452,107 @@ export default function AdminDashboard() {
             required
           />
         </div>
+        
         <div>
-          <Label htmlFor="org_email">Email</Label>
+          <Label htmlFor="admin_name">Admin Name</Label>
           <Input
-            id="org_email"
-            type="email"
-            value={orgData.email}
-            onChange={(e) => setOrgData({...orgData, email: e.target.value})}
-            placeholder="org@example.com"
+            id="admin_name"
+            value={orgData.admin_name}
+            onChange={(e) => setOrgData({...orgData, admin_name: e.target.value})}
+            placeholder="Enter admin name"
             required
           />
         </div>
+        
         <div>
-          <Label htmlFor="org_site">Site</Label>
-          <Select value={orgData.site} onValueChange={(value) => setOrgData({...orgData, site: value})}>
+          <Label htmlFor="admin_email">Admin Email</Label>
+          <Input
+            id="admin_email"
+            type="email"
+            value={orgData.admin_email}
+            onChange={(e) => setOrgData({...orgData, admin_email: e.target.value})}
+            placeholder="Enter admin email"
+            required
+          />
+        </div>
+
+        <div>
+          <Label>Team Members</Label>
+          {orgData.team_members.map((member, index) => (
+            <div key={index} className="flex gap-2 mt-2">
+              <Input
+                value={member}
+                onChange={(e) => updateTeamMember(index, e.target.value)}
+                placeholder="team.member@example.com"
+              />
+            </div>
+          ))}
+          <Button type="button" variant="outline" onClick={addTeamMember} className="mt-2">
+            Add Team Member
+          </Button>
+        </div>
+
+        <div>
+          <Label htmlFor="office_type">Office Type</Label>
+          <Select value={orgData.office_type} onValueChange={(value) => setOrgData({...orgData, office_type: value})}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="blue_area">Blue Area</SelectItem>
-              <SelectItem value="i_10">I-10</SelectItem>
+              <SelectItem value="private_office">Private Office</SelectItem>
+              <SelectItem value="shared_desk">Shared Desk</SelectItem>
+              <SelectItem value="hot_desk">Hot Desk</SelectItem>
+              <SelectItem value="virtual_office">Virtual Office</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
+        <div>
+          <Label htmlFor="monthly_credits">Monthly Meeting Credits</Label>
+          <Input
+            id="monthly_credits"
+            type="number"
+            placeholder="10"
+            value={orgData.monthly_credits}
+            onChange={(e) => setOrgData({...orgData, monthly_credits: parseInt(e.target.value) || 0})}
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="monthly_fee">Monthly Fee (PKR)</Label>
+          <Input
+            id="monthly_fee"
+            type="number"
+            placeholder="5000"
+            value={orgData.monthly_fee}
+            onChange={(e) => setOrgData({...orgData, monthly_fee: parseInt(e.target.value) || 0})}
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            placeholder="Enter description"
+            value={orgData.description}
+            onChange={(e) => setOrgData({...orgData, description: e.target.value})}
+            className="resize-none"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="start_date">Start Date</Label>
+          <Input
+            id="start_date"
+            type="date"
+            value={orgData.start_date}
+            onChange={(e) => setOrgData({...orgData, start_date: e.target.value})}
+            required
+          />
+        </div>
+
         <Button type="submit" disabled={createOrganization.isPending}>
           {createOrganization.isPending ? "Creating..." : "Create Organization"}
         </Button>
@@ -507,9 +670,22 @@ export default function AdminDashboard() {
                       Add User
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Create New User</DialogTitle>
+                      <div className="flex items-center justify-center gap-8 mb-6">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg">
+                          <UserIcon className="h-4 w-4" />
+                          New Individual
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted" onClick={() => setNewOrgDialog(true)}>
+                          <Building2 className="h-4 w-4" />
+                          New Organization
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted">
+                          <Users className="h-4 w-4" />
+                          Client List
+                        </div>
+                      </div>
                     </DialogHeader>
                     <NewUserForm />
                   </DialogContent>
@@ -572,9 +748,22 @@ export default function AdminDashboard() {
                       Add Organization
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Create New Organization</DialogTitle>
+                      <div className="flex items-center justify-center gap-8 mb-6">
+                        <div className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted" onClick={() => setNewUserDialog(true)}>
+                          <UserIcon className="h-4 w-4" />
+                          New Individual
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg">
+                          <Building2 className="h-4 w-4" />
+                          New Organization
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-muted">
+                          <Users className="h-4 w-4" />
+                          Client List
+                        </div>
+                      </div>
                     </DialogHeader>
                     <NewOrganizationForm />
                   </DialogContent>
