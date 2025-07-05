@@ -1,0 +1,143 @@
+# CalmKaaj App — **Revised Phase-1 PRD (Sept 2025)**
+
+*(Wallet, multi-site selector, podcast rooms, CalmKaaj-Passport perks still out-of-scope)*
+
+---
+
+## 1 Project Goal
+
+Launch a single web + PWA app that lets every CalmKaaj member order food and book meeting rooms, while giving staff and tenant organisations role-based dashboards for orders, bookings, user controls and basic reporting across two sites (Blue Area / I-10).
+
+---
+
+## 2 User Roles & Access Matrix
+
+| Auth Role                    | Who it is                                                  | Sees / does                                                                                                             |
+| ---------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Member Individual**        | Any person with a desk / hot-desk login (solo or employee) | Orders & bookings they create; can optionally bill to their organisation if allowed                                     |
+| **Member Organization**      | Tenant admin for a private-office company                  | All orders & bookings billed to the org; can toggle each employee’s café / room permissions; downloads monthly invoices |
+| **Cafe Manager**             | Café staff                                                 | Manage menu; create & fulfil orders; see all café orders                                                                |
+| **Enterprise Administrator** | CalmKaaj HQ / owners                                       | Full read/write everywhere, plus system settings                                                                        |
+
+### Per-employee permission flags
+
+| Table             | Columns                       | Default |
+| ----------------- | ----------------------------- | ------- |
+| `member_profiles` | `can_charge_cafe_to_org bool` | FALSE   |
+|                   | `can_charge_room_to_org bool` | TRUE    |
+
+### Billing flag on each transaction
+
+| Table              | Columns (added)                                            | Logic                              |
+| ------------------ | ---------------------------------------------------------- | ---------------------------------- |
+| `cafe_orders`      | `billed_to enum('personal','organization')`, `org_id uuid` | Set by member’s toggle at checkout |
+| `meeting_bookings` | same two columns                                           | ―ditto―                            |
+
+---
+
+## 3 Functional Scope
+
+### 3.1 Authentication
+
+* One login page → role-based redirect
+* PWA session persistence, forgot-password
+* RLS locked to roles & permission flags
+
+### 3.2 Member-Facing Screens
+
+| Module                   | Details                                                                                                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Dashboard**            | Quick-action cards (Order Café, Book Room); credits widget; “What’s New” announcement card; carousel (daily deal, next free room, event); recent activity                                        |
+| **Café Ordering**        | Menu grid · basket drawer · checkout <br>Billing toggle: “Charge to Me / My Company” (shows only if `can_charge_cafe_to_org = TRUE`) <br>Real-time order status <br>Date-range PDF bill download |
+| **Meeting-Room Booking** | Room grid with capacity & amenity chips <br>Billing toggle identical (rooms) <br>Credit check & deduction <br>Cancel/reschedule; 5-min push reminder                                             |
+| **Profile**              | Edit info, pwd; show home location & org; list personal PDFs                                                                                                                                     |
+
+### 3.3 Member Organization Portal
+
+* Org-wide café-orders & room-bookings tables (only rows `billed_to = 'organization'`)
+* Toggles per employee: café ON/OFF, room ON/OFF
+* Generate monthly invoice PDF (orders + bookings)
+
+### 3.4 Cafe Manager Console
+
+* Live order queue (handled\_by tag)
+* Menu CRUD & “Daily Special”
+* Create order for member (search user, mark Paid Cash)
+
+### 3.5 Enterprise Admin Console
+
+* Global metrics dashboard
+* CRUD: users, orgs, rooms, menu, announcements
+* Credit-management panel
+* CSV exports & handled-by filter
+* Announcement CRUD (title, body, image, expiry, optional push)
+
+### 3.6 Room Management
+
+* Master calendar; override / lock; room CRUD (capacity, amenities, credit cost)
+
+### 3.7 Onboarding Forms
+
+* Individual / Organisation form with all fields inc. permission flags
+
+### 3.8 Announcements (“What’s New”)
+
+* `announcements` table & admin CRUD
+* Latest active announcement card on dashboard (dismiss / modal)
+
+### 3.9 Reporting & Exports
+
+* Enterprise admin: café orders CSV, bookings CSV, daily sales summary
+* Org admin: monthly invoice PDF
+
+### 3.10 Automated Jobs
+
+* Monthly Edge Function resets `used_credits`; audit log
+
+---
+
+## 4 Data Model Changes (Supabase)
+
+```sql
+-- PERMISSION FLAGS
+alter table member_profiles
+  add column can_charge_cafe_to_org bool default false,
+  add column can_charge_room_to_org bool default true;
+
+-- BILLING FLAGS
+alter table cafe_orders
+  add column billed_to text check (billed_to in ('personal','organization')) default 'personal',
+  add column org_id uuid references organizations(id);
+
+alter table meeting_bookings
+  add column billed_to text check (billed_to in ('personal','organization')) default 'personal',
+  add column org_id uuid references organizations(id);
+
+-- ANNOUNCEMENTS
+create table announcements (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  body text not null,
+  image_url text,
+  created_at timestamptz default now(),
+  show_until timestamptz
+);
+```
+
+---
+
+## 5 Non-Functional & SLA (unchanged from previous draft)
+
+* Performance: FCP < 2 s mobile; Lighthouse ≥ 90
+* PWA, responsive, accessibility, security, monthly credit reset job
+* SLA: 30-day bug-fix window; optional support retainer 15 hrs / PKR 25 k / month
+
+---
+
+## 6 Out-of-Scope / Phase-2 Ideas
+
+Wallet, online payments, inventory, HR/attendance, multi-site selector, podcast rooms, perks marketplace.
+
+---
+
+**This PRD supersedes all prior drafts and reflects every confirmed feature and micro-feature for Phase 1.**
