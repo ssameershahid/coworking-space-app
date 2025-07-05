@@ -98,7 +98,7 @@ export default function CafeManagerDashboard() {
   );
   
   const pendingOrders = orders.filter(order => order.status === 'pending');
-  const preparingOrders = orders.filter(order => order.status === 'preparing');
+  const startedOrders = orders.filter(order => order.status === 'accepted' || order.status === 'preparing');
   const readyOrders = orders.filter(order => order.status === 'ready');
   const completedToday = orders.filter(order => 
     order.status === 'delivered' && 
@@ -324,14 +324,14 @@ export default function CafeManagerDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5 text-blue-600" />
-              Started ({preparingOrders.length})
+              Started ({startedOrders.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {preparingOrders.map(order => (
+            {startedOrders.map(order => (
               <OrderCard key={order.id} order={order} />
             ))}
-            {preparingOrders.length === 0 && (
+            {startedOrders.length === 0 && (
               <div className="text-center text-muted-foreground py-8">
                 No orders in preparation
               </div>
