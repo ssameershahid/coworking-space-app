@@ -11,14 +11,28 @@ class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    // Configure with Gmail SMTP (free for 500 emails per day)
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER, // Your Gmail address
-        pass: process.env.EMAIL_APP_PASSWORD, // Gmail App Password
-      },
-    });
+    // Configure SMTP - supports multiple providers
+    if (process.env.EMAIL_SERVICE) {
+      // Use predefined service (gmail, yahoo, hotmail, etc.)
+      this.transporter = nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+    } else {
+      // Use custom SMTP settings (for providers like Namecheap, etc.)
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+    }
   }
 
   async sendWelcomeEmail(userEmail: string, firstName: string, tempPassword: string): Promise<boolean> {

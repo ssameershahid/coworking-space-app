@@ -679,7 +679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       
       // Send welcome email with credentials (optional - only if email service is configured)
-      if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
+      if (process.env.EMAIL_USER && (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD)) {
         try {
           const { emailService } = await import("./email-service");
           await emailService.sendWelcomeEmail(user.email, user.first_name, tempPassword);
