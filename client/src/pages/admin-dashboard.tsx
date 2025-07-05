@@ -262,9 +262,13 @@ export default function AdminDashboard() {
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
+      const { member_type, monthly_credits, membership_fee, start_date, notes, ...cleanData } = formData;
       const submitData = {
-        ...formData,
-        organization_id: formData.organization_id || undefined
+        ...cleanData,
+        organization_id: cleanData.organization_id || undefined,
+        last_name: '', // Add empty last_name since we're using full name in first_name
+        credits: monthly_credits, // Map monthly_credits to the credits field
+        // Remove fields that aren't in the database schema
       };
       createUser.mutate(submitData);
     };
@@ -294,7 +298,7 @@ export default function AdminDashboard() {
         </div>
         <div>
           <Label htmlFor="member_type">Member Type</Label>
-          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value, role: value === 'organization_employee' ? 'member_organization' : 'member_individual', monthly_credits: value === 'organization_employee' ? 0 : 10, membership_fee: value === 'organization_employee' ? 0 : 1500})}>
+          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value, role: value === 'organization_employee' ? 'member_organization_admin' : 'member_individual', monthly_credits: value === 'organization_employee' ? 0 : 10, membership_fee: value === 'organization_employee' ? 0 : 1500})}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
