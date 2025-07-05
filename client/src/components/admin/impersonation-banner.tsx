@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,14 @@ export function ImpersonationBanner() {
   const queryClient = useQueryClient();
   const [isReverting, setIsReverting] = useState(false);
 
-  // Check if we're in impersonation mode (look for session data)
-  const isImpersonating = typeof window !== 'undefined' && 
-    window.location.search.includes('impersonating=true');
+  // Check impersonation status from the server
+  const { data: impersonationStatus } = useQuery({
+    queryKey: ['/api/admin/impersonation-status'],
+    enabled: !!user,
+    refetchInterval: 5000, // Check every 5 seconds
+  });
+
+  const isImpersonating = (impersonationStatus as any)?.isImpersonating || false;
 
   const revertImpersonation = useMutation({
     mutationFn: async () => {
@@ -58,7 +63,7 @@ export function ImpersonationBanner() {
               Admin View Mode Active
             </p>
             <p className="text-xs text-yellow-600">
-              You are viewing the app as this user would see it
+              Viewing as: {(impersonationStatus as any)?.impersonatedUser?.first_name} {(impersonationStatus as any)?.impersonatedUser?.last_name} ({(impersonationStatus as any)?.impersonatedUser?.email})
             </p>
           </div>
         </div>

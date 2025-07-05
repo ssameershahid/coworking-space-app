@@ -120,8 +120,22 @@ export default function AdminDashboard() {
     try {
       const response = await apiRequest('POST', `/api/admin/impersonate/${userId}`);
       if (response.ok) {
-        // Force a complete page reload to restart the auth context
-        window.location.reload();
+        // Navigate to dashboard based on user type
+        const userData = await response.json();
+        const userRole = userData.user?.role;
+        
+        if (userRole === 'member_individual') {
+          window.location.href = '/dashboard';
+        } else if (userRole === 'member_organization_admin') {
+          window.location.href = '/organization';
+        } else if (userRole === 'member_organization') {
+          window.location.href = '/dashboard';
+        } else if (userRole === 'cafe_manager') {
+          window.location.href = '/cafe';
+        } else {
+          window.location.href = '/dashboard';
+        }
+        
         toast({ 
           title: "Now viewing as user", 
           description: "You are now seeing the app from this user's perspective"

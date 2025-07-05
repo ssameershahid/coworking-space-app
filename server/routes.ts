@@ -59,8 +59,16 @@ passport.deserializeUser(async (id: number, done) => {
 });
 
 // Auth middleware
-const requireAuth = (req: any, res: any, next: any) => {
+const requireAuth = async (req: any, res: any, next: any) => {
   if (req.isAuthenticated()) {
+    // Check if we're in impersonation mode
+    if ((req.session as any).impersonating && (req.session as any).userId) {
+      // Override the user object with the impersonated user
+      const impersonatedUser = await storage.getUserById((req.session as any).userId);
+      if (impersonatedUser) {
+        req.user = impersonatedUser;
+      }
+    }
     return next();
   }
   res.status(401).json({ message: "Authentication required" });
@@ -981,6 +989,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error during impersonation:", error);
       res.status(500).json({ message: "Failed to impersonate user" });
+    }
+  });
+
+  // Check impersonation status endpoint
+  app.get("/api/admin/impersonation-status", requireAuth, async (req, res) => {
+    try {
+      const isImpersonating = !!(req.session as any).impersonating;
+      const originalAdminId = (req.session as any).originalAdminId;
+      
+      if (isImpersonating && originalAdminId) {
+        const originalAdmin = await storage.getUserById(originalAdminId);
+        res.json({
+          isImpersonating: true,
+          originalAdmin: originalAdmin,
+          impersonatedUser: req.user
+        });
+      } else {
+        res.json({ isImpersonating: false });
+      }
+    } catch (error) {
+      console.error("Error checking impersonation status:", error);
+      res.status(500).json({ message: "Failed to check impersonation status" });
     }
   });
 
