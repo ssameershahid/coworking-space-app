@@ -125,15 +125,15 @@ export default function AdminDashboard() {
         const userRole = userData.user?.role;
         
         if (userRole === 'member_individual') {
-          window.location.href = '/dashboard';
+          window.location.href = '/';
         } else if (userRole === 'member_organization_admin') {
           window.location.href = '/organization';
         } else if (userRole === 'member_organization') {
-          window.location.href = '/dashboard';
+          window.location.href = '/';
         } else if (userRole === 'cafe_manager') {
-          window.location.href = '/cafe';
+          window.location.href = '/';
         } else {
-          window.location.href = '/dashboard';
+          window.location.href = '/';
         }
         
         toast({ 
