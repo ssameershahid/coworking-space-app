@@ -128,7 +128,8 @@ CalmKaaj is a full-stack web application with PWA capabilities designed to manag
 
 ```
 Changelog:
-- July 05, 2025. Initial setup
+- July 05, 2025. Initial setup and database configuration
+- July 05, 2025. Fixed authentication system - updated password hashes for test accounts
 ```
 
 ## User Preferences
