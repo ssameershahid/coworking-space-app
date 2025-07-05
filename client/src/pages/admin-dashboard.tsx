@@ -33,8 +33,12 @@ import {
   Eye,
   Activity,
   PieChart,
-  User as UserIcon
+  User as UserIcon,
+  Ban,
+  CheckCircle,
+  UserX
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 
 interface AdminStats {
@@ -114,6 +118,10 @@ export default function AdminDashboard() {
   const [newOrgDialog, setNewOrgDialog] = useState(false);
   const [newRoomDialog, setNewRoomDialog] = useState(false);
   const [newAnnouncementDialog, setNewAnnouncementDialog] = useState(false);
+  const [editUserDialog, setEditUserDialog] = useState(false);
+  const [editOrgDialog, setEditOrgDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedOrg, setSelectedOrg] = useState<any>(null);
 
   // Handle "View As User" functionality
   const handleViewAsUser = async (userId: number) => {
@@ -806,23 +814,52 @@ export default function AdminDashboard() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toggleUserStatus.mutate({ userId: user.id, isActive: !user.is_active })}
-                          >
-                            {user.is_active ? "Deactivate" : "Activate"}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewAsUser(user.id)}
-                            title="View As User"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <TooltipProvider>
+                          <div className="flex gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setEditUserDialog(true);
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit User</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleViewAsUser(user.id)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View As User</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => toggleUserStatus.mutate({ userId: user.id, isActive: !user.is_active })}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  {user.is_active ? <Ban className="h-4 w-4 text-red-500" /> : <CheckCircle className="h-4 w-4 text-green-500" />}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{user.is_active ? "Deactivate" : "Activate"}</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TooltipProvider>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -885,23 +922,52 @@ export default function AdminDashboard() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => toggleOrgStatus.mutate({ orgId: org.id, isActive: !isActive })}
-                            >
-                              {isActive ? "Deactivate" : "Activate"}
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleViewAsOrgAdmin(org.id)}
-                              title="View As Organization Admin"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <TooltipProvider>
+                            <div className="flex gap-1">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setSelectedOrg(org);
+                                      setEditOrgDialog(true);
+                                    }}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit Organization</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleViewAsOrgAdmin(org.id)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>View As Organization Admin</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => toggleOrgStatus.mutate({ orgId: org.id, isActive: !isActive })}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    {isActive ? <Ban className="h-4 w-4 text-red-500" /> : <CheckCircle className="h-4 w-4 text-green-500" />}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>{isActive ? "Deactivate" : "Activate"}</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     );
@@ -1142,6 +1208,179 @@ export default function AdminDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editUserDialog} onOpenChange={setEditUserDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const updates = {
+                first_name: formData.get('first_name'),
+                last_name: formData.get('last_name'),
+                email: formData.get('email'),
+                role: formData.get('role'),
+                site: formData.get('site'),
+                start_date: formData.get('start_date') || null,
+              };
+              
+              try {
+                await updateUser.mutateAsync({ userId: selectedUser.id, updates });
+                setEditUserDialog(false);
+                setSelectedUser(null);
+                toast({
+                  title: "Success",
+                  description: "User updated successfully",
+                });
+              } catch (error) {
+                toast({
+                  title: "Error",
+                  description: "Failed to update user",
+                  variant: "destructive",
+                });
+              }
+            }}>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input id="first_name" name="first_name" defaultValue={selectedUser.first_name} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input id="last_name" name="last_name" defaultValue={selectedUser.last_name} required />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" name="email" type="email" defaultValue={selectedUser.email} required />
+                </div>
+                <div>
+                  <Label htmlFor="role">Role</Label>
+                  <Select name="role" defaultValue={selectedUser.role}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="member_individual">Member Individual</SelectItem>
+                      <SelectItem value="member_organization">Member Organization</SelectItem>
+                      <SelectItem value="member_organization_admin">Member Organization Admin</SelectItem>
+                      <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
+                      <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="site">Site</Label>
+                  <Select name="site" defaultValue={selectedUser.site}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="blue_area">Blue Area</SelectItem>
+                      <SelectItem value="i_10">I-10</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="start_date">Start Date (Optional)</Label>
+                  <Input 
+                    id="start_date" 
+                    name="start_date" 
+                    type="date"
+                    defaultValue={selectedUser.start_date ? new Date(selectedUser.start_date).toISOString().split('T')[0] : ''}
+                  />
+                </div>
+              </div>
+              <DialogFooter className="mt-6">
+                <Button type="button" variant="outline" onClick={() => setEditUserDialog(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Organization Dialog */}
+      <Dialog open={editOrgDialog} onOpenChange={setEditOrgDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Organization</DialogTitle>
+          </DialogHeader>
+          {selectedOrg && (
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const updates = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                site: formData.get('site'),
+                start_date: formData.get('start_date') || null,
+              };
+              
+              try {
+                await updateOrg.mutateAsync({ orgId: selectedOrg.id, updates });
+                setEditOrgDialog(false);
+                setSelectedOrg(null);
+                toast({
+                  title: "Success",
+                  description: "Organization updated successfully",
+                });
+              } catch (error) {
+                toast({
+                  title: "Error",
+                  description: "Failed to update organization",
+                  variant: "destructive",
+                });
+              }
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="org_name">Organization Name</Label>
+                  <Input id="org_name" name="name" defaultValue={selectedOrg.name} required />
+                </div>
+                <div>
+                  <Label htmlFor="org_email">Email</Label>
+                  <Input id="org_email" name="email" type="email" defaultValue={selectedOrg.email} required />
+                </div>
+                <div>
+                  <Label htmlFor="org_site">Site</Label>
+                  <Select name="site" defaultValue={selectedOrg.site}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="blue_area">Blue Area</SelectItem>
+                      <SelectItem value="i_10">I-10</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="org_start_date">Start Date (Optional)</Label>
+                  <Input 
+                    id="org_start_date" 
+                    name="start_date" 
+                    type="date"
+                    defaultValue={selectedOrg.start_date ? new Date(selectedOrg.start_date).toISOString().split('T')[0] : ''}
+                  />
+                </div>
+              </div>
+              <DialogFooter className="mt-6">
+                <Button type="button" variant="outline" onClick={() => setEditOrgDialog(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
