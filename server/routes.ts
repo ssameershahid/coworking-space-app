@@ -226,6 +226,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to get all menu items (including inactive ones)
+  app.get("/api/admin/menu/items", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const { site } = req.query;
+      const items = await storage.getAllMenuItems(site as string);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching all menu items:", error);
+      res.status(500).json({ message: "Failed to fetch all menu items" });
+    }
+  });
+
   // Daily specials endpoint
   app.get("/api/menu/daily-specials", requireAuth, async (req, res) => {
     try {

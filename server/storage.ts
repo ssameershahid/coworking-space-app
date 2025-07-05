@@ -22,6 +22,7 @@ export interface IStorage {
   // Menu
   getMenuCategories(): Promise<schema.MenuCategory[]>;
   getMenuItems(site?: string): Promise<schema.MenuItem[]>;
+  getAllMenuItems(site?: string): Promise<schema.MenuItem[]>;
   getMenuItemById(id: number): Promise<schema.MenuItem | undefined>;
   createMenuItem(item: schema.InsertMenuItem): Promise<schema.MenuItem>;
   updateMenuItem(id: number, updates: Partial<schema.MenuItem>): Promise<schema.MenuItem>;
@@ -108,6 +109,17 @@ export class DatabaseStorage implements IStorage {
     } else {
       return await db.select().from(schema.menu_items)
         .where(eq(schema.menu_items.is_available, true))
+        .orderBy(asc(schema.menu_items.name));
+    }
+  }
+
+  async getAllMenuItems(site?: string): Promise<schema.MenuItem[]> {
+    if (site) {
+      return await db.select().from(schema.menu_items)
+        .where(eq(schema.menu_items.site, site as any))
+        .orderBy(asc(schema.menu_items.name));
+    } else {
+      return await db.select().from(schema.menu_items)
         .orderBy(asc(schema.menu_items.name));
     }
   }

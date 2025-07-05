@@ -201,7 +201,7 @@ export default function AdminDashboard() {
   });
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
-    queryKey: ['/api/menu/items'],
+    queryKey: ['/api/admin/menu/items'],
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
@@ -359,7 +359,7 @@ export default function AdminDashboard() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/menu/items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
       setNewMenuItemDialog(false);
       toast({ title: "Menu item created successfully!" });
     },
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/menu/items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
       setEditMenuItemDialog(false);
       toast({ title: "Menu item updated successfully!" });
     },
@@ -397,7 +397,7 @@ export default function AdminDashboard() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/menu/items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
       toast({ title: "Menu item status updated!" });
     },
     onError: (error: any) => {
@@ -1725,13 +1725,13 @@ export default function AdminDashboard() {
                     <TableHead>Item</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Site</TableHead>
-                    <TableHead>Available</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {menuItems.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.id} className={!item.is_available ? "opacity-50" : ""}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{item.name}</div>
@@ -1741,42 +1741,56 @@ export default function AdminDashboard() {
                       <TableCell>Rs. {item.price}</TableCell>
                       <TableCell>{item.site}</TableCell>
                       <TableCell>
-                        <Badge variant={item.is_available ? "default" : "secondary"}>
-                          {item.is_available ? "Available" : "Unavailable"}
+                        <Badge variant={item.is_available ? "default" : "destructive"}>
+                          {item.is_available ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedMenuItem(item);
-                              setEditMenuItemDialog(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => toggleMenuItemAvailability.mutate({
-                              itemId: item.id,
-                              is_available: !item.is_available
-                            })}
-                          >
-                            {item.is_available ? (
-                              <>
-                                <Ban className="h-4 w-4 mr-1" />
-                                Deactivate
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Activate
-                              </>
-                            )}
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedMenuItem(item);
+                                    setEditMenuItemDialog(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit menu item</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="sm" 
+                                  variant={item.is_available ? "destructive" : "default"}
+                                  onClick={() => toggleMenuItemAvailability.mutate({
+                                    itemId: item.id,
+                                    is_available: !item.is_available
+                                  })}
+                                  disabled={toggleMenuItemAvailability.isPending}
+                                >
+                                  {item.is_available ? (
+                                    <UserX className="h-4 w-4" />
+                                  ) : (
+                                    <CheckCircle className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{item.is_available ? "Deactivate menu item" : "Activate menu item"}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </TableCell>
                     </TableRow>
