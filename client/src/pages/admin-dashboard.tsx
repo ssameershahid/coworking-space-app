@@ -324,10 +324,16 @@ export default function AdminDashboard() {
 
   const toggleOrgStatus = useMutation({
     mutationFn: async ({ orgId, isActive }: { orgId: string; isActive: boolean }) => {
-      const response = await apiRequest('PATCH', `/api/admin/organizations/${orgId}`, { is_active: isActive });
+      // Find the organization admin to toggle their status
+      const orgAdmin = users.find(u => u.organization_id === orgId && u.role === 'member_organization_admin');
+      if (!orgAdmin) {
+        throw new Error('Organization admin not found');
+      }
+      const response = await apiRequest('PATCH', `/api/admin/users/${orgAdmin.id}`, { is_active: isActive });
       return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({ title: "Organization status updated" });
     }
@@ -354,6 +360,242 @@ export default function AdminDashboard() {
       toast({ title: "Organization updated successfully" });
     }
   });
+
+  const EditOrganizationForm = ({ organization, onClose }: { organization: any; onClose: () => void }) => {
+    const [orgData, setOrgData] = useState({
+      name: organization.name || '',
+      email: organization.email || '',
+      site: organization.site || 'blue_area',
+      phone: organization.phone || '',
+      address: organization.address || '',
+      start_date: organization.start_date ? new Date(organization.start_date).toISOString().split('T')[0] : '',
+      // Find admin details from users
+      admin_name: '',
+      admin_email: '',
+      team_members: [''],
+      office_type: 'private_office',
+      monthly_credits: 10,
+      monthly_fee: 5000,
+      description: ''
+    });
+
+    // Initialize admin details
+    React.useEffect(() => {
+      const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'member_organization_admin');
+      if (orgAdmin) {
+        setOrgData(prev => ({
+          ...prev,
+          admin_name: orgAdmin.first_name || '',
+          admin_email: orgAdmin.email || ''
+        }));
+      }
+    }, [organization.id, users]);
+
+    const handleOrgSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const submitData = {
+        name: orgData.name,
+        email: orgData.email,
+        site: orgData.site,
+        phone: orgData.phone,
+        address: orgData.address,
+        start_date: orgData.start_date || null,
+      };
+      
+      try {
+        await updateOrg.mutateAsync({ orgId: organization.id, updates: submitData });
+        
+        // Also update the admin user if the details changed
+        const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'member_organization_admin');
+        if (orgAdmin && (orgAdmin.first_name !== orgData.admin_name || orgAdmin.email !== orgData.admin_email)) {
+          await updateUser.mutateAsync({ 
+            userId: orgAdmin.id, 
+            updates: { 
+              first_name: orgData.admin_name,
+              email: orgData.admin_email 
+            } 
+          });
+        }
+        
+        onClose();
+        toast({
+          title: "Success",
+          description: "Organization updated successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update organization",
+          variant: "destructive",
+        });
+      }
+    };
+
+    const addTeamMember = () => {
+      setOrgData({...orgData, team_members: [...orgData.team_members, '']});
+    };
+
+    const updateTeamMember = (index: number, value: string) => {
+      const updated = [...orgData.team_members];
+      updated[index] = value;
+      setOrgData({...orgData, team_members: updated});
+    };
+
+    return (
+      <form onSubmit={handleOrgSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="edit_org_name">Organization Name</Label>
+          <Input
+            id="edit_org_name"
+            placeholder="Acme Corporation"
+            value={orgData.name}
+            onChange={(e) => setOrgData({...orgData, name: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_org_email">Organization Email</Label>
+          <Input
+            id="edit_org_email"
+            type="email"
+            placeholder="admin@acme.com"
+            value={orgData.email}
+            onChange={(e) => setOrgData({...orgData, email: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_org_phone">Phone Number</Label>
+          <Input
+            id="edit_org_phone"
+            placeholder="+92 300 1234567"
+            value={orgData.phone}
+            onChange={(e) => setOrgData({...orgData, phone: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_org_address">Address</Label>
+          <Textarea
+            id="edit_org_address"
+            placeholder="Complete business address..."
+            value={orgData.address}
+            onChange={(e) => setOrgData({...orgData, address: e.target.value})}
+            rows={2}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_org_site">Site Location</Label>
+          <Select value={orgData.site} onValueChange={(value) => setOrgData({...orgData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="edit_admin_name">Admin Name</Label>
+          <Input
+            id="edit_admin_name"
+            placeholder="John Doe"
+            value={orgData.admin_name}
+            onChange={(e) => setOrgData({...orgData, admin_name: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_admin_email">Admin Email</Label>
+          <Input
+            id="edit_admin_email"
+            type="email"
+            placeholder="john.doe@acme.com"
+            value={orgData.admin_email}
+            onChange={(e) => setOrgData({...orgData, admin_email: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_team_members">Team Members</Label>
+          {orgData.team_members.map((member, index) => (
+            <div key={index} className="flex gap-2 mb-2">
+              <Input
+                placeholder="team.member@acme.com"
+                value={member}
+                onChange={(e) => updateTeamMember(index, e.target.value)}
+              />
+              {index === orgData.team_members.length - 1 && (
+                <Button type="button" onClick={addTeamMember} size="sm" variant="outline">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+        <div>
+          <Label htmlFor="edit_office_type">Office Type</Label>
+          <Select value={orgData.office_type} onValueChange={(value) => setOrgData({...orgData, office_type: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hot_desk">Hot Desk</SelectItem>
+              <SelectItem value="dedicated_desk">Dedicated Desk</SelectItem>
+              <SelectItem value="private_office">Private Office</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="edit_monthly_credits">Monthly Credits</Label>
+          <Input
+            id="edit_monthly_credits"
+            type="number"
+            value={orgData.monthly_credits}
+            onChange={(e) => setOrgData({...orgData, monthly_credits: parseInt(e.target.value) || 0})}
+            min="0"
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_monthly_fee">Monthly Fee (PKR)</Label>
+          <Input
+            id="edit_monthly_fee"
+            type="number"
+            value={orgData.monthly_fee}
+            onChange={(e) => setOrgData({...orgData, monthly_fee: parseInt(e.target.value) || 0})}
+            min="0"
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_org_start_date">Start Date</Label>
+          <Input
+            id="edit_org_start_date"
+            type="date"
+            value={orgData.start_date}
+            onChange={(e) => setOrgData({...orgData, start_date: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_description">Description</Label>
+          <Textarea
+            id="edit_description"
+            placeholder="Brief description of the organization..."
+            value={orgData.description}
+            onChange={(e) => setOrgData({...orgData, description: e.target.value})}
+            rows={3}
+          />
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateOrg.isPending}>
+            {updateOrg.isPending ? "Updating..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
 
   const EditUserForm = ({ user, onClose }: { user: any; onClose: () => void }) => {
     const [formData, setFormData] = useState({
@@ -1460,75 +1702,18 @@ export default function AdminDashboard() {
 
       {/* Edit Organization Dialog */}
       <Dialog open={editOrgDialog} onOpenChange={setEditOrgDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Organization</DialogTitle>
           </DialogHeader>
           {selectedOrg && (
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const updates = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                site: formData.get('site'),
-                start_date: formData.get('start_date') || null,
-              };
-              
-              try {
-                await updateOrg.mutateAsync({ orgId: selectedOrg.id, updates });
+            <EditOrganizationForm 
+              organization={selectedOrg} 
+              onClose={() => {
                 setEditOrgDialog(false);
                 setSelectedOrg(null);
-                toast({
-                  title: "Success",
-                  description: "Organization updated successfully",
-                });
-              } catch (error) {
-                toast({
-                  title: "Error",
-                  description: "Failed to update organization",
-                  variant: "destructive",
-                });
-              }
-            }}>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="org_name">Organization Name</Label>
-                  <Input id="org_name" name="name" defaultValue={selectedOrg.name} required />
-                </div>
-                <div>
-                  <Label htmlFor="org_email">Email</Label>
-                  <Input id="org_email" name="email" type="email" defaultValue={selectedOrg.email} required />
-                </div>
-                <div>
-                  <Label htmlFor="org_site">Site</Label>
-                  <Select name="site" defaultValue={selectedOrg.site}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="blue_area">Blue Area</SelectItem>
-                      <SelectItem value="i_10">I-10</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="org_start_date">Start Date (Optional)</Label>
-                  <Input 
-                    id="org_start_date" 
-                    name="start_date" 
-                    type="date"
-                    defaultValue={selectedOrg.start_date ? new Date(selectedOrg.start_date).toISOString().split('T')[0] : ''}
-                  />
-                </div>
-              </div>
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={() => setEditOrgDialog(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">Save Changes</Button>
-              </DialogFooter>
-            </form>
+              }} 
+            />
           )}
         </DialogContent>
       </Dialog>
