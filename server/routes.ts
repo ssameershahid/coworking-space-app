@@ -591,7 +591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/users/:id/permissions", requireAuth, requireRole(["member_organization", "enterprise_administrator"]), async (req, res) => {
+  app.patch("/api/organizations/employees/:id/permissions", requireAuth, requireRole(["member_organization_admin", "calmkaaj_admin"]), async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
       const { can_charge_cafe_to_org, can_charge_room_to_org } = req.body;
@@ -605,6 +605,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating employee permissions:", error);
       res.status(500).json({ message: "Failed to update permissions" });
+    }
+  });
+
+  // Organization invoice generation
+  app.post("/api/organizations/:id/invoice", requireAuth, requireRole(["member_organization_admin", "calmkaaj_admin"]), async (req, res) => {
+    try {
+      const user = req.user as schema.User;
+      const orgId = req.params.id;
+      const { month, year } = req.body;
+      
+      // Check if user has access to this organization
+      if (user.role !== "calmkaaj_admin" && user.organization_id !== orgId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get organization data
+      const organization = await storage.getOrganizationById(orgId);
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+
+      // Get orders and bookings for the specified month/year
+      const orders = await storage.getCafeOrders(undefined, orgId);
+      const bookings = await storage.getMeetingBookings(undefined, orgId);
+
+      // Filter by month/year
+      const filteredOrders = orders.filter((order: any) => {
+        const orderDate = new Date(order.created_at);
+        return orderDate.getMonth() === month && orderDate.getFullYear() === year;
+      });
+
+      const filteredBookings = bookings.filter((booking: any) => {
+        const bookingDate = new Date(booking.created_at);
+        return bookingDate.getMonth() === month && bookingDate.getFullYear() === year;
+      });
+
+      // Generate PDF invoice (simplified for now)
+      const invoiceData = {
+        organization: organization.name,
+        month: month + 1,
+        year,
+        orders: filteredOrders,
+        bookings: filteredBookings,
+        totalAmount: filteredOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0),
+        totalCredits: filteredBookings.reduce((sum: number, booking: any) => sum + booking.credits_used, 0),
+      };
+
+      res.json(invoiceData);
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      res.status(500).json({ message: "Failed to generate invoice" });
+    }
+  });
+
+  // Get organization details
+  app.get("/api/organizations/:id", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as schema.User;
+      const orgId = req.params.id;
+      
+      // Check if user has access to this organization
+      if (user.role !== "calmkaaj_admin" && user.organization_id !== orgId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const organization = await storage.getOrganizationById(orgId);
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      res.json(organization);
+    } catch (error) {
+      console.error("Error fetching organization:", error);
+      res.status(500).json({ message: "Failed to fetch organization" });
     }
   });
 

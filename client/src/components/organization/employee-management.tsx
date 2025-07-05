@@ -1,48 +1,41 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MoreHorizontal } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { User } from "@/lib/types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Users, Mail, Phone, Settings, Coffee, Calendar } from "lucide-react";
 
-interface EmployeeManagementProps {
-  employees: User[];
-}
-
-export default function EmployeeManagement({ employees }: EmployeeManagementProps) {
+export default function EmployeeManagement() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+
+  const { data: employees = [], isLoading } = useQuery({
+    queryKey: ["/api/organizations", user?.organization_id, "employees"],
+    enabled: !!user?.organization_id,
+  });
 
   const updatePermissionsMutation = useMutation({
-    mutationFn: async ({ userId, permissions }: { userId: number; permissions: any }) => {
-      const response = await apiRequest("PATCH", `/api/users/${userId}/permissions`, permissions);
-      return response.json();
+    mutationFn: async (data: { userId: number; permissions: any }) => {
+      return apiRequest(`/api/organizations/employees/${data.userId}/permissions`, {
+        method: "PATCH",
+        body: JSON.stringify(data.permissions),
+      });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/organizations", user?.organization_id, "employees"] });
       toast({
         title: "Success",
         description: "Employee permissions updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/organizations"] });
     },
     onError: (error: any) => {
       toast({
@@ -53,112 +46,159 @@ export default function EmployeeManagement({ employees }: EmployeeManagementProp
     },
   });
 
-  const handlePermissionChange = (userId: number, permission: string, value: boolean) => {
+  const handlePermissionToggle = async (employeeId: number, permission: string, value: boolean) => {
     updatePermissionsMutation.mutate({
-      userId,
-      permissions: { [permission]: value },
+      userId: employeeId,
+      permissions: {
+        [permission]: value,
+      },
     });
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  };
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    );
+  }
 
   return (
-    <Card className="mb-8">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Employee Permissions</CardTitle>
-          <Button>Add Employee</Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {employees.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No employees found</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Café Orders</TableHead>
-                  <TableHead>Room Bookings</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {employees.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-gray-300 text-gray-600 text-sm">
-                            {getInitials(employee.first_name, employee.last_name)}
-                          </AvatarFallback>
-                        </Avatar>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Employee Management</h2>
+        <Badge variant="secondary" className="text-sm">
+          {employees.length} employees
+        </Badge>
+      </div>
+
+      <div className="grid gap-4">
+        {employees.map((employee: any) => (
+          <Card key={employee.id} className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">
+                    {employee.first_name} {employee.last_name}
+                  </h3>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <div className="flex items-center space-x-1">
+                      <Mail className="h-4 w-4" />
+                      <span>{employee.email}</span>
+                    </div>
+                    {employee.phone && (
+                      <div className="flex items-center space-x-1">
+                        <Phone className="h-4 w-4" />
+                        <span>{employee.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Badge variant={employee.is_active ? "default" : "secondary"}>
+                      {employee.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                    <Badge variant="outline">{employee.role.replace("_", " ")}</Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-6">
+                {/* Café Permission */}
+                <div className="flex items-center space-x-2">
+                  <Coffee className="h-4 w-4 text-orange-600" />
+                  <Label htmlFor={`cafe-${employee.id}`} className="text-sm font-medium">
+                    Café Billing
+                  </Label>
+                  <Switch
+                    id={`cafe-${employee.id}`}
+                    checked={employee.can_charge_cafe_to_org}
+                    onCheckedChange={(checked) => 
+                      handlePermissionToggle(employee.id, "can_charge_cafe_to_org", checked)
+                    }
+                    disabled={updatePermissionsMutation.isPending}
+                  />
+                </div>
+
+                {/* Room Permission */}
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-green-600" />
+                  <Label htmlFor={`room-${employee.id}`} className="text-sm font-medium">
+                    Room Billing
+                  </Label>
+                  <Switch
+                    id={`room-${employee.id}`}
+                    checked={employee.can_charge_room_to_org}
+                    onCheckedChange={(checked) => 
+                      handlePermissionToggle(employee.id, "can_charge_room_to_org", checked)
+                    }
+                    disabled={updatePermissionsMutation.isPending}
+                  />
+                </div>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedEmployee(employee)}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      Details
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Employee Details</DialogTitle>
+                    </DialogHeader>
+                    {selectedEmployee && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>First Name</Label>
+                            <Input value={selectedEmployee.first_name} readOnly />
+                          </div>
+                          <div>
+                            <Label>Last Name</Label>
+                            <Input value={selectedEmployee.last_name} readOnly />
+                          </div>
+                        </div>
                         <div>
-                          <p className="font-medium text-gray-900">
-                            {employee.first_name} {employee.last_name}
-                          </p>
-                          <p className="text-sm text-gray-500">{employee.email}</p>
+                          <Label>Email</Label>
+                          <Input value={selectedEmployee.email} readOnly />
+                        </div>
+                        <div>
+                          <Label>Phone</Label>
+                          <Input value={selectedEmployee.phone || "Not provided"} readOnly />
+                        </div>
+                        <div>
+                          <Label>Role</Label>
+                          <Input value={selectedEmployee.role.replace("_", " ")} readOnly />
+                        </div>
+                        <div>
+                          <Label>Credits Available</Label>
+                          <Input value={selectedEmployee.credits - selectedEmployee.used_credits} readOnly />
+                        </div>
+                        <div>
+                          <Label>Member Since</Label>
+                          <Input value={new Date(selectedEmployee.created_at).toLocaleDateString()} readOnly />
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {employee.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={employee.can_charge_cafe_to_org}
-                        onCheckedChange={(checked) => 
-                          handlePermissionChange(employee.id, 'can_charge_cafe_to_org', checked)
-                        }
-                        disabled={updatePermissionsMutation.isPending}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={employee.can_charge_room_to_org}
-                        onCheckedChange={(checked) => 
-                          handlePermissionChange(employee.id, 'can_charge_room_to_org', checked)
-                        }
-                        disabled={updatePermissionsMutation.isPending}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={employee.is_active ? "default" : "secondary"}>
-                        {employee.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Employee</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            Deactivate
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {employees.length === 0 && (
+        <div className="text-center py-8">
+          <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No employees found</h3>
+          <p className="text-gray-600">No employees are currently associated with your organization.</p>
+        </div>
+      )}
+    </div>
   );
 }

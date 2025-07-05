@@ -18,6 +18,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { 
   ShoppingCart, 
+  Coffee, 
   Plus, 
   Minus, 
   Star, 

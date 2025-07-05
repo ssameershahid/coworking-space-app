@@ -1,12 +1,18 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import EmployeeManagement from "@/components/organization/employee-management";
 import InvoiceGeneration from "@/components/organization/invoice-generation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, DollarSign, Users, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ShoppingCart, DollarSign, Users, Calendar, FileText, Building, Coffee, TrendingUp } from "lucide-react";
 
 export default function OrganizationPage() {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
 
   const { data: employees = [] } = useQuery({
     queryKey: ["/api/organizations", user?.organization_id, "employees"],
@@ -20,6 +26,11 @@ export default function OrganizationPage() {
 
   const { data: orgBookings = [] } = useQuery({
     queryKey: ["/api/bookings", user?.organization_id],
+    enabled: !!user?.organization_id,
+  });
+
+  const { data: organization } = useQuery({
+    queryKey: ["/api/organizations", user?.organization_id],
     enabled: !!user?.organization_id,
   });
 
@@ -47,79 +58,234 @@ export default function OrganizationPage() {
   });
 
   const totalSpent = monthlyOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
+  const totalCreditsUsed = monthlyBookings.reduce((sum: number, booking: any) => sum + booking.credits_used, 0);
   const activeMembers = employees.filter((emp: any) => emp.is_active).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Organization Portal</h2>
-        <p className="text-gray-600">Manage your team's orders and bookings</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Organization Management</h1>
+            <p className="text-gray-600 mt-2">Manage your organization's coworking space activities</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Building className="h-5 w-5 text-blue-600" />
+            <span className="text-sm font-medium">{organization?.name || "Organization"}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">This Month</p>
-                <p className="text-2xl font-bold text-gray-900">{monthlyOrders.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
-                <ShoppingCart className="h-6 w-6 text-accent" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Spent</p>
-                <p className="text-2xl font-bold text-gray-900">Rs. {totalSpent.toFixed(2)}</p>
-              </div>
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Room Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">{monthlyBookings.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Members</p>
-                <p className="text-2xl font-bold text-gray-900">{activeMembers}</p>
-              </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Users className="h-6 w-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="employees">Employees</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+        </TabsList>
 
-      {/* Employee Management */}
-      <EmployeeManagement employees={employees} />
+        <TabsContent value="overview" className="space-y-6">
+          {/* Overview Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeMembers}</div>
+                <p className="text-xs text-muted-foreground">
+                  {employees.length} total members
+                </p>
+              </CardContent>
+            </Card>
 
-      {/* Invoice Generation */}
-      <InvoiceGeneration orgOrders={orgOrders} orgBookings={orgBookings} />
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">This Month Spent</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${totalSpent.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground">
+                  {monthlyOrders.length} café orders
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Credits Used</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalCreditsUsed}</div>
+                <p className="text-xs text-muted-foreground">
+                  {monthlyBookings.length} room bookings
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Monthly Total</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${totalSpent.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground">
+                  + {totalCreditsUsed} credits
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Activity Preview */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Café Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {monthlyOrders.slice(0, 3).map((order: any) => (
+                    <div key={order.id} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        <div>
+                          <p className="text-sm font-medium">{order.user?.first_name} {order.user?.last_name}</p>
+                          <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline">${order.total_amount}</Badge>
+                    </div>
+                  ))}
+                  {monthlyOrders.length === 0 && (
+                    <p className="text-sm text-gray-500">No café orders this month</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Room Bookings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {monthlyBookings.slice(0, 3).map((booking: any) => (
+                    <div key={booking.id} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div>
+                          <p className="text-sm font-medium">{booking.user?.first_name} {booking.user?.last_name}</p>
+                          <p className="text-xs text-gray-500">{booking.room?.name}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline">{booking.credits_used} credits</Badge>
+                    </div>
+                  ))}
+                  {monthlyBookings.length === 0 && (
+                    <p className="text-sm text-gray-500">No room bookings this month</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="employees">
+          <EmployeeManagement />
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Organization Café Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orgOrders.slice(0, 5).map((order: any) => (
+                      <TableRow key={order.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{order.user?.first_name} {order.user?.last_name}</p>
+                            <p className="text-sm text-gray-500">{order.user?.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>${order.total_amount}</TableCell>
+                        <TableCell>
+                          <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
+                            {order.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {orgOrders.length === 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500">No organization café orders found</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Organization Room Bookings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Room</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Credits</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orgBookings.slice(0, 5).map((booking: any) => (
+                      <TableRow key={booking.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{booking.user?.first_name} {booking.user?.last_name}</p>
+                            <p className="text-sm text-gray-500">{booking.user?.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{booking.room?.name}</TableCell>
+                        <TableCell>{new Date(booking.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>{booking.credits_used}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {orgBookings.length === 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500">No organization room bookings found</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="invoices">
+          <InvoiceGeneration />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
