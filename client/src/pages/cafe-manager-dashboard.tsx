@@ -69,8 +69,7 @@ export default function CafeManagerDashboard() {
   const updateOrderStatus = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number, status: string }) => {
       return apiRequest(`/api/cafe/orders/${orderId}/status`, "PATCH", {
-        status,
-        handled_by: user?.id
+        status
       });
     },
     onSuccess: () => {
