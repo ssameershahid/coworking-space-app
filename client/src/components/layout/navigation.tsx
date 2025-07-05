@@ -19,12 +19,16 @@ export default function Navigation() {
 
   const navigation = [
     { name: "Dashboard", href: "/", current: location === "/" },
-    { name: "Café", href: "/cafe", current: location === "/cafe" },
-    { name: "Rooms", href: "/rooms", current: location === "/rooms" },
-    ...(user.role === "member_organization" || user.role === "enterprise_administrator" 
+    ...(user.role === "member_individual" || user.role === "member_organization_admin" || user.role === "calmkaaj_admin" 
+      ? [{ name: "Café", href: "/cafe", current: location === "/cafe" }] 
+      : []),
+    ...(user.role === "member_individual" || user.role === "member_organization_admin" || user.role === "calmkaaj_admin" 
+      ? [{ name: "Rooms", href: "/rooms", current: location === "/rooms" }] 
+      : []),
+    ...(user.role === "member_organization_admin" 
       ? [{ name: "Organization", href: "/organization", current: location === "/organization" }] 
       : []),
-    ...(user.role === "enterprise_administrator" 
+    ...(user.role === "calmkaaj_admin" 
       ? [{ name: "Admin", href: "/admin", current: location === "/admin" }] 
       : []),
   ];
@@ -45,15 +49,15 @@ export default function Navigation() {
           <nav className="hidden md:flex space-x-8">
             {navigation.map((item) => (
               <Link key={item.name} href={item.href}>
-                <a
-                  className={`pb-4 font-medium transition-colors ${
+                <span
+                  className={`pb-4 font-medium transition-colors cursor-pointer ${
                     item.current
                       ? "text-primary border-b-2 border-primary"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   {item.name}
-                </a>
+                </span>
               </Link>
             ))}
           </nav>
