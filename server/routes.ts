@@ -216,6 +216,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Daily specials endpoint
+  app.get("/api/menu/daily-specials", requireAuth, async (req, res) => {
+    try {
+      const { site } = req.query;
+      const items = await storage.getMenuItems(site as string);
+      const dailySpecials = items.filter(item => item.is_daily_special && item.is_available);
+      res.json(dailySpecials);
+    } catch (error) {
+      console.error("Error fetching daily specials:", error);
+      res.status(500).json({ message: "Failed to fetch daily specials" });
+    }
+  });
+
+  // Available rooms endpoint
+  app.get("/api/rooms/available", requireAuth, async (req, res) => {
+    try {
+      const { site } = req.query;
+      const rooms = await storage.getMeetingRooms(site as string);
+      const availableRooms = rooms.filter(room => room.is_available);
+      res.json(availableRooms);
+    } catch (error) {
+      console.error("Error fetching available rooms:", error);
+      res.status(500).json({ message: "Failed to fetch available rooms" });
+    }
+  });
+
   app.post("/api/menu/items", requireAuth, requireRole(["cafe_manager", "enterprise_administrator"]), async (req, res) => {
     try {
       const result = schema.insertMenuItemSchema.safeParse(req.body);

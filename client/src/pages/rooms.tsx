@@ -1,87 +1,302 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import RoomCard from "@/components/rooms/room-card";
-import BookingModal from "@/components/rooms/booking-modal";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useWebSocket } from "@/hooks/use-websocket";
+import { 
+  Calendar, 
+  Clock, 
+  Users, 
+  Wifi, 
+  Monitor, 
+  Coffee, 
+  CreditCard, 
+  Building,
+  CheckCircle,
+  AlertCircle,
+  Download,
+  Star,
+  MapPin,
+  Filter,
+  Calendar as CalendarIcon,
+  Phone,
+  Camera,
+  Volume2,
+  Projector
+} from "lucide-react";
+import { MeetingRoom, MeetingBooking } from "@/lib/types";
+
+// Amenity icons mapping
+const AMENITY_ICONS = {
+  wifi: Wifi,
+  monitor: Monitor,
+  coffee: Coffee,
+  whiteboard: Monitor,
+  projector: Projector,
+  phone: Phone,
+  camera: Camera,
+  speakers: Volume2,
+  default: Star,
+};
 
 export default function RoomsPage() {
   const { user } = useAuth();
-  const [selectedRoom, setSelectedRoom] = useState<any>(null);
-  const [bookingData, setBookingData] = useState({
-    date: "",
-    start_time: "",
-    duration: "1",
-  });
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [selectedRoom, setSelectedRoom] = useState<MeetingRoom | null>(null);
+  const [bookingDate, setBookingDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [duration, setDuration] = useState("1");
+  const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
+  const [bookingNotes, setBookingNotes] = useState("");
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [filterCapacity, setFilterCapacity] = useState("");
+  const [sortBy, setSortBy] = useState("name");
 
-  const { data: rooms = [] } = useQuery({
+  const { data: rooms = [] } = useQuery<MeetingRoom[]>({
     queryKey: ["/api/rooms", user?.site],
     enabled: !!user,
   });
 
-  const handleBookRoom = (room: any) => {
-    setSelectedRoom(room);
+  const { data: myBookings = [] } = useQuery<MeetingBooking[]>({
+    queryKey: ["/api/bookings"],
+    enabled: !!user,
+  });
+
+  // WebSocket for real-time booking updates
+  useWebSocket({
+    onMessage: (message) => {
+      if (message.type === 'BOOKING_UPDATE' && message.userId === user?.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+        toast({
+          title: "Booking Update",
+          description: `Your booking for ${message.roomName} has been ${message.status}`,
+        });
+      }
+    },
+  });
+
+  const bookRoomMutation = useMutation({
+    mutationFn: async (bookingData: any) => {
+      return apiRequest('POST', '/api/bookings', bookingData);
+    },
+    onSuccess: () => {
+      setShowBookingModal(false);
+      setSelectedRoom(null);
+      toast({
+        title: "Booking Confirmed!",
+        description: `Your meeting room has been booked successfully.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Booking Failed",
+        description: error.message || "There was an error booking the room. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cancelBookingMutation = useMutation({
+    mutationFn: async (bookingId: number) => {
+      return apiRequest('PATCH', `/api/bookings/${bookingId}/status`, { status: 'cancelled' });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Booking Cancelled",
+        description: "Your booking has been cancelled successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+    },
+  });
+
+  // Filter and sort rooms
+  const filteredRooms = rooms
+    .filter((room) => {
+      if (filterCapacity && room.capacity < parseInt(filterCapacity)) return false;
+      return room.is_available;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "capacity": return a.capacity - b.capacity;
+        case "price": return a.credit_cost_per_hour - b.credit_cost_per_hour;
+        default: return a.name.localeCompare(b.name);
+      }
+    });
+
+  const calculateCredits = () => {
+    if (!selectedRoom || !duration) return 0;
+    return selectedRoom.credit_cost_per_hour * parseInt(duration);
   };
 
-  const handleDateTimeChange = (field: string, value: string) => {
-    setBookingData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleBookRoom = () => {
+    if (!selectedRoom || !bookingDate || !startTime || !duration) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required booking details.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const creditsNeeded = calculateCredits();
+    if (creditsNeeded > (user?.credits || 0) - (user?.used_credits || 0)) {
+      toast({
+        title: "Insufficient Credits",
+        description: `You need ${creditsNeeded} credits but only have ${(user?.credits || 0) - (user?.used_credits || 0)} available.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const startDateTime = new Date(`${bookingDate}T${startTime}`);
+    const endDateTime = new Date(startDateTime.getTime() + parseInt(duration) * 60 * 60 * 1000);
+
+    const bookingData = {
+      room_id: selectedRoom.id,
+      start_time: startDateTime.toISOString(),
+      end_time: endDateTime.toISOString(),
+      credits_used: creditsNeeded,
+      billed_to: billingType,
+      org_id: billingType === "organization" ? user?.organization_id : null,
+      notes: bookingNotes || null,
+      site: user?.site,
+    };
+
+    bookRoomMutation.mutate(bookingData);
   };
+
+  const getAmenityIcon = (amenity: string) => {
+    const IconComponent = AMENITY_ICONS[amenity.toLowerCase() as keyof typeof AMENITY_ICONS] || AMENITY_ICONS.default;
+    return IconComponent;
+  };
+
+  const canChargeToOrg = user?.can_charge_room_to_org && user?.organization_id;
+  const availableCredits = (user?.credits || 0) - (user?.used_credits || 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Meeting Rooms</h2>
-        <p className="text-gray-600">Book your perfect meeting space</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Header */}
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Meeting Rooms</h2>
+        <p className="text-gray-600 flex items-center gap-2">
+          <MapPin className="h-4 w-4" />
+          {user?.site === 'blue_area' ? 'Blue Area' : 'I-10'} Location
+        </p>
       </div>
 
-      {/* Date/Time Selector */}
-      <Card className="mb-8">
+      {/* Credits Display */}
+      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
-                Date
-              </Label>
-              <Input
-                id="date"
-                type="date"
-                value={bookingData.date}
-                onChange={(e) => handleDateTimeChange("date", e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-              />
+              <h3 className="text-lg font-semibold text-green-800 mb-1">Your Credits</h3>
+              <p className="text-green-600">Available for room bookings</p>
             </div>
-            <div>
-              <Label htmlFor="start_time" className="block text-sm font-medium text-gray-700 mb-2">
-                Start Time
-              </Label>
-              <Input
-                id="start_time"
-                type="time"
-                value={bookingData.start_time}
-                onChange={(e) => handleDateTimeChange("start_time", e.target.value)}
-              />
+            <div className="text-right">
+              <p className="text-3xl font-bold text-green-800">{availableCredits}</p>
+              <p className="text-sm text-green-600">of {user?.credits || 0} total</p>
             </div>
-            <div>
-              <Label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
-                Duration
-              </Label>
-              <Select value={bookingData.duration} onValueChange={(value) => handleDateTimeChange("duration", value)}>
+          </div>
+          <div className="mt-4">
+            <Progress 
+              value={user?.credits ? ((user.credits - availableCredits) / user.credits) * 100 : 0} 
+              className="h-2" 
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Current Bookings */}
+      {myBookings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              Your Upcoming Bookings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {myBookings.filter(booking => 
+                booking.status === 'confirmed' && 
+                new Date(booking.start_time) > new Date()
+              ).slice(0, 3).map((booking) => (
+                <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-medium">{booking.room?.name}</h4>
+                    <p className="text-sm text-gray-600">
+                      {new Date(booking.start_time).toLocaleDateString()} • {' '}
+                      {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
+                      {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <p className="text-sm text-gray-500">{booking.credits_used} credits</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Confirmed
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => cancelBookingMutation.mutate(booking.id)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Filters and Search */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Label className="text-sm font-medium mb-2 block">Minimum Capacity</Label>
+              <Select value={filterCapacity} onValueChange={setFilterCapacity}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select duration" />
+                  <SelectValue placeholder="Any capacity" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 hour</SelectItem>
-                  <SelectItem value="2">2 hours</SelectItem>
-                  <SelectItem value="3">3 hours</SelectItem>
-                  <SelectItem value="4">4 hours</SelectItem>
-                  <SelectItem value="8">Full day</SelectItem>
+                  <SelectItem value="">Any capacity</SelectItem>
+                  <SelectItem value="2">2+ people</SelectItem>
+                  <SelectItem value="4">4+ people</SelectItem>
+                  <SelectItem value="6">6+ people</SelectItem>
+                  <SelectItem value="8">8+ people</SelectItem>
+                  <SelectItem value="10">10+ people</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm font-medium mb-2 block">Sort By</Label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="capacity">Capacity</SelectItem>
+                  <SelectItem value="price">Price (Credits)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -91,22 +306,247 @@ export default function RoomsPage() {
 
       {/* Room Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {rooms.map((room: any) => (
-          <RoomCard 
-            key={room.id} 
-            room={room} 
-            onBook={handleBookRoom}
-            bookingData={bookingData}
-          />
+        {filteredRooms.map((room) => (
+          <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="aspect-video bg-gray-100 relative">
+              {room.image_url ? (
+                <img 
+                  src={room.image_url} 
+                  alt={room.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <Users className="h-12 w-12" />
+                </div>
+              )}
+            </div>
+            
+            <CardContent className="p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{room.name}</h3>
+              {room.description && (
+                <p className="text-gray-600 text-sm mb-4">{room.description}</p>
+              )}
+              
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">Capacity: {room.capacity} people</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">{room.credit_cost_per_hour} credits/hour</span>
+                </div>
+              </div>
+
+              {/* Amenities */}
+              {room.amenities && room.amenities.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Amenities:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {room.amenities.map((amenity, index) => {
+                      const IconComponent = getAmenityIcon(amenity);
+                      return (
+                        <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                          <IconComponent className="h-3 w-3" />
+                          {amenity}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <Button 
+                className="w-full"
+                onClick={() => {
+                  setSelectedRoom(room);
+                  setShowBookingModal(true);
+                }}
+              >
+                Book Room
+              </Button>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Booking Modal */}
-      <BookingModal
-        room={selectedRoom}
-        bookingData={bookingData}
-        onClose={() => setSelectedRoom(null)}
-      />
+      <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Book {selectedRoom?.name}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Room Info */}
+            {selectedRoom && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">{selectedRoom.name}</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div>Capacity: {selectedRoom.capacity} people</div>
+                  <div>{selectedRoom.credit_cost_per_hour} credits/hour</div>
+                </div>
+              </div>
+            )}
+
+            {/* Date and Time */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="booking-date">Date</Label>
+                <Input
+                  type="date"
+                  id="booking-date"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div>
+                <Label htmlFor="start-time">Start Time</Label>
+                <Input
+                  type="time"
+                  id="start-time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="duration">Duration</Label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0.5">30 minutes</SelectItem>
+                  <SelectItem value="1">1 hour</SelectItem>
+                  <SelectItem value="1.5">1.5 hours</SelectItem>
+                  <SelectItem value="2">2 hours</SelectItem>
+                  <SelectItem value="3">3 hours</SelectItem>
+                  <SelectItem value="4">4 hours</SelectItem>
+                  <SelectItem value="8">Full day (8 hours)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Billing Options */}
+            {canChargeToOrg && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Billing Options</Label>
+                <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="personal" id="personal-room" />
+                    <Label htmlFor="personal-room" className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      Use My Credits (Personal)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="organization" id="organization-room" />
+                    <Label htmlFor="organization-room" className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Charge to My Company
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div>
+              <Label htmlFor="booking-notes">Meeting Notes (Optional)</Label>
+              <Textarea
+                id="booking-notes"
+                placeholder="Meeting agenda, special requirements, etc..."
+                value={bookingNotes}
+                onChange={(e) => setBookingNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {/* Credit Check */}
+            {selectedRoom && duration && (
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span>Credits Required:</span>
+                  <span className="font-semibold">{calculateCredits()}</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span>Available Credits:</span>
+                  <span className="font-semibold">{availableCredits}</span>
+                </div>
+                <Separator className="my-2" />
+                <div className="flex justify-between items-center font-bold">
+                  <span>Remaining After Booking:</span>
+                  <span className={availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}>
+                    {availableCredits - calculateCredits()}
+                  </span>
+                </div>
+                
+                {availableCredits - calculateCredits() < 0 && (
+                  <Alert className="mt-3">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Insufficient credits. You need {calculateCredits() - availableCredits} more credits.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
+
+            {/* Book Button */}
+            <Button 
+              className="w-full"
+              onClick={handleBookRoom}
+              disabled={bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
+            >
+              {bookRoomMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Booking...
+                </div>
+              ) : (
+                `Confirm Booking • ${calculateCredits()} Credits`
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Download Button */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="fixed bottom-6 left-6 shadow-lg">
+            <Download className="h-4 w-4 mr-2" />
+            Download Booking History
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Download Booking History</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>Select date range for your room booking history:</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="start-date">Start Date</Label>
+                <Input type="date" id="start-date" />
+              </div>
+              <div>
+                <Label htmlFor="end-date">End Date</Label>
+                <Input type="date" id="end-date" />
+              </div>
+            </div>
+            <Button className="w-full">
+              <Download className="h-4 w-4 mr-2" />
+              Generate PDF Report
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
