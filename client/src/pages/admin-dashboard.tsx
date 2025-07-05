@@ -1746,13 +1746,13 @@ export default function AdminDashboard() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1">
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button 
-                                  size="sm" 
-                                  variant="outline"
+                                  size="icon" 
+                                  variant="ghost"
                                   onClick={() => {
                                     setSelectedMenuItem(item);
                                     setEditMenuItemDialog(true);
@@ -1771,19 +1771,32 @@ export default function AdminDashboard() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button 
-                                  size="sm" 
-                                  variant={item.is_available ? "destructive" : "default"}
+                                  size="icon" 
+                                  variant="ghost"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>View menu item details</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost"
                                   onClick={() => toggleMenuItemAvailability.mutate({
                                     itemId: item.id,
                                     is_available: !item.is_available
                                   })}
                                   disabled={toggleMenuItemAvailability.isPending}
+                                  className={!item.is_available ? "text-red-500" : ""}
                                 >
-                                  {item.is_available ? (
-                                    <UserX className="h-4 w-4" />
-                                  ) : (
-                                    <CheckCircle className="h-4 w-4" />
-                                  )}
+                                  <Ban className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -1815,13 +1828,13 @@ export default function AdminDashboard() {
                     <TableHead>Capacity</TableHead>
                     <TableHead>Cost/Hour</TableHead>
                     <TableHead>Site</TableHead>
-                    <TableHead>Available</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rooms.map((room) => (
-                    <TableRow key={room.id}>
+                    <TableRow key={room.id} className={!room.is_available ? "opacity-50" : ""}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{room.name}</div>
@@ -1832,18 +1845,60 @@ export default function AdminDashboard() {
                       <TableCell>{room.credit_cost_per_hour} credits</TableCell>
                       <TableCell>{room.site}</TableCell>
                       <TableCell>
-                        <Badge variant={room.is_available ? "default" : "secondary"}>
-                          {room.is_available ? "Available" : "Maintenance"}
+                        <Badge variant={room.is_available ? "default" : "destructive"}>
+                          {room.is_available ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <div className="flex gap-1">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit room details</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>View room details</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost"
+                                  className={!room.is_available ? "text-red-500" : ""}
+                                >
+                                  <Ban className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{room.is_available ? "Mark room for maintenance" : "Mark room as available"}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </TableCell>
                     </TableRow>
