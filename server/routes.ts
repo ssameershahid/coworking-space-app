@@ -376,9 +376,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/cafe/orders/all", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
     try {
       const user = req.user as schema.User;
+      const { site } = req.query;
       
-      // Get all orders for the site (cafe managers manage site-specific orders)
-      const orders = await storage.getCafeOrders(undefined, undefined, user.site);
+      // For cafe managers, use their site. For admins, use the site query parameter
+      const filterSite = user.role === 'calmkaaj_admin' ? (site as string) : user.site;
+      
+      const orders = await storage.getCafeOrders(undefined, undefined, filterSite);
       res.json(orders);
     } catch (error) {
       console.error("Error fetching all cafe orders:", error);
@@ -586,7 +589,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Organization routes
   app.get("/api/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      const organizations = await storage.getOrganizations();
+      const { site } = req.query;
+      const organizations = await storage.getOrganizations(site as string);
       res.json(organizations);
     } catch (error) {
       console.error("Error fetching organizations:", error);
@@ -718,8 +722,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin-only routes for CalmKaaj administrators
   app.get("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      // Get all users with organization details
-      const users = await db
+      const { site } = req.query;
+      
+      // Build query with optional site filtering
+      let query = db
         .select({
           id: schema.users.id,
           email: schema.users.email,
@@ -740,8 +746,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         })
         .from(schema.users)
-        .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id))
-        .orderBy(desc(schema.users.created_at));
+        .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id));
+
+      // Apply site filter if provided
+      if (site && site !== 'all') {
+        query = query.where(eq(schema.users.site, site as string));
+      }
+
+      const users = await query.orderBy(desc(schema.users.created_at));
 
       res.json(users);
     } catch (error) {
@@ -828,8 +840,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/bookings", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      // Get all bookings for admin dashboard
-      const bookings = await storage.getMeetingBookings();
+      const { site } = req.query;
+      // Get all bookings for admin dashboard with optional site filtering
+      const bookings = await storage.getMeetingBookings(undefined, undefined, site as string);
       res.json(bookings);
     } catch (error) {
       console.error("Error fetching all bookings:", error);

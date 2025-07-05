@@ -186,42 +186,82 @@ export default function AdminDashboard() {
 
   // Fetch all data
   const { data: stats } = useQuery<AdminStats>({
-    queryKey: ['/api/admin/stats'],
+    queryKey: ['/api/admin/stats', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/stats' : `/api/admin/stats?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: users = [] } = useQuery<User[]>({
-    queryKey: ['/api/admin/users'],
+    queryKey: ['/api/admin/users', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/users' : `/api/admin/users?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: organizations = [] } = useQuery<Organization[]>({
-    queryKey: ['/api/organizations'],
+    queryKey: ['/api/organizations', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
-    queryKey: ['/api/admin/menu/items'],
+    queryKey: ['/api/admin/menu/items', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/menu/items' : `/api/admin/menu/items?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
-    queryKey: ['/api/rooms'],
+    queryKey: ['/api/rooms', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/rooms' : `/api/rooms?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: announcements = [] } = useQuery<Announcement[]>({
-    queryKey: ['/api/announcements'],
+    queryKey: ['/api/announcements', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/announcements' : `/api/announcements?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: allOrders = [] } = useQuery<any[]>({
-    queryKey: ['/api/cafe/orders/all'],
+    queryKey: ['/api/cafe/orders/all', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/cafe/orders/all' : `/api/cafe/orders/all?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: allBookings = [] } = useQuery<any[]>({
-    queryKey: ['/api/admin/bookings'],
+    queryKey: ['/api/admin/bookings', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/bookings' : `/api/admin/bookings?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
 

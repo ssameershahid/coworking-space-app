@@ -14,7 +14,7 @@ export interface IStorage {
   updateUser(id: number, updates: Partial<schema.User>): Promise<schema.User>;
   
   // Organizations
-  getOrganizations(): Promise<schema.Organization[]>;
+  getOrganizations(site?: string): Promise<schema.Organization[]>;
   getOrganizationById(id: string): Promise<schema.Organization | undefined>;
   createOrganization(org: schema.InsertOrganization): Promise<schema.Organization>;
   updateOrganization(id: string, updates: Partial<schema.Organization>): Promise<schema.Organization>;
@@ -42,7 +42,7 @@ export interface IStorage {
   
   // Meeting Bookings
   createMeetingBooking(booking: schema.InsertMeetingBooking): Promise<schema.MeetingBooking>;
-  getMeetingBookings(userId?: number, orgId?: string): Promise<any[]>;
+  getMeetingBookings(userId?: number, orgId?: string, site?: string): Promise<any[]>;
   getMeetingBookingById(id: number): Promise<any>;
   updateMeetingBookingStatus(id: number, status: string): Promise<schema.MeetingBooking>;
   checkRoomAvailability(roomId: number, startTime: Date, endTime: Date): Promise<boolean>;
@@ -78,8 +78,15 @@ export class DatabaseStorage implements IStorage {
     return updatedUser;
   }
 
-  async getOrganizations(): Promise<schema.Organization[]> {
-    return await db.select().from(schema.organizations).orderBy(asc(schema.organizations.name));
+  async getOrganizations(site?: string): Promise<schema.Organization[]> {
+    if (site && site !== 'all') {
+      return await db.select().from(schema.organizations)
+        .where(eq(schema.organizations.site, site))
+        .orderBy(asc(schema.organizations.name));
+    } else {
+      return await db.select().from(schema.organizations)
+        .orderBy(asc(schema.organizations.name));
+    }
   }
 
   async getOrganizationById(id: string): Promise<schema.Organization | undefined> {
@@ -150,7 +157,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCafeOrders(userId?: number, orgId?: string, site?: string): Promise<any[]> {
-    let query = db.select({
+    const baseQuery = db.select({
       id: schema.cafe_orders.id,
       user_id: schema.cafe_orders.user_id,
       total_amount: schema.cafe_orders.total_amount,
@@ -177,15 +184,19 @@ export class DatabaseStorage implements IStorage {
     .leftJoin(schema.users, eq(schema.cafe_orders.user_id, schema.users.id))
     .leftJoin(schema.organizations, eq(schema.cafe_orders.org_id, schema.organizations.id));
 
+    let orders;
     if (userId) {
-      query = query.where(eq(schema.cafe_orders.user_id, userId));
+      orders = await baseQuery.where(eq(schema.cafe_orders.user_id, userId))
+        .orderBy(desc(schema.cafe_orders.created_at));
     } else if (orgId) {
-      query = query.where(eq(schema.cafe_orders.org_id, orgId));
-    } else if (site) {
-      query = query.where(eq(schema.cafe_orders.site, site));
+      orders = await baseQuery.where(eq(schema.cafe_orders.org_id, orgId))
+        .orderBy(desc(schema.cafe_orders.created_at));
+    } else if (site && site !== 'all') {
+      orders = await baseQuery.where(eq(schema.cafe_orders.site, site))
+        .orderBy(desc(schema.cafe_orders.created_at));
+    } else {
+      orders = await baseQuery.orderBy(desc(schema.cafe_orders.created_at));
     }
-
-    const orders = await query.orderBy(desc(schema.cafe_orders.created_at));
 
     // Get order items for each order
     const ordersWithItems = await Promise.all(
@@ -299,8 +310,8 @@ export class DatabaseStorage implements IStorage {
     return newBooking;
   }
 
-  async getMeetingBookings(userId?: number, orgId?: string): Promise<any[]> {
-    const query = db.select({
+  async getMeetingBookings(userId?: number, orgId?: string, site?: string): Promise<any[]> {
+    let query = db.select({
       id: schema.meeting_bookings.id,
       start_time: schema.meeting_bookings.start_time,
       end_time: schema.meeting_bookings.end_time,
@@ -330,11 +341,20 @@ export class DatabaseStorage implements IStorage {
     .leftJoin(schema.meeting_rooms, eq(schema.meeting_bookings.room_id, schema.meeting_rooms.id))
     .leftJoin(schema.organizations, eq(schema.meeting_bookings.org_id, schema.organizations.id));
 
+    // Build where conditions
+    const conditions = [];
     if (userId) {
-      query.where(eq(schema.meeting_bookings.user_id, userId));
+      conditions.push(eq(schema.meeting_bookings.user_id, userId));
     }
     if (orgId) {
-      query.where(eq(schema.meeting_bookings.org_id, orgId));
+      conditions.push(eq(schema.meeting_bookings.org_id, orgId));
+    }
+    if (site && site !== 'all') {
+      conditions.push(eq(schema.meeting_rooms.site, site));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(conditions.length === 1 ? conditions[0] : and(...conditions));
     }
 
     return await query.orderBy(desc(schema.meeting_bookings.created_at));
