@@ -5,6 +5,7 @@ export const SITES = {
 
 export const USER_ROLES = {
   MEMBER_INDIVIDUAL: 'member_individual',
+  MEMBER_ORGANIZATION: 'member_organization',
   MEMBER_ORGANIZATION_ADMIN: 'member_organization_admin',
   CAFE_MANAGER: 'cafe_manager',
   CALMKAAJ_ADMIN: 'calmkaaj_admin',

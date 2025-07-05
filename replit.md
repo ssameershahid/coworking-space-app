@@ -136,6 +136,10 @@ Changelog:
   * Complete meeting room booking with credit management, amenity display, WebSocket updates
   * Profile management with organization info and PDF bill generation
   * Real-time notifications via WebSocket for order and booking status updates
+- July 06, 2025. Fixed user role assignment - added proper 'member_organization' role:
+  * Added new role to database schema for regular organization employees
+  * Fixed form to assign correct role (member_organization vs member_organization_admin)
+  * Organization employees now have limited permissions, not admin privileges
 ```
 
 ## User Preferences

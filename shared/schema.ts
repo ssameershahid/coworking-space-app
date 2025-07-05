@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Enums
-export const userRoleEnum = pgEnum("user_role", ["member_individual", "member_organization_admin", "cafe_manager", "calmkaaj_admin"]);
+export const userRoleEnum = pgEnum("user_role", ["member_individual", "member_organization", "member_organization_admin", "cafe_manager", "calmkaaj_admin"]);
 export const billingTypeEnum = pgEnum("billing_type", ["personal", "organization"]);
 export const orderStatusEnum = pgEnum("order_status", ["pending", "preparing", "ready", "delivered", "cancelled"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["confirmed", "cancelled", "completed"]);
