@@ -92,21 +92,18 @@ export default function CafeManagerDashboard() {
     updateOrderStatus.mutate({ orderId, status: newStatus });
   };
 
-  // Calculate stats
+  // Filter all orders to show only today's orders
   const todaysOrders = orders.filter(order => 
     new Date(order.created_at).toDateString() === new Date().toDateString()
   );
   
-  const pendingOrders = orders.filter(order => order.status === 'pending');
-  const startedOrders = orders.filter(order => order.status === 'accepted' || order.status === 'preparing');
-  const readyOrders = orders.filter(order => order.status === 'ready');
-  const completedToday = orders.filter(order => 
-    order.status === 'delivered' && 
-    new Date(order.created_at).toDateString() === new Date().toDateString()
-  );
+  // Calculate stats based on today's orders only
+  const pendingOrders = todaysOrders.filter(order => order.status === 'pending');
+  const startedOrders = todaysOrders.filter(order => order.status === 'accepted' || order.status === 'preparing');
+  const readyOrders = todaysOrders.filter(order => order.status === 'ready');
+  const deliveredOrders = todaysOrders.filter(order => order.status === 'delivered');
 
-  const todaysRevenue = todaysOrders
-    .filter(order => order.status === 'delivered')
+  const todaysRevenue = deliveredOrders
     .reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
 
   const OrderCard = ({ order }: { order: CafeOrder }) => {
@@ -287,7 +284,7 @@ export default function CafeManagerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Completed Today</p>
-                <p className="text-2xl font-bold text-gray-900">{completedToday.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{deliveredOrders.length}</p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <CheckCircle className="h-6 w-6 text-purple-600" />
@@ -364,14 +361,14 @@ export default function CafeManagerDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Truck className="h-5 w-5 text-gray-600" />
-              Delivered ({completedToday.length})
+              Delivered ({deliveredOrders.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {completedToday.map(order => (
+            {deliveredOrders.map(order => (
               <OrderCard key={order.id} order={order} />
             ))}
-            {completedToday.length === 0 && (
+            {deliveredOrders.length === 0 && (
               <div className="text-center text-muted-foreground py-8">
                 No delivered orders today
               </div>

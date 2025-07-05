@@ -144,6 +144,12 @@ Changelog:
   * Standardized on 'calmkaaj_admin' role throughout the system
   * Updated all API endpoints and frontend checks to use single admin role
   * Fixed organization creation permissions and role display components
+- July 06, 2025. Fixed cafe manager dashboard order status and kanban board functionality:
+  * Corrected API call parameter order for status updates (apiRequest method vs url fix)
+  * Updated kanban board to show ALL orders from current day (00:01-23:59)
+  * Fixed "Started" column to include both 'accepted' and 'preparing' statuses
+  * Delivered orders now stay visible in "Delivered" column for entire day
+  * Implemented proper daily order tracking with complete order history preservation
 ```
 
 ## User Preferences
