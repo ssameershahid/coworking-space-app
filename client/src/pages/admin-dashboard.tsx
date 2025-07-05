@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -330,6 +330,28 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({ title: "Organization status updated" });
+    }
+  });
+
+  const updateUser = useMutation({
+    mutationFn: async ({ userId, updates }: { userId: number; updates: any }) => {
+      const response = await apiRequest('PATCH', `/api/admin/users/${userId}`, updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({ title: "User updated successfully" });
+    }
+  });
+
+  const updateOrg = useMutation({
+    mutationFn: async ({ orgId, updates }: { orgId: string; updates: any }) => {
+      const response = await apiRequest('PATCH', `/api/admin/organizations/${orgId}`, updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      toast({ title: "Organization updated successfully" });
     }
   });
 
