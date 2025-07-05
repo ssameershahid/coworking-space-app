@@ -167,7 +167,8 @@ export default function AdminDashboard() {
   // Mutations for CRUD operations
   const createUser = useMutation({
     mutationFn: async (userData: any) => {
-      return apiRequest('/api/admin/users', 'POST', userData);
+      const response = await apiRequest('POST', '/api/admin/users', userData);
+      return response.json();
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
@@ -195,7 +196,8 @@ export default function AdminDashboard() {
 
   const createOrganization = useMutation({
     mutationFn: async (orgData: any) => {
-      return apiRequest('/api/organizations', 'POST', orgData);
+      const response = await apiRequest('POST', '/api/organizations', orgData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
@@ -206,7 +208,8 @@ export default function AdminDashboard() {
 
   const createRoom = useMutation({
     mutationFn: async (roomData: any) => {
-      return apiRequest('/api/rooms', 'POST', roomData);
+      const response = await apiRequest('POST', '/api/rooms', roomData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
@@ -217,7 +220,8 @@ export default function AdminDashboard() {
 
   const createAnnouncement = useMutation({
     mutationFn: async (announcementData: any) => {
-      return apiRequest('/api/announcements', 'POST', announcementData);
+      const response = await apiRequest('POST', '/api/announcements', announcementData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
@@ -228,7 +232,8 @@ export default function AdminDashboard() {
 
   const toggleUserStatus = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: number; isActive: boolean }) => {
-      return apiRequest(`/api/admin/users/${userId}`, 'PATCH', { is_active: isActive });
+      const response = await apiRequest('PATCH', `/api/admin/users/${userId}`, { is_active: isActive });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
