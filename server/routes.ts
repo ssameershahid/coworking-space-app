@@ -309,9 +309,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { org_id } = req.query;
       
       let orders;
-      if (user.role === "member_organization" && org_id) {
+      if (user.role === "member_organization_admin" && org_id) {
         orders = await storage.getCafeOrders(undefined, org_id as string);
-      } else if (user.role === "cafe_manager" || user.role === "enterprise_administrator") {
+      } else if (user.role === "cafe_manager" || user.role === "calmkaaj_admin") {
         orders = await storage.getCafeOrders();
       } else {
         orders = await storage.getCafeOrders(user.id);
@@ -466,9 +466,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { org_id } = req.query;
       
       let bookings;
-      if (user.role === "member_organization" && org_id) {
+      if (user.role === "member_organization_admin" && org_id) {
         bookings = await storage.getMeetingBookings(undefined, org_id as string);
-      } else if (user.role === "enterprise_administrator") {
+      } else if (user.role === "calmkaaj_admin") {
         bookings = await storage.getMeetingBookings();
       } else {
         bookings = await storage.getMeetingBookings(user.id);
@@ -553,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orgId = req.params.id;
       
       // Check if user has access to this organization
-      if (user.role !== "enterprise_administrator" && user.organization_id !== orgId) {
+      if (user.role !== "calmkaaj_admin" && user.organization_id !== orgId) {
         return res.status(403).json({ message: "Access denied" });
       }
       

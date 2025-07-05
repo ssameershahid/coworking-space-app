@@ -13,6 +13,8 @@ import RoomsPage from "@/pages/rooms";
 import OrganizationPage from "@/pages/organization";
 import AdminPage from "@/pages/admin";
 import ProfilePage from "@/pages/profile";
+import CafeManagerDashboard from "@/pages/cafe-manager-dashboard";
+import AdminDashboard from "@/pages/admin-dashboard";
 import Navigation from "@/components/layout/navigation";
 import MobileNav from "@/components/layout/mobile-nav";
 import { useAuth } from "@/hooks/use-auth";
@@ -45,14 +47,40 @@ function Router() {
   if (!user) {
     return <AuthPage />;
   }
-  
+
+  // Role-based routing
+  if (user.role === 'cafe_manager') {
+    return (
+      <Switch>
+        <Route path="/" component={CafeManagerDashboard} />
+        <Route path="/profile" component={ProfilePage} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
+  if (user.role === 'calmkaaj_admin') {
+    return (
+      <Switch>
+        <Route path="/" component={AdminDashboard} />
+        <Route path="/cafe" component={CafePage} />
+        <Route path="/rooms" component={RoomsPage} />
+        <Route path="/admin" component={AdminPage} />
+        <Route path="/profile" component={ProfilePage} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+
+  // For members (individual and org admins)
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/cafe" component={CafePage} />
       <Route path="/rooms" component={RoomsPage} />
-      <Route path="/organization" component={OrganizationPage} />
-      <Route path="/admin" component={AdminPage} />
+      {user.role === 'member_organization_admin' && (
+        <Route path="/organization" component={OrganizationPage} />
+      )}
       <Route path="/profile" component={ProfilePage} />
       <Route component={NotFound} />
     </Switch>
