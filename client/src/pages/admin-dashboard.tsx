@@ -1031,18 +1031,31 @@ export default function AdminDashboard() {
           />
         </div>
         <div>
-          <Label htmlFor="member_type">Member Type</Label>
-          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value, role: value === 'organization_employee' ? 'member_organization' : 'member_individual', monthly_credits: value === 'organization_employee' ? 0 : 10, membership_fee: value === 'organization_employee' ? 0 : 1500})}>
+          <Label htmlFor="role">Role</Label>
+          <Select value={formData.role} onValueChange={(value) => {
+            // Auto-set member_type based on role
+            const memberType = value === 'member_organization' || value === 'member_organization_admin' ? 'organization_employee' : 'individual';
+            setFormData({
+              ...formData, 
+              role: value,
+              member_type: memberType,
+              monthly_credits: memberType === 'organization_employee' ? 0 : 10,
+              membership_fee: memberType === 'organization_employee' ? 0 : 1500
+            });
+          }}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="individual">Individual</SelectItem>
-              <SelectItem value="organization_employee">Organization Employee</SelectItem>
+              <SelectItem value="member_individual">Member Individual</SelectItem>
+              <SelectItem value="member_organization">Member Organization</SelectItem>
+              <SelectItem value="member_organization_admin">Member Organization Admin</SelectItem>
+              <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
+              <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        {formData.member_type === 'organization_employee' && (
+        {(formData.role === 'member_organization' || formData.role === 'member_organization_admin') && (
           <div>
             <Label htmlFor="organization_id">Organization</Label>
             <Select value={formData.organization_id} onValueChange={(value) => setFormData({...formData, organization_id: value})}>
@@ -1073,7 +1086,7 @@ export default function AdminDashboard() {
             <strong>Note:</strong> Hot Desk is implemented as a Shared Office type in the system
           </p>
         </div>
-        {formData.member_type === 'individual' && (
+        {(formData.role === 'member_individual' || formData.role === 'cafe_manager' || formData.role === 'calmkaaj_admin') && (
           <>
             <div>
               <Label htmlFor="monthly_credits">Monthly Meeting Credits</Label>
