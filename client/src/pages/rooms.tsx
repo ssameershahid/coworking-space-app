@@ -349,42 +349,7 @@ export default function RoomsPage() {
         </Card>
       )}
 
-      {/* Filters and Search */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <Label className="text-sm font-medium mb-2 block">Minimum Capacity</Label>
-              <Select value={filterCapacity} onValueChange={setFilterCapacity}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Any capacity" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any capacity</SelectItem>
-                  <SelectItem value="2">2+ people</SelectItem>
-                  <SelectItem value="4">4+ people</SelectItem>
-                  <SelectItem value="6">6+ people</SelectItem>
-                  <SelectItem value="8">8+ people</SelectItem>
-                  <SelectItem value="10">10+ people</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1">
-              <Label className="text-sm font-medium mb-2 block">Sort By</Label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="capacity">Capacity</SelectItem>
-                  <SelectItem value="price">Price (Credits)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      
 
       {/* Room Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
