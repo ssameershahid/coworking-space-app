@@ -264,10 +264,16 @@ export default function RoomsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {myBookings.filter(booking => 
-                booking.status === 'confirmed' && 
-                new Date(booking.start_time) > new Date()
-              ).slice(0, 3).map((booking) => (
+              {myBookings.filter(booking => {
+                if (booking.status !== 'confirmed') return false;
+                
+                // Show bookings that are in the future OR within 15 minutes of start time
+                const now = new Date();
+                const startTime = new Date(booking.start_time);
+                const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000);
+                
+                return now < fifteenMinutesAfterStart; // Show until 15 minutes after start
+              }).slice(0, 3).map((booking) => (
                 <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium">{booking.room?.name}</h4>
