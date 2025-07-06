@@ -143,7 +143,8 @@ export const insertCafeOrderItemSchema = createInsertSchema(cafe_order_items).om
 export const insertMeetingRoomSchema = createInsertSchema(meeting_rooms).omit({ id: true, created_at: true });
 export const insertMeetingBookingSchema = createInsertSchema(meeting_bookings).omit({ id: true, created_at: true, updated_at: true });
 export const insertAnnouncementSchema = createInsertSchema(announcements).omit({ id: true, created_at: true }).extend({
-  sites: z.array(z.string()).optional() // Add sites field as optional array of strings
+  sites: z.array(z.string()).optional(), // Add sites field as optional array of strings
+  show_until: z.string().optional().nullable().or(z.date().optional().nullable()) // Accept string or date format
 });
 
 // Types

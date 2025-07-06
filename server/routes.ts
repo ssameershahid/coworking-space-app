@@ -675,7 +675,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const announcementData = {
         ...otherData,
-        sites: processedSites || [otherData.site || 'blue_area'] // Fallback to single site
+        sites: processedSites || [otherData.site || 'blue_area'], // Fallback to single site
+        show_until: otherData.show_until ? new Date(otherData.show_until) : null // Convert string to Date
       };
       
       console.log("Processed announcement data:", announcementData);
@@ -707,7 +708,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updates = {
         ...otherUpdates,
-        sites: processedSites || [otherUpdates.site || 'blue_area'] // Fallback to single site
+        sites: processedSites || [otherUpdates.site || 'blue_area'], // Fallback to single site
+        show_until: otherUpdates.show_until ? new Date(otherUpdates.show_until) : null // Convert string to Date
       };
       
       const announcement = await storage.updateAnnouncement(id, updates);
