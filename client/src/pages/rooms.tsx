@@ -131,7 +131,7 @@ export default function RoomsPage() {
     onError: (error: any) => {
       toast({
         title: "Cancellation Failed", 
-        description: error.message || "Cannot cancel booking less than 10 minutes before start time.",
+        description: error.message || "Cannot cancel booking more than 15 minutes after start time.",
         variant: "destructive",
       });
     },
@@ -153,7 +153,7 @@ export default function RoomsPage() {
     const startTime = new Date(booking.start_time);
     const timeDifference = startTime.getTime() - now.getTime();
     const minutesDifference = timeDifference / (1000 * 60);
-    return minutesDifference > 10;
+    return minutesDifference > -15; // Allow cancellation up to 15 minutes after start
   };
 
   // Filter and sort rooms
@@ -297,7 +297,7 @@ export default function RoomsPage() {
                         variant="outline"
                         size="sm"
                         disabled
-                        title="Cannot cancel within 10 minutes of start time"
+                        title="Cannot cancel more than 15 minutes after start time"
                       >
                         Too Late
                       </Button>

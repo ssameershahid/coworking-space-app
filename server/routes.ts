@@ -570,9 +570,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking not found" });
       }
 
-      // Debug logging
-      console.log("Booking user_id:", booking.user_id, "Request user_id:", userId, "Type check:", typeof booking.user_id, typeof userId);
-
       // Check if user owns this booking
       if (booking.user_id !== userId) {
         return res.status(403).json({ message: "Not authorized to cancel this booking" });
@@ -583,15 +580,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Booking is already cancelled" });
       }
 
-      // Check 10-minute rule
+      // Check 15-minute grace period rule - allow cancellation anytime before start time or up to 15 minutes after start time
       const now = new Date();
       const startTime = new Date(booking.start_time);
-      const timeDifference = startTime.getTime() - now.getTime();
-      const minutesDifference = timeDifference / (1000 * 60);
-
-      if (minutesDifference <= 10) {
+      const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000); // 15 minutes after start
+      
+      if (now > fifteenMinutesAfterStart) {
         return res.status(400).json({ 
-          message: "Cannot cancel booking within 10 minutes of start time" 
+          message: "Cannot cancel booking more than 15 minutes after start time" 
         });
       }
 
