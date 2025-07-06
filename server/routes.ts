@@ -478,11 +478,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startTime = new Date(start_time);
       const endTime = new Date(end_time);
       
-      // Check if booking is in the past (with 5-minute buffer for processing)
+      // Check if booking is in the past
       const now = new Date();
-      const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
-      if (startTime < fiveMinutesFromNow) {
-        return res.status(400).json({ message: "Cannot book a room for a time in the past or too close to the current time" });
+      if (startTime < now) {
+        return res.status(400).json({ message: "Cannot book a room for a time in the past" });
       }
       
       // Check room availability
