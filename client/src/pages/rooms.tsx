@@ -64,7 +64,7 @@ export default function RoomsPage() {
   const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
   const [bookingNotes, setBookingNotes] = useState("");
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [filterCapacity, setFilterCapacity] = useState("");
+  const [filterCapacity, setFilterCapacity] = useState("all");
   const [sortBy, setSortBy] = useState("name");
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
@@ -128,7 +128,7 @@ export default function RoomsPage() {
   // Filter and sort rooms
   const filteredRooms = rooms
     .filter((room) => {
-      if (filterCapacity && room.capacity < parseInt(filterCapacity)) return false;
+      if (filterCapacity && filterCapacity !== "all" && room.capacity < parseInt(filterCapacity)) return false;
       return room.is_available;
     })
     .sort((a, b) => {
@@ -278,7 +278,7 @@ export default function RoomsPage() {
                   <SelectValue placeholder="Any capacity" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any capacity</SelectItem>
+                  <SelectItem value="all">Any capacity</SelectItem>
                   <SelectItem value="2">2+ people</SelectItem>
                   <SelectItem value="4">4+ people</SelectItem>
                   <SelectItem value="6">6+ people</SelectItem>
