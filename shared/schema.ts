@@ -142,7 +142,9 @@ export const insertCafeOrderSchema = createInsertSchema(cafe_orders).omit({ id: 
 export const insertCafeOrderItemSchema = createInsertSchema(cafe_order_items).omit({ id: true });
 export const insertMeetingRoomSchema = createInsertSchema(meeting_rooms).omit({ id: true, created_at: true });
 export const insertMeetingBookingSchema = createInsertSchema(meeting_bookings).omit({ id: true, created_at: true, updated_at: true });
-export const insertAnnouncementSchema = createInsertSchema(announcements).omit({ id: true, created_at: true });
+export const insertAnnouncementSchema = createInsertSchema(announcements).omit({ id: true, created_at: true }).extend({
+  sites: z.array(z.string()).optional() // Add sites field as optional array of strings
+});
 
 // Types
 export type Organization = typeof organizations.$inferSelect;

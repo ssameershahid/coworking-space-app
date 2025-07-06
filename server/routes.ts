@@ -662,6 +662,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/announcements", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
+      console.log("Received announcement data:", req.body);
+      
       // Handle multi-site data
       const { sites, ...otherData } = req.body;
       
@@ -676,8 +678,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sites: processedSites || [otherData.site || 'blue_area'] // Fallback to single site
       };
       
+      console.log("Processed announcement data:", announcementData);
+      
       const result = schema.insertAnnouncementSchema.safeParse(announcementData);
       if (!result.success) {
+        console.error("Validation errors:", result.error.issues);
         return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
       }
 
