@@ -39,6 +39,7 @@ import {
   Projector
 } from "lucide-react";
 import { MeetingRoom, MeetingBooking } from "@/lib/types";
+import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime } from "@/lib/pakistan-time";
 
 // Amenity icons mapping
 const AMENITY_ICONS = {
@@ -59,7 +60,7 @@ export default function RoomsPage() {
   const queryClient = useQueryClient();
   
   const [selectedRoom, setSelectedRoom] = useState<MeetingRoom | null>(null);
-  const [bookingDate, setBookingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [bookingDate, setBookingDate] = useState(getPakistanDateString());
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("1");
   const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
@@ -70,7 +71,7 @@ export default function RoomsPage() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
   const [filterCapacity, setFilterCapacity] = useState("all");
   const [sortBy, setSortBy] = useState("name");
-  const [selectedDateView, setSelectedDateView] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDateView, setSelectedDateView] = useState(getPakistanDateString());
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
     queryKey: ["/api/rooms", user?.site],
@@ -162,7 +163,7 @@ export default function RoomsPage() {
   };
 
   const canCancelBooking = (booking: MeetingBooking) => {
-    const now = new Date();
+    const now = getPakistanTime();
     const startTime = new Date(booking.start_time);
     const timeDifference = startTime.getTime() - now.getTime();
     const minutesDifference = timeDifference / (1000 * 60);
@@ -211,9 +212,8 @@ export default function RoomsPage() {
     const startDateTime = new Date(`${bookingDate}T${startTime}`);
     const endDateTime = new Date(startDateTime.getTime() + parseInt(duration) * 60 * 60 * 1000);
     
-    // Check if booking is in the past
-    const now = new Date();
-    if (startDateTime < now) {
+    // Check if booking is in the past using Pakistan time
+    if (isPastTimePakistan(startDateTime.toISOString())) {
       toast({
         title: "Invalid Booking Time",
         description: "You cannot book a room for a time in the past. Please select a current or future time.",
@@ -302,8 +302,8 @@ export default function RoomsPage() {
               {myBookings.filter(booking => {
                 if (booking.status !== 'confirmed') return false;
                 
-                // Show bookings that are in the future OR within 15 minutes of start time
-                const now = new Date();
+                // Show bookings that are in the future OR within 15 minutes of start time using Pakistan time
+                const now = getPakistanTime();
                 const startTime = new Date(booking.start_time);
                 const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000);
                 
@@ -356,9 +356,8 @@ export default function RoomsPage() {
         <CardContent className="pt-6">
           <div className="grid grid-cols-7 gap-3">
             {Array.from({ length: 7 }, (_, i) => {
-              const date = new Date();
-              date.setDate(date.getDate() + i);
-              const dateString = date.toISOString().split('T')[0];
+              const date = formatPakistanDate(i);
+              const dateString = formatPakistanDateString(i);
               const isToday = i === 0;
               const isSelected = selectedDateView === dateString;
               

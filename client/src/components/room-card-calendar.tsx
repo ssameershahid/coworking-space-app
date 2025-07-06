@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { getPakistanTime } from '@/lib/pakistan-time';
 
 interface TimeSlot {
   time: string;
@@ -53,8 +54,8 @@ export function RoomCardCalendar({
         );
       });
 
-      // Check if this slot is in the past
-      const now = new Date();
+      // Check if this slot is in the past using Pakistan time
+      const now = getPakistanTime();
       const isPast = slotStart < now;
       
       slots.push({
@@ -77,7 +78,7 @@ export function RoomCardCalendar({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <h4 className="text-sm font-medium">Available Times - {new Date(selectedDate).toLocaleDateString('en-US', { 
+        <h4 className="text-sm font-medium">Available Times - {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { 
           month: 'short', 
           day: 'numeric' 
         })}</h4>

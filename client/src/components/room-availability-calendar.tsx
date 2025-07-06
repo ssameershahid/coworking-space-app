@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Users, Calendar } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { getPakistanTime } from '@/lib/pakistan-time';
 
 interface TimeSlot {
   time: string;
@@ -55,8 +56,8 @@ export function RoomAvailabilityCalendar({
         );
       });
 
-      // Check if this slot is in the past
-      const now = new Date();
+      // Check if this slot is in the past using Pakistan time
+      const now = getPakistanTime();
       const isPast = slotStart < now;
       
       slots.push({
