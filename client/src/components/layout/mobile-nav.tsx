@@ -8,16 +8,16 @@ export default function MobileNav() {
 
   if (!user) return null;
 
+  const showCafeAndRooms = ["member_individual", "member_organization_admin", "calmkaaj_admin"].includes(user.role);
+  const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin"].includes(user.role);
+  const showOrganization = ["member_organization", "member_organization_admin"].includes(user.role);
+
   const navigation = [
     { name: "Home", href: "/", icon: Home, current: location === "/" },
-    { name: "Café", href: "/cafe", icon: Coffee, current: location === "/cafe" },
-    { name: "Rooms", href: "/rooms", icon: Calendar, current: location === "/rooms" },
-    ...(user.role === "member_individual" || user.role === "member_organization" || user.role === "member_organization_admin" || user.role === "calmkaaj_admin"
-      ? [{ name: "Community", href: "/community", icon: Users, current: location === "/community" }] 
-      : []),
-    ...(user.role === "member_organization" || user.role === "member_organization_admin" 
-      ? [{ name: "Org", href: "/organization", icon: Building2, current: location === "/organization" }] 
-      : []),
+    ...(showCafeAndRooms ? [{ name: "Café", href: "/cafe", icon: Coffee, current: location === "/cafe" }] : []),
+    ...(showCafeAndRooms ? [{ name: "Rooms", href: "/rooms", icon: Calendar, current: location === "/rooms" }] : []),
+    ...(showCommunity ? [{ name: "Community", href: "/community", icon: Users, current: location === "/community" }] : []),
+    ...(showOrganization ? [{ name: "Org", href: "/organization", icon: Building2, current: location === "/organization" }] : []),
     { name: "Profile", href: "/profile", icon: User, current: location === "/profile" },
   ];
 

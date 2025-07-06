@@ -17,20 +17,16 @@ export default function Navigation() {
 
   if (!user) return null;
 
+  const showCafeAndRooms = ["member_individual", "member_organization_admin", "calmkaaj_admin"].includes(user.role);
+  const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin"].includes(user.role);
+  const showOrganization = user.role === "member_organization_admin";
+
   const navigation = [
     { name: "Dashboard", href: "/", current: location === "/" },
-    ...(user.role === "member_individual" || user.role === "member_organization_admin" || user.role === "calmkaaj_admin" 
-      ? [{ name: "Café", href: "/cafe", current: location === "/cafe" }] 
-      : []),
-    ...(user.role === "member_individual" || user.role === "member_organization_admin" || user.role === "calmkaaj_admin" 
-      ? [{ name: "Rooms", href: "/rooms", current: location === "/rooms" }] 
-      : []),
-    ...(user.role === "member_individual" || user.role === "member_organization" || user.role === "member_organization_admin" || user.role === "calmkaaj_admin"
-      ? [{ name: "Community", href: "/community", current: location === "/community" }] 
-      : []),
-    ...(user.role === "member_organization_admin" 
-      ? [{ name: "Organization", href: "/organization", current: location === "/organization" }] 
-      : []),
+    ...(showCafeAndRooms ? [{ name: "Café", href: "/cafe", current: location === "/cafe" }] : []),
+    ...(showCafeAndRooms ? [{ name: "Rooms", href: "/rooms", current: location === "/rooms" }] : []),
+    ...(showCommunity ? [{ name: "Community", href: "/community", current: location === "/community" }] : []),
+    ...(showOrganization ? [{ name: "Organization", href: "/organization", current: location === "/organization" }] : []),
   ];
 
   const getInitials = (firstName: string, lastName: string) => {
