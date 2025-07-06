@@ -364,6 +364,7 @@ export class DatabaseStorage implements IStorage {
   async getMeetingBookingById(id: number): Promise<any> {
     const [booking] = await db.select({
       id: schema.meeting_bookings.id,
+      user_id: schema.meeting_bookings.user_id,
       start_time: schema.meeting_bookings.start_time,
       end_time: schema.meeting_bookings.end_time,
       credits_used: schema.meeting_bookings.credits_used,

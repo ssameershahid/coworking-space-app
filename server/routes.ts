@@ -570,6 +570,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking not found" });
       }
 
+      // Debug logging
+      console.log("Booking user_id:", booking.user_id, "Request user_id:", userId, "Type check:", typeof booking.user_id, typeof userId);
+
       // Check if user owns this booking
       if (booking.user_id !== userId) {
         return res.status(403).json({ message: "Not authorized to cancel this booking" });
