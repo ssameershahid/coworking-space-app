@@ -28,9 +28,6 @@ export default function Navigation() {
     ...(user.role === "member_organization_admin" 
       ? [{ name: "Organization", href: "/organization", current: location === "/organization" }] 
       : []),
-    ...(user.role === "calmkaaj_admin" 
-      ? [{ name: "Admin", href: "/admin", current: location === "/admin" }] 
-      : []),
   ];
 
   const getInitials = (firstName: string, lastName: string) => {
