@@ -215,50 +215,67 @@ const CommunitySection = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredUsers.map((user: any) => (
-              <Card key={user.id} className="p-4">
+              <Card key={user.id} className="p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
+                  {/* Profile Avatar */}
+                  <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-lg font-semibold text-gray-700 flex-shrink-0">
                     {user.profile_image ? (
                       <img 
                         src={user.profile_image} 
                         alt={`${user.first_name} ${user.last_name}`}
-                        className="w-12 h-12 rounded-full object-cover"
+                        className="w-16 h-16 rounded-full object-cover"
                       />
                     ) : (
                       getInitials(user.first_name, user.last_name)
                     )}
                   </div>
+                  
+                  {/* User Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
                       {user.first_name} {user.last_name}
                     </h3>
+                    
+                    {/* Company */}
                     {user.company && (
-                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                      <p className="text-sm text-gray-600 flex items-center gap-1 mb-1">
                         <Building2 className="h-4 w-4" />
                         {user.company}
                       </p>
                     )}
-                    {user.job_title && (
-                      <p className="text-sm font-medium text-gray-800">{user.job_title}</p>
-                    )}
-                    {user.bio && (
-                      <p className="text-sm text-gray-600 mt-2 line-clamp-3">{user.bio}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-3">
-                      <Badge variant="secondary" className="text-xs">
-                        {formatRole(user.role)}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {user.site === 'blue_area' ? 'Blue Area' : 'I-10'}
-                      </Badge>
+                    
+                    {/* Job Title */}
+                    <div className="mb-3">
+                      <span className="text-sm font-medium text-gray-900">
+                        {user.job_title || formatRole(user.role)}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 mt-3">
-                      <Button size="sm" variant="outline" className="text-xs">
+                    
+                    {/* Bio */}
+                    {user.bio && (
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">
+                        {user.bio}
+                      </p>
+                    )}
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-xs h-8 px-3"
+                        onClick={() => window.open(`mailto:${user.email}`, '_blank')}
+                      >
                         <Mail className="h-3 w-3 mr-1" />
                         Email
                       </Button>
                       {user.linkedin_url && (
-                        <Button size="sm" variant="outline" className="text-xs">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-8 px-3"
+                          onClick={() => window.open(user.linkedin_url, '_blank')}
+                        >
                           <Linkedin className="h-3 w-3 mr-1" />
                           LinkedIn
                         </Button>

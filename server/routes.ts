@@ -917,6 +917,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           can_charge_cafe_to_org: schema.users.can_charge_cafe_to_org,
           can_charge_room_to_org: schema.users.can_charge_room_to_org,
           created_at: schema.users.created_at,
+          // Community profile fields
+          bio: schema.users.bio,
+          linkedin_url: schema.users.linkedin_url,
+          profile_image: schema.users.profile_image,
+          job_title: schema.users.job_title,
+          company: schema.users.company,
           organization: {
             id: schema.organizations.id,
             name: schema.organizations.name,

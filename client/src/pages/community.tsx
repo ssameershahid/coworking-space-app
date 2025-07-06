@@ -180,64 +180,74 @@ export default function Community() {
             </div>
           ) : (
             filteredUsers.map((user) => (
-              <Card key={user.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4 mb-4">
-                    <Avatar className="h-12 w-12">
-                      {user.profile_image ? (
-                        <AvatarImage src={user.profile_image} alt={`${user.first_name} ${user.last_name}`} />
-                      ) : (
-                        <AvatarFallback className="bg-primary text-white">
-                          {getInitials(user.first_name, user.last_name)}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">
-                        {user.first_name} {user.last_name}
-                      </h3>
-                      {user.company && (
-                        <p className="text-sm text-gray-600 flex items-center">
-                          <span className="text-gray-400 mr-1">@</span>
-                          {user.company}
-                        </p>
-                      )}
-                    </div>
+              <Card key={user.id} className="p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-start space-x-4">
+                  {/* Profile Avatar */}
+                  <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-lg font-semibold text-gray-700 flex-shrink-0">
+                    {user.profile_image ? (
+                      <img 
+                        src={user.profile_image} 
+                        alt={`${user.first_name} ${user.last_name}`}
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                    ) : (
+                      getInitials(user.first_name, user.last_name)
+                    )}
                   </div>
-
-                  {user.job_title && (
+                  
+                  {/* User Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      {user.first_name} {user.last_name}
+                    </h3>
+                    
+                    {/* Company */}
+                    {user.company && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1 mb-1">
+                        <Building2 className="h-4 w-4" />
+                        {user.company}
+                      </p>
+                    )}
+                    
+                    {/* Job Title */}
                     <div className="mb-3">
-                      <Badge variant="secondary" className="text-xs">
-                        {user.job_title}
-                      </Badge>
+                      <span className="text-sm font-medium text-gray-900">
+                        {user.job_title || formatRole(user.role)}
+                      </span>
                     </div>
-                  )}
-
-                  {user.bio && (
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                      {user.bio}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex items-center space-x-1">
-                        <Mail className="h-3 w-3" />
-                        <span className="text-xs">Email</span>
+                    
+                    {/* Bio */}
+                    {user.bio && (
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed">
+                        {user.bio}
+                      </p>
+                    )}
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-xs h-8 px-3"
+                        onClick={() => window.open(`mailto:${user.email}`, '_blank')}
+                      >
+                        <Mail className="h-3 w-3 mr-1" />
+                        Email
                       </Button>
                       {user.linkedin_url && (
-                        <Button variant="outline" size="sm" className="flex items-center space-x-1">
-                          <Linkedin className="h-3 w-3" />
-                          <span className="text-xs">LinkedIn</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-8 px-3"
+                          onClick={() => window.open(user.linkedin_url, '_blank')}
+                        >
+                          <Linkedin className="h-3 w-3 mr-1" />
+                          LinkedIn
                         </Button>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 flex items-center">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      {user.site === 'blue_area' ? 'Blue Area' : 'I-10'}
-                    </div>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             ))
           )}
