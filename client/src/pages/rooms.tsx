@@ -354,7 +354,7 @@ export default function RoomsPage() {
       {/* Date Selector */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-2 overflow-x-auto">
+          <div className="grid grid-cols-7 gap-3">
             {Array.from({ length: 7 }, (_, i) => {
               const date = new Date();
               date.setDate(date.getDate() + i);
@@ -366,20 +366,26 @@ export default function RoomsPage() {
                 <Button
                   key={dateString}
                   variant={isSelected ? "default" : "outline"}
-                  className={`min-w-fit px-4 py-2 ${isToday ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''} ${isSelected && !isToday ? 'bg-blue-500 hover:bg-blue-600 text-white' : ''}`}
+                  className={`h-16 flex flex-col items-center justify-center px-2 py-2 ${
+                    isToday 
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500' 
+                      : isSelected 
+                        ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' 
+                        : 'hover:bg-gray-50'
+                  }`}
                   onClick={() => setSelectedDateView(dateString)}
                 >
                   {isToday ? (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      Today
+                    <div className="flex flex-col items-center">
+                      <Calendar className="h-4 w-4 mb-1" />
+                      <span className="text-sm font-medium">Today</span>
                     </div>
                   ) : (
-                    <div className="text-center">
+                    <div className="flex flex-col items-center">
                       <div className="text-sm font-medium">
                         {date.toLocaleDateString('en-US', { weekday: 'short' })}
                       </div>
-                      <div className="text-xs">
+                      <div className="text-xs opacity-75">
                         {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </div>
                     </div>
