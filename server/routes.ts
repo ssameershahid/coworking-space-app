@@ -7,7 +7,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { storage, db } from "./storage";
 import * as schema from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql, asc } from "drizzle-orm";
 import { emailService } from "./email-service";
 
 // Session configuration
@@ -446,7 +446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bookings = await db.select()
         .from(schema.meeting_bookings)
         .where(
-          sql`room_id = ${roomId} AND status = 'confirmed' AND DATE(start_time) = ${date}`
+          sql`${schema.meeting_bookings.room_id} = ${roomId} AND ${schema.meeting_bookings.status} = 'confirmed' AND DATE(${schema.meeting_bookings.start_time}) = ${date}`
         )
         .orderBy(asc(schema.meeting_bookings.start_time));
       

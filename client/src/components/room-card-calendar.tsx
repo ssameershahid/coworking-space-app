@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock } from 'lucide-react';
@@ -22,17 +22,17 @@ export function RoomCardCalendar({
   onTimeSlotSelect, 
   selectedTimeSlot 
 }: RoomCardCalendarProps) {
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-
-  // Fetch room bookings for the selected date
-  const { data: bookings = [] } = useQuery({
+  // Fetch room bookings for the selected date with stale time for real-time updates
+  const { data: bookings = [], refetch } = useQuery({
     queryKey: ['room-bookings', room.id, selectedDate],
     queryFn: () => fetch(`/api/rooms/${room.id}/bookings?date=${selectedDate}`).then(res => res.json()),
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    refetchInterval: 30000, // Auto-refetch every 30 seconds for real-time updates
   });
 
-  // Generate time slots for the day (8 AM to 8 PM in 1-hour intervals)
-  useEffect(() => {
-    if (!Array.isArray(bookings)) return;
+  // Generate time slots using useMemo to avoid infinite loops
+  const timeSlots = useMemo(() => {
+    if (!Array.isArray(bookings)) return [];
     
     const slots: TimeSlot[] = [];
     
@@ -63,7 +63,7 @@ export function RoomCardCalendar({
       });
     }
     
-    setTimeSlots(slots);
+    return slots;
   }, [bookings, selectedDate]);
 
   const formatTime = (time: string) => {

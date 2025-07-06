@@ -111,7 +111,9 @@ export default function RoomsPage() {
         title: "Booking Confirmed!",
         description: `Your meeting room has been booked successfully.`,
       });
+      // Invalidate all booking-related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["room-bookings"] });
     },
     onError: (error: any) => {
       toast({
@@ -131,7 +133,9 @@ export default function RoomsPage() {
         title: "Booking Cancelled",
         description: "Your booking has been cancelled and credits have been refunded.",
       });
+      // Invalidate all booking-related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["room-bookings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       setShowCancelModal(false);
       setBookingToCancel(null);
