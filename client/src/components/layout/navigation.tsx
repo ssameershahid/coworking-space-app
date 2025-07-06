@@ -48,16 +48,16 @@ export default function Navigation() {
           
           <nav className="hidden md:flex space-x-8">
             {navigation.map((item) => (
-              <Link key={item.name} href={item.href}>
-                <span
-                  className={`pb-4 font-medium transition-colors cursor-pointer ${
-                    item.current
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {item.name}
-                </span>
+              <Link 
+                key={item.name} 
+                href={item.href}
+                className={`pb-4 font-medium transition-colors ${
+                  item.current
+                    ? "text-primary border-b-2 border-primary"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {item.name}
               </Link>
             ))}
           </nav>
