@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -28,6 +29,10 @@ import {
   UserPlus,
   Home,
   Plus,
+  Bell,
+  Search,
+  Mail,
+  Linkedin,
   Edit,
   Trash2,
   Eye,
@@ -108,6 +113,172 @@ interface Announcement {
   site: string;
   created_at: string;
 }
+
+// Community Section Component
+const CommunitySection = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: announcements = [] } = useQuery<any[]>({
+    queryKey: ["/api/announcements"],
+  });
+
+  const { data: communityUsers = [] } = useQuery<any[]>({
+    queryKey: ["/api/community/members"],
+  });
+
+  const filteredUsers = communityUsers.filter((user: any) => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      user.first_name.toLowerCase().includes(searchLower) ||
+      user.last_name.toLowerCase().includes(searchLower) ||
+      user.email.toLowerCase().includes(searchLower) ||
+      (user.job_title && user.job_title.toLowerCase().includes(searchLower)) ||
+      (user.company && user.company.toLowerCase().includes(searchLower))
+    );
+  });
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const formatRole = (role: string) => {
+    return role.replace('member_', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* What's New at CalmKaaj */}
+      {announcements.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              What's New at CalmKaaj
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {announcements.map((announcement: any) => (
+                <Alert key={announcement.id} className="border-l-4 border-l-blue-500 bg-blue-50">
+                  <Bell className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-blue-900">{announcement.title}</h4>
+                      <p className="text-blue-800">{announcement.body}</p>
+                      {announcement.image_url && (
+                        <div className="mt-3">
+                          <img 
+                            src={announcement.image_url} 
+                            alt={announcement.title}
+                            className="max-w-full h-auto max-h-48 rounded-lg shadow-sm"
+                          />
+                        </div>
+                      )}
+                      <div className="text-sm text-blue-600 mt-2">
+                        Posted {formatDate(announcement.created_at)}
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Member Directory */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Member Directory
+          </CardTitle>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search members, companies, or roles..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredUsers.map((user: any) => (
+              <Card key={user.id} className="p-4">
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
+                    {user.profile_image ? (
+                      <img 
+                        src={user.profile_image} 
+                        alt={`${user.first_name} ${user.last_name}`}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      getInitials(user.first_name, user.last_name)
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      {user.first_name} {user.last_name}
+                    </h3>
+                    {user.company && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <Building2 className="h-4 w-4" />
+                        {user.company}
+                      </p>
+                    )}
+                    {user.job_title && (
+                      <p className="text-sm font-medium text-gray-800">{user.job_title}</p>
+                    )}
+                    {user.bio && (
+                      <p className="text-sm text-gray-600 mt-2 line-clamp-3">{user.bio}</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-3">
+                      <Badge variant="secondary" className="text-xs">
+                        {formatRole(user.role)}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {user.site === 'blue_area' ? 'Blue Area' : 'I-10'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 mt-3">
+                      <Button size="sm" variant="outline" className="text-xs">
+                        <Mail className="h-3 w-3 mr-1" />
+                        Email
+                      </Button>
+                      {user.linkedin_url && (
+                        <Button size="sm" variant="outline" className="text-xs">
+                          <Linkedin className="h-3 w-3 mr-1" />
+                          LinkedIn
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No members found matching your search.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -2289,12 +2460,13 @@ export default function AdminDashboard() {
 
       {/* Management Tabs */}
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
           <TabsTrigger value="menu">Menu</TabsTrigger>
           <TabsTrigger value="rooms">Rooms</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="community">Community</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -2841,6 +3013,11 @@ export default function AdminDashboard() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Community */}
+        <TabsContent value="community">
+          <CommunitySection />
         </TabsContent>
 
         {/* Analytics */}

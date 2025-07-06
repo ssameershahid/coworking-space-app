@@ -878,19 +878,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: schema.users.email,
           role: schema.users.role,
           site: schema.users.site,
-          office_type: schema.users.office_type,
           bio: schema.users.bio,
           linkedin_url: schema.users.linkedin_url,
           profile_image: schema.users.profile_image,
           job_title: schema.users.job_title,
           company: schema.users.company,
-          organization: {
-            id: schema.organizations.id,
-            name: schema.organizations.name,
-          },
+          organization_id: schema.users.organization_id,
         })
         .from(schema.users)
-        .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id))
         .where(eq(schema.users.is_active, true))
         .orderBy(schema.users.first_name);
 

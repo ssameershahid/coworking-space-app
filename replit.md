@@ -156,6 +156,7 @@ Changelog:
   * Enhanced admin user creation/editing forms with community profile section
   * Member directory auto-populates from existing users created via admin panel
   * Removed announcements from dashboard - now exclusively displayed in Community page
+  * Added Community tab to Admin Dashboard for administrators to access networking features
 ```
 
 ## User Preferences
