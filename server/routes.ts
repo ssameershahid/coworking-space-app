@@ -891,15 +891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .from(schema.users)
         .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id))
-        .where(and(
-          eq(schema.users.is_active, true),
-          // Only show member roles in community directory
-          or(
-            eq(schema.users.role, "member_individual"),
-            eq(schema.users.role, "member_organization"),
-            eq(schema.users.role, "member_organization_admin")
-          )
-        ))
+        .where(eq(schema.users.is_active, true))
         .orderBy(schema.users.first_name);
 
       res.json(users);

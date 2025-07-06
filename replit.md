@@ -150,6 +150,12 @@ Changelog:
   * Fixed "Started" column to include both 'accepted' and 'preparing' statuses
   * Delivered orders now stay visible in "Delivered" column for entire day
   * Implemented proper daily order tracking with complete order history preservation
+- July 06, 2025. Enhanced Community networking feature with complete user integration:
+  * Updated community API to display ALL user roles (individual, organization, admin, cafe manager)
+  * Added community profile fields to database: bio, LinkedIn URL, profile image, job title, company
+  * Enhanced admin user creation/editing forms with community profile section
+  * Member directory auto-populates from existing users created via admin panel
+  * Removed announcements from dashboard - now exclusively displayed in Community page
 ```
 
 ## User Preferences

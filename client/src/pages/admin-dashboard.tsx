@@ -782,7 +782,12 @@ export default function AdminDashboard() {
       start_date: user.start_date ? new Date(user.start_date).toISOString().split('T')[0] : '',
       notes: user.notes || '',
       can_charge_cafe_to_org: user.can_charge_cafe_to_org || false,
-      can_charge_room_to_org: user.can_charge_room_to_org || false
+      can_charge_room_to_org: user.can_charge_room_to_org || false,
+      bio: user.bio || '',
+      linkedin_url: user.linkedin_url || '',
+      profile_image: user.profile_image || '',
+      job_title: user.job_title || '',
+      company: user.company || ''
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -793,6 +798,11 @@ export default function AdminDashboard() {
         organization_id: cleanData.organization_id || null,
         credits: monthly_credits,
         start_date: formData.start_date || null,
+        bio: formData.bio || null,
+        linkedin_url: formData.linkedin_url || null,
+        profile_image: formData.profile_image || null,
+        job_title: formData.job_title || null,
+        company: formData.company || null
       };
       
       try {
@@ -954,6 +964,61 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+        
+        {/* Community Profile Fields */}
+        <div className="space-y-4 border-t pt-4">
+          <h3 className="text-lg font-semibold">Community Profile (Optional)</h3>
+          <div>
+            <Label htmlFor="edit_job_title">Job Title</Label>
+            <Input
+              id="edit_job_title"
+              placeholder="e.g., Product Manager, Software Engineer"
+              value={formData.job_title}
+              onChange={(e) => setFormData({...formData, job_title: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit_company">Company</Label>
+            <Input
+              id="edit_company"
+              placeholder="e.g., TechCorp Solutions, Creative Studios"
+              value={formData.company}
+              onChange={(e) => setFormData({...formData, company: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit_bio">Bio</Label>
+            <Textarea
+              id="edit_bio"
+              placeholder="A brief description for the community directory..."
+              value={formData.bio}
+              onChange={(e) => setFormData({...formData, bio: e.target.value})}
+              className="resize-none"
+              rows={3}
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit_linkedin_url">LinkedIn URL</Label>
+            <Input
+              id="edit_linkedin_url"
+              placeholder="https://linkedin.com/in/username"
+              value={formData.linkedin_url}
+              onChange={(e) => setFormData({...formData, linkedin_url: e.target.value})}
+              type="url"
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit_profile_image">Profile Image URL</Label>
+            <Input
+              id="edit_profile_image"
+              placeholder="https://example.com/profile.jpg"
+              value={formData.profile_image}
+              onChange={(e) => setFormData({...formData, profile_image: e.target.value})}
+              type="url"
+            />
+          </div>
+        </div>
+        
         <div>
           <Label htmlFor="edit_notes">Notes</Label>
           <Textarea
@@ -990,7 +1055,12 @@ export default function AdminDashboard() {
       monthly_credits: 10,
       membership_fee: 0,
       start_date: new Date().toISOString().split('T')[0],
-      notes: ''
+      notes: '',
+      bio: '',
+      linkedin_url: '',
+      profile_image: '',
+      job_title: '',
+      company: ''
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -1002,7 +1072,11 @@ export default function AdminDashboard() {
         last_name: '', // Add empty last_name since we're using full name in first_name
         credits: monthly_credits, // Map monthly_credits to the credits field
         start_date: formData.start_date, // Include start_date
-        // Remove fields that aren't in the database schema
+        bio: formData.bio || null,
+        linkedin_url: formData.linkedin_url || null,
+        profile_image: formData.profile_image || null,
+        job_title: formData.job_title || null,
+        company: formData.company || null
       };
       createUser.mutate(submitData);
     };
@@ -1131,6 +1205,61 @@ export default function AdminDashboard() {
             When the membership begins.
           </p>
         </div>
+        
+        {/* Community Profile Fields */}
+        <div className="space-y-4 border-t pt-4">
+          <h3 className="text-lg font-semibold">Community Profile (Optional)</h3>
+          <div>
+            <Label htmlFor="job_title">Job Title</Label>
+            <Input
+              id="job_title"
+              placeholder="e.g., Product Manager, Software Engineer"
+              value={formData.job_title}
+              onChange={(e) => setFormData({...formData, job_title: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="company">Company</Label>
+            <Input
+              id="company"
+              placeholder="e.g., TechCorp Solutions, Creative Studios"
+              value={formData.company}
+              onChange={(e) => setFormData({...formData, company: e.target.value})}
+            />
+          </div>
+          <div>
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
+              placeholder="A brief description for the community directory..."
+              value={formData.bio}
+              onChange={(e) => setFormData({...formData, bio: e.target.value})}
+              className="resize-none"
+              rows={3}
+            />
+          </div>
+          <div>
+            <Label htmlFor="linkedin_url">LinkedIn URL</Label>
+            <Input
+              id="linkedin_url"
+              placeholder="https://linkedin.com/in/username"
+              value={formData.linkedin_url}
+              onChange={(e) => setFormData({...formData, linkedin_url: e.target.value})}
+              type="url"
+            />
+          </div>
+          <div>
+            <Label htmlFor="profile_image">Profile Image URL</Label>
+            <Input
+              id="profile_image"
+              placeholder="https://example.com/profile.jpg"
+              value={formData.profile_image}
+              onChange={(e) => setFormData({...formData, profile_image: e.target.value})}
+              type="url"
+            />
+          </div>
+        </div>
+        
         <div>
           <Label htmlFor="notes">Notes</Label>
           <Textarea
