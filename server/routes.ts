@@ -430,6 +430,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Meeting room routes
+  app.get("/api/rooms/:id/bookings", requireAuth, async (req, res) => {
+    try {
+      const roomId = parseInt(req.params.id);
+      const date = req.query.date as string;
+      
+      if (!date) {
+        return res.status(400).json({ message: "Date parameter required" });
+      }
+      
+      // Get bookings for this room on the specified date
+      const startOfDay = new Date(`${date}T00:00:00`);
+      const endOfDay = new Date(`${date}T23:59:59`);
+      
+      const bookings = await db.select()
+        .from(schema.meeting_bookings)
+        .where(
+          and(
+            eq(schema.meeting_bookings.room_id, roomId),
+            eq(schema.meeting_bookings.status, "confirmed"),
+            sql`DATE(${schema.meeting_bookings.start_time}) = ${date}`
+          )
+        )
+        .orderBy(asc(schema.meeting_bookings.start_time));
+      
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching room bookings:", error);
+      res.status(500).json({ message: "Failed to fetch room bookings" });
+    }
+  });
+
   app.get("/api/rooms", requireAuth, async (req, res) => {
     try {
       const { site } = req.query;
@@ -485,11 +516,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check room availability
-      console.log("Checking availability for room:", room_id, "from", startTime, "to", endTime);
       const isAvailable = await storage.checkRoomAvailability(room_id, startTime, endTime);
-      console.log("Room availability result:", isAvailable);
       if (!isAvailable) {
-        return res.status(400).json({ message: "Room is not available for the selected time" });
+        return res.status(400).json({ 
+          message: "Room is not available for the selected time",
+          details: "There is a scheduling conflict with an existing booking. Please select a different time slot."
+        });
       }
 
       // Get room details to calculate credits

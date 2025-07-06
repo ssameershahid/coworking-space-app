@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { RoomAvailabilityCalendar } from "@/components/room-availability-calendar";
 import { 
   Calendar, 
   Clock, 
@@ -58,14 +59,16 @@ export default function RoomsPage() {
   const queryClient = useQueryClient();
   
   const [selectedRoom, setSelectedRoom] = useState<MeetingRoom | null>(null);
-  const [bookingDate, setBookingDate] = useState("");
+  const [bookingDate, setBookingDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("1");
   const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
   const [bookingNotes, setBookingNotes] = useState("");
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showQuickBookModal, setShowQuickBookModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<MeetingBooking | null>(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
   const [filterCapacity, setFilterCapacity] = useState("all");
   const [sortBy, setSortBy] = useState("name");
 
@@ -98,7 +101,14 @@ export default function RoomsPage() {
     },
     onSuccess: () => {
       setShowBookingModal(false);
+      setShowQuickBookModal(false);
       setSelectedRoom(null);
+      setBookingDate(new Date().toISOString().split('T')[0]);
+      setStartTime("");
+      setDuration("1");
+      setBillingType("personal");
+      setBookingNotes("");
+      setSelectedTimeSlot("");
       toast({
         title: "Booking Confirmed!",
         description: `Your meeting room has been booked successfully.`,
@@ -229,6 +239,22 @@ export default function RoomsPage() {
   };
 
   const canChargeToOrg = user?.can_charge_room_to_org && user?.organization_id;
+
+  const handleTimeSlotSelect = (time: string, slotDuration: number) => {
+    setSelectedTimeSlot(time);
+    setStartTime(time);
+    setDuration(slotDuration.toString());
+  };
+
+  const openQuickBookModal = (room: MeetingRoom) => {
+    setSelectedRoom(room);
+    setSelectedTimeSlot("");
+    setStartTime("");
+    setDuration("1");
+    setBillingType("personal");
+    setBookingNotes("");
+    setShowQuickBookModal(true);
+  };
   const availableCredits = (user?.credits || 0) - (user?.used_credits || 0);
 
   return (
@@ -418,15 +444,22 @@ export default function RoomsPage() {
                 </div>
               )}
 
-              <Button 
-                className="w-full"
-                onClick={() => {
-                  setSelectedRoom(room);
-                  setShowBookingModal(true);
-                }}
-              >
-                Book Room
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => openQuickBookModal(room)}
+                >
+                  Quick Book
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setSelectedRoom(room);
+                    setShowBookingModal(true);
+                  }}
+                >
+                  Manual Book
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -604,6 +637,144 @@ export default function RoomsPage() {
               <Download className="h-4 w-4 mr-2" />
               Generate PDF Report
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Book Modal with Visual Calendar */}
+      <Dialog open={showQuickBookModal} onOpenChange={setShowQuickBookModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Quick Book {selectedRoom?.name}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Date Selection */}
+            <div className="flex items-center gap-4">
+              <Label htmlFor="quick-book-date">Select Date:</Label>
+              <Input
+                type="date"
+                id="quick-book-date"
+                value={bookingDate}
+                onChange={(e) => {
+                  setBookingDate(e.target.value);
+                  setSelectedTimeSlot(""); // Reset selected time when date changes
+                }}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-auto"
+              />
+            </div>
+
+            {/* Room Availability Calendar */}
+            {selectedRoom && (
+              <RoomAvailabilityCalendar
+                room={selectedRoom}
+                selectedDate={bookingDate}
+                onTimeSlotSelect={handleTimeSlotSelect}
+                selectedTimeSlot={selectedTimeSlot}
+              />
+            )}
+
+            {/* Booking Details Form (only show when time slot is selected) */}
+            {selectedTimeSlot && (
+              <div className="space-y-4 border-t pt-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900">Selected Booking</h4>
+                  <p className="text-sm text-blue-700">
+                    {new Date(bookingDate).toLocaleDateString()} at {selectedTimeSlot} for {duration} hour{duration !== "1" ? "s" : ""}
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    Cost: {calculateCredits()} credits
+                  </p>
+                </div>
+
+                {/* Duration Selection */}
+                <div>
+                  <Label htmlFor="quick-duration">Duration</Label>
+                  <Select value={duration} onValueChange={setDuration}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0.5">30 minutes</SelectItem>
+                      <SelectItem value="1">1 hour</SelectItem>
+                      <SelectItem value="1.5">1.5 hours</SelectItem>
+                      <SelectItem value="2">2 hours</SelectItem>
+                      <SelectItem value="3">3 hours</SelectItem>
+                      <SelectItem value="4">4 hours</SelectItem>
+                      <SelectItem value="8">Full day (8 hours)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Billing Options */}
+                {canChargeToOrg && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Billing Options</Label>
+                    <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="personal" id="quick-personal" />
+                        <Label htmlFor="quick-personal" className="text-sm">Personal Account</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="organization" id="quick-organization" />
+                        <Label htmlFor="quick-organization" className="text-sm">
+                          Organization Account ({user?.organization?.name})
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                )}
+
+                {/* Meeting Notes */}
+                <div>
+                  <Label htmlFor="quick-notes">Meeting Notes (Optional)</Label>
+                  <Textarea
+                    id="quick-notes"
+                    placeholder="Meeting agenda, special requirements, etc..."
+                    value={bookingNotes}
+                    onChange={(e) => setBookingNotes(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                {/* Credits Summary */}
+                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Credits Required:</span>
+                    <span className="font-medium">{calculateCredits()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Available Credits:</span>
+                    <span className="font-medium">{availableCredits}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-medium">
+                    <span>Remaining After Booking:</span>
+                    <span className={availableCredits - calculateCredits() >= 0 ? "text-green-600" : "text-red-600"}>
+                      {availableCredits - calculateCredits()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowQuickBookModal(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleBookRoom}
+                    disabled={bookRoomMutation.isPending || calculateCredits() > availableCredits}
+                    className="flex-1"
+                  >
+                    {bookRoomMutation.isPending ? "Booking..." : `Confirm Booking • ${calculateCredits()} Credits`}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
