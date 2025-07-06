@@ -485,7 +485,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check room availability
+      console.log("Checking availability for room:", room_id, "from", startTime, "to", endTime);
       const isAvailable = await storage.checkRoomAvailability(room_id, startTime, endTime);
+      console.log("Room availability result:", isAvailable);
       if (!isAvailable) {
         return res.status(400).json({ message: "Room is not available for the selected time" });
       }
