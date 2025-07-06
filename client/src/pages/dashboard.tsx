@@ -8,6 +8,10 @@ import { Progress } from "@/components/ui/progress";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
 import { 
   Coffee, 
@@ -22,13 +26,18 @@ import {
   Download,
   Building,
   Users,
-  TrendingUp
+  TrendingUp,
+  FileText,
+  Receipt,
+  DollarSign
 } from "lucide-react";
 import { CafeOrder, MeetingBooking, Announcement } from "@/lib/types";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [dismissedAnnouncements, setDismissedAnnouncements] = useState<number[]>([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   
   const { data: announcements = [] } = useQuery<Announcement[]>({
     queryKey: ["/api/announcements", user?.site],
@@ -342,48 +351,220 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="mt-4 pt-4 border-t">
-            <h4 className="font-medium mb-3">Download Your Bills</h4>
-            <div className="flex flex-wrap gap-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Café Bills
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Download Café Bills</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <p>Select date range for your café order bills:</p>
-                    {/* Date range picker would go here */}
-                    <Button className="w-full">Generate PDF</Button>
+
+        </CardContent>
+      </Card>
+
+      {/* Transaction History */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Transaction History & Bills
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="all">All Transactions</TabsTrigger>
+              <TabsTrigger value="cafe">Café Orders</TabsTrigger>
+              <TabsTrigger value="rooms">Room Bookings</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{recentOrders.length}</div>
+                      <div className="text-sm text-gray-600">Total Café Orders</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{recentBookings.length}</div>
+                      <div className="text-sm text-gray-600">Total Room Bookings</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">
+                        ${recentOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0).toFixed(2)}
+                      </div>
+                      <div className="text-sm text-gray-600">Total Spent</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4 items-end">
+                  <div className="flex-1">
+                    <Label htmlFor="start-date">Start Date</Label>
+                    <Input
+                      type="date"
+                      id="start-date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
                   </div>
-                </DialogContent>
-              </Dialog>
-              
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Room Bills
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Download Room Booking Bills</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <p>Select date range for your room booking bills:</p>
-                    {/* Date range picker would go here */}
-                    <Button className="w-full">Generate PDF</Button>
+                  <div className="flex-1">
+                    <Label htmlFor="end-date">End Date</Label>
+                    <Input
+                      type="date"
+                      id="end-date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
+                  <Button>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF Report
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Recent Transactions</h4>
+                  {[...recentOrders.map(order => ({
+                    id: `order-${order.id}`,
+                    type: 'cafe',
+                    title: `Café Order #${order.id}`,
+                    date: order.created_at,
+                    amount: `$${order.total_amount}`,
+                    status: order.status,
+                    items: order.items?.length || 0
+                  })), ...recentBookings.map(booking => ({
+                    id: `booking-${booking.id}`,
+                    type: 'room',
+                    title: `${booking.room?.name} Booking`,
+                    date: booking.created_at,
+                    amount: `${booking.credits_used} credits`,
+                    status: booking.status,
+                    duration: booking.duration_minutes
+                  }))].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10).map((transaction) => (
+                    <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {transaction.type === 'cafe' ? (
+                          <Coffee className="h-5 w-5 text-orange-600" />
+                        ) : (
+                          <Calendar className="h-5 w-5 text-blue-600" />
+                        )}
+                        <div>
+                          <p className="font-medium">{transaction.title}</p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(transaction.date).toLocaleDateString()} • {new Date(transaction.date).toLocaleTimeString()}
+                          </p>
+                          {transaction.type === 'cafe' && (
+                            <p className="text-xs text-gray-400">{transaction.items} items</p>
+                          )}
+                          {transaction.type === 'room' && transaction.duration && (
+                            <p className="text-xs text-gray-400">{transaction.duration} minutes</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">{transaction.amount}</p>
+                        <Badge 
+                          variant={transaction.status === 'confirmed' || transaction.status === 'delivered' ? 'default' : 'secondary'}
+                          className={
+                            transaction.status === 'confirmed' || transaction.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            transaction.status === 'ready' || transaction.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                            transaction.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
+                          }
+                        >
+                          {transaction.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {recentOrders.length === 0 && recentBookings.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      No transactions found
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="cafe" className="space-y-4">
+              <div className="space-y-3">
+                <h4 className="font-semibold">Café Orders</h4>
+                {recentOrders.map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Coffee className="h-5 w-5 text-orange-600" />
+                      <div>
+                        <p className="font-medium">Order #{order.id}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(order.created_at).toLocaleDateString()} • {new Date(order.created_at).toLocaleTimeString()}
+                        </p>
+                        <p className="text-xs text-gray-400">{order.items?.length || 0} items</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">${order.total_amount}</p>
+                      <Badge 
+                        variant={order.status === 'delivered' ? 'default' : 'secondary'}
+                        className={
+                          order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                          order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                          order.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
+                        }
+                      >
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+                {recentOrders.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    No café orders found
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="rooms" className="space-y-4">
+              <div className="space-y-3">
+                <h4 className="font-semibold">Room Bookings</h4>
+                {recentBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">{booking.room?.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(booking.start_time).toLocaleDateString()} • {new Date(booking.start_time).toLocaleTimeString()} - {new Date(booking.end_time).toLocaleTimeString()}
+                        </p>
+                        <p className="text-xs text-gray-400">{booking.duration_minutes} minutes</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">{booking.credits_used} credits</p>
+                      <Badge 
+                        variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
+                        className={
+                          booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
+                        }
+                      >
+                        {booking.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+                {recentBookings.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    No room bookings found
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

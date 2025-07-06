@@ -524,37 +524,7 @@ export default function CafePage() {
         </Drawer>
       )}
 
-      {/* PDF Download Dialog */}
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="fixed bottom-6 left-6 shadow-lg">
-            <Download className="h-4 w-4 mr-2" />
-            Download Bills
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Download Café Bills</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p>Select date range for your café order bills:</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="start-date">Start Date</Label>
-                <Input type="date" id="start-date" />
-              </div>
-              <div>
-                <Label htmlFor="end-date">End Date</Label>
-                <Input type="date" id="end-date" />
-              </div>
-            </div>
-            <Button className="w-full">
-              <Download className="h-4 w-4 mr-2" />
-              Generate PDF Bill
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
