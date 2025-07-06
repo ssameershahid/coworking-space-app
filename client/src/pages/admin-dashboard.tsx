@@ -163,7 +163,67 @@ export default function AdminDashboard() {
     }
   };
 
-  // Remaining implementation will be split into multiple updates...
+  // Fetch all data
+  const { data: stats } = useQuery<AdminStats>({
+    queryKey: ['/api/admin/stats', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/stats' : `/api/admin/stats?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
+    enabled: !!user && user.role === 'calmkaaj_admin'
+  });
+
+  const { data: users = [] } = useQuery<User[]>({
+    queryKey: ['/api/admin/users', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/users' : `/api/admin/users?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
+    enabled: !!user && user.role === 'calmkaaj_admin'
+  });
+
+  const { data: organizations = [] } = useQuery<Organization[]>({
+    queryKey: ['/api/admin/organizations', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/organizations' : `/api/admin/organizations?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
+    enabled: !!user && user.role === 'calmkaaj_admin'
+  });
+
+  const { data: menuItems = [] } = useQuery<MenuItem[]>({
+    queryKey: ['/api/admin/menu', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/menu' : `/api/admin/menu?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
+    enabled: !!user && user.role === 'calmkaaj_admin'
+  });
+
+  const { data: rooms = [] } = useQuery<MeetingRoom[]>({
+    queryKey: ['/api/admin/rooms', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/rooms' : `/api/admin/rooms?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
+    enabled: !!user && user.role === 'calmkaaj_admin'
+  });
+
+  const { data: announcements = [] } = useQuery<Announcement[]>({
+    queryKey: ['/api/admin/announcements', selectedSite],
+    queryFn: async () => {
+      const url = selectedSite === 'all' ? '/api/admin/announcements' : `/api/admin/announcements?site=${selectedSite}`;
+      const response = await fetch(url);
+      return response.json();
+    },
+    enabled: !!user && user.role === 'calmkaaj_admin'
+  });
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -185,6 +245,61 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalUsers || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats?.activeUsers || 0} active users
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Rs {stats?.monthlyRevenue || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Total: Rs {stats?.totalRevenue || 0}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Orders</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.monthlyOrders || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Total: {stats?.totalOrders || 0}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Bookings</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.monthlyBookings || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Total: {stats?.totalBookings || 0}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Management Tabs */}
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
@@ -199,11 +314,54 @@ export default function AdminDashboard() {
         {/* Users Tab */}
         <TabsContent value="users">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>User Management</CardTitle>
+              <Button onClick={() => setNewUserDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
             </CardHeader>
             <CardContent>
-              <p>User management functionality will be implemented here...</p>
+              <div className="space-y-4">
+                {users.map((user) => (
+                  <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                        {user.first_name[0]}{user.last_name[0]}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{user.first_name} {user.last_name}</h3>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant="outline">{user.role}</Badge>
+                          <Badge variant="outline">{user.site}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewAsUser(user.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View As
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setEditUserDialog(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -211,11 +369,41 @@ export default function AdminDashboard() {
         {/* Organizations Tab */}
         <TabsContent value="organizations">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Organization Management</CardTitle>
+              <Button onClick={() => setNewOrgDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Organization
+              </Button>
             </CardHeader>
             <CardContent>
-              <p>Organization management functionality will be implemented here...</p>
+              <div className="space-y-4">
+                {organizations.map((org) => (
+                  <div key={org.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Building className="h-8 w-8 text-muted-foreground" />
+                      <div>
+                        <h3 className="font-semibold">{org.name}</h3>
+                        <p className="text-sm text-muted-foreground">{org.email}</p>
+                        <Badge variant="outline">{org.site}</Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedOrg(org);
+                          setEditOrgDialog(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -223,11 +411,46 @@ export default function AdminDashboard() {
         {/* Menu Tab */}
         <TabsContent value="menu">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Menu Management</CardTitle>
+              <Button onClick={() => setNewMenuItemDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Menu Item
+              </Button>
             </CardHeader>
             <CardContent>
-              <p>Menu management functionality will be implemented here...</p>
+              <div className="space-y-4">
+                {menuItems.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Coffee className="h-8 w-8 text-muted-foreground" />
+                      <div>
+                        <h3 className="font-semibold">{item.name}</h3>
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant="outline">Rs {item.price}</Badge>
+                          <Badge variant="outline">{item.site}</Badge>
+                          {item.is_available && <Badge variant="outline">Available</Badge>}
+                          {item.is_daily_special && <Badge variant="outline">Daily Special</Badge>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedMenuItem(item);
+                          setEditMenuItemDialog(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -235,11 +458,46 @@ export default function AdminDashboard() {
         {/* Rooms Tab */}
         <TabsContent value="rooms">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Room Management</CardTitle>
+              <Button onClick={() => setNewRoomDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Room
+              </Button>
             </CardHeader>
             <CardContent>
-              <p>Room management functionality will be implemented here...</p>
+              <div className="space-y-4">
+                {rooms.map((room) => (
+                  <div key={room.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Building2 className="h-8 w-8 text-muted-foreground" />
+                      <div>
+                        <h3 className="font-semibold">{room.name}</h3>
+                        <p className="text-sm text-muted-foreground">{room.description}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant="outline">Capacity: {room.capacity}</Badge>
+                          <Badge variant="outline">{room.credit_cost_per_hour} credits/hr</Badge>
+                          <Badge variant="outline">{room.site}</Badge>
+                          {room.is_available && <Badge variant="outline">Available</Badge>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedRoom(room);
+                          setEditRoomDialog(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -247,11 +505,44 @@ export default function AdminDashboard() {
         {/* Announcements Tab */}
         <TabsContent value="announcements">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Announcement Management</CardTitle>
+              <Button onClick={() => setNewAnnouncementDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Announcement
+              </Button>
             </CardHeader>
             <CardContent>
-              <p>Announcement management functionality will be implemented here...</p>
+              <div className="space-y-4">
+                {announcements.map((announcement) => (
+                  <div key={announcement.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Megaphone className="h-8 w-8 text-muted-foreground" />
+                      <div>
+                        <h3 className="font-semibold">{announcement.title}</h3>
+                        <p className="text-sm text-muted-foreground">{announcement.body}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant="outline">{announcement.site}</Badge>
+                          {announcement.is_active && <Badge variant="outline">Active</Badge>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedAnnouncement(announcement);
+                          setEditAnnouncementDialog(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -263,7 +554,24 @@ export default function AdminDashboard() {
               <CardTitle>System Analytics</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Analytics functionality will be implemented here...</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Organization Count</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{stats?.organizationCount || 0}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Room Utilization</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{stats?.roomUtilization || 0}%</div>
+                  </CardContent>
+                </Card>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
