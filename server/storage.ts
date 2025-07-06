@@ -418,8 +418,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnnouncements(site?: string): Promise<schema.Announcement[]> {
+    const currentTime = new Date();
+    console.log("Current time for announcement filtering:", currentTime);
+    
     if (site) {
-      return await db.select().from(schema.announcements)
+      const result = await db.select().from(schema.announcements)
         .where(
           and(
             eq(schema.announcements.is_active, true),
@@ -433,23 +436,29 @@ export class DatabaseStorage implements IStorage {
             ),
             or(
               isNull(schema.announcements.show_until),
-              gt(schema.announcements.show_until, new Date())
+              gte(schema.announcements.show_until, currentTime)
             )
           )
         )
         .orderBy(desc(schema.announcements.created_at));
+      
+      console.log("Filtered announcements for site", site, ":", result.map(a => ({ id: a.id, title: a.title, show_until: a.show_until })));
+      return result;
     } else {
-      return await db.select().from(schema.announcements)
+      const result = await db.select().from(schema.announcements)
         .where(
           and(
             eq(schema.announcements.is_active, true),
             or(
               isNull(schema.announcements.show_until),
-              gt(schema.announcements.show_until, new Date())
+              gte(schema.announcements.show_until, currentTime)
             )
           )
         )
         .orderBy(desc(schema.announcements.created_at));
+      
+      console.log("Filtered announcements (no site filter):", result.map(a => ({ id: a.id, title: a.title, show_until: a.show_until })));
+      return result;
     }
   }
 
