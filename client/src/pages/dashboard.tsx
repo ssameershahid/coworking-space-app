@@ -275,7 +275,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">${order.total_amount}</p>
+                      <p className="font-semibold">${parseFloat(order.total_amount) || 0}</p>
                       <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
                         {order.status}
                       </Badge>
@@ -393,7 +393,7 @@ export default function Dashboard() {
                   <CardContent className="p-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-purple-600">
-                        ${recentOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0).toFixed(2)}
+                        ${(recentOrders.reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0)).toFixed(2)}
                       </div>
                       <div className="text-sm text-gray-600">Total Spent</div>
                     </div>
@@ -434,7 +434,7 @@ export default function Dashboard() {
                     type: 'cafe',
                     title: `Café Order #${order.id}`,
                     date: order.created_at,
-                    amount: `$${order.total_amount}`,
+                    amount: `$${parseFloat(order.total_amount) || 0}`,
                     status: order.status,
                     items: order.items?.length || 0
                   })), ...recentBookings.map(booking => ({
@@ -506,7 +506,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">${order.total_amount}</p>
+                      <p className="font-semibold">${parseFloat(order.total_amount) || 0}</p>
                       <Badge 
                         variant={order.status === 'delivered' ? 'default' : 'secondary'}
                         className={
