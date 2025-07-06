@@ -418,10 +418,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnnouncements(site?: string): Promise<schema.Announcement[]> {
-    // Convert current UTC time to Pakistan time (GMT+5)
+    // All dates in DB are stored as UTC, so compare with UTC time
     const currentTimeUTC = new Date();
-    const pakistanTime = new Date(currentTimeUTC.getTime() + (5 * 60 * 60 * 1000)); // Add 5 hours
-    console.log("Current Pakistan time for announcement filtering:", pakistanTime);
+    console.log("Current UTC time for announcement filtering:", currentTimeUTC);
     
     if (site) {
       const result = await db.select().from(schema.announcements)
@@ -438,7 +437,7 @@ export class DatabaseStorage implements IStorage {
             ),
             or(
               isNull(schema.announcements.show_until),
-              sql`${schema.announcements.show_until} >= ${pakistanTime.toISOString()}`
+              gte(schema.announcements.show_until, currentTimeUTC)
             )
           )
         )
@@ -453,7 +452,7 @@ export class DatabaseStorage implements IStorage {
             eq(schema.announcements.is_active, true),
             or(
               isNull(schema.announcements.show_until),
-              sql`${schema.announcements.show_until} >= ${pakistanTime.toISOString()}`
+              gte(schema.announcements.show_until, currentTimeUTC)
             )
           )
         )
