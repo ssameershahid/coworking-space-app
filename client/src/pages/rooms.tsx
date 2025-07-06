@@ -64,6 +64,8 @@ export default function RoomsPage() {
   const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
   const [bookingNotes, setBookingNotes] = useState("");
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<MeetingBooking | null>(null);
   const [filterCapacity, setFilterCapacity] = useState("all");
   const [sortBy, setSortBy] = useState("name");
 
@@ -114,16 +116,45 @@ export default function RoomsPage() {
 
   const cancelBookingMutation = useMutation({
     mutationFn: async (bookingId: number) => {
-      return apiRequest('PATCH', `/api/bookings/${bookingId}/status`, { status: 'cancelled' });
+      return apiRequest('PATCH', `/api/bookings/${bookingId}/cancel`, {});
     },
     onSuccess: () => {
       toast({
         title: "Booking Cancelled",
-        description: "Your booking has been cancelled successfully.",
+        description: "Your booking has been cancelled and credits have been refunded.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      setShowCancelModal(false);
+      setBookingToCancel(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Cancellation Failed", 
+        description: error.message || "Cannot cancel booking less than 10 minutes before start time.",
+        variant: "destructive",
+      });
     },
   });
+
+  const handleCancelBooking = (booking: MeetingBooking) => {
+    setBookingToCancel(booking);
+    setShowCancelModal(true);
+  };
+
+  const confirmCancelBooking = () => {
+    if (bookingToCancel) {
+      cancelBookingMutation.mutate(bookingToCancel.id);
+    }
+  };
+
+  const canCancelBooking = (booking: MeetingBooking) => {
+    const now = new Date();
+    const startTime = new Date(booking.start_time);
+    const timeDifference = startTime.getTime() - now.getTime();
+    const minutesDifference = timeDifference / (1000 * 60);
+    return minutesDifference > 10;
+  };
 
   // Filter and sort rooms
   const filteredRooms = rooms
@@ -252,13 +283,25 @@ export default function RoomsPage() {
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Confirmed
                     </Badge>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => cancelBookingMutation.mutate(booking.id)}
-                    >
-                      Cancel
-                    </Button>
+                    {canCancelBooking(booking) ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCancelBooking(booking)}
+                        disabled={cancelBookingMutation.isPending}
+                      >
+                        Cancel
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled
+                        title="Cannot cancel within 10 minutes of start time"
+                      >
+                        Too Late
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -544,6 +587,57 @@ export default function RoomsPage() {
               <Download className="h-4 w-4 mr-2" />
               Generate PDF Report
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Booking Confirmation Modal */}
+      <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              Cancel Booking Confirmation
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {bookingToCancel && (
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="font-medium">{bookingToCancel.room?.name}</p>
+                <p className="text-sm text-gray-600">
+                  {new Date(bookingToCancel.start_time).toLocaleDateString()} • {' '}
+                  {new Date(bookingToCancel.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
+                  {new Date(bookingToCancel.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+                <p className="text-sm text-green-600 mt-1">
+                  {bookingToCancel.credits_used} credits will be refunded
+                </p>
+              </div>
+            )}
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Are you sure you want to cancel this booking? This action cannot be undone, but your credits will be refunded to your account.
+              </AlertDescription>
+            </Alert>
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1"
+                disabled={cancelBookingMutation.isPending}
+              >
+                Keep Booking
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmCancelBooking}
+                className="flex-1"
+                disabled={cancelBookingMutation.isPending}
+              >
+                {cancelBookingMutation.isPending ? "Cancelling..." : "Yes, Cancel Booking"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

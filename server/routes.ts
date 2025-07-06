@@ -559,6 +559,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/bookings/:id/cancel", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.id;
+      
+      // Get the booking details first
+      const booking = await storage.getMeetingBookingById(id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Check if user owns this booking
+      if (booking.user_id !== userId) {
+        return res.status(403).json({ message: "Not authorized to cancel this booking" });
+      }
+
+      // Check if booking is already cancelled
+      if (booking.status === 'cancelled') {
+        return res.status(400).json({ message: "Booking is already cancelled" });
+      }
+
+      // Check 10-minute rule
+      const now = new Date();
+      const startTime = new Date(booking.start_time);
+      const timeDifference = startTime.getTime() - now.getTime();
+      const minutesDifference = timeDifference / (1000 * 60);
+
+      if (minutesDifference <= 10) {
+        return res.status(400).json({ 
+          message: "Cannot cancel booking within 10 minutes of start time" 
+        });
+      }
+
+      // Cancel the booking
+      const cancelledBooking = await storage.updateMeetingBookingStatus(id, 'cancelled');
+
+      // Refund the credits to the user
+      const user = await storage.getUserById(userId);
+      if (user) {
+        const newUsedCredits = Math.max(0, (user.used_credits || 0) - booking.credits_used);
+        await storage.updateUser(userId, { used_credits: newUsedCredits });
+      }
+
+      res.json({ 
+        booking: cancelledBooking, 
+        refundedCredits: booking.credits_used,
+        message: "Booking cancelled and credits refunded"
+      });
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      res.status(500).json({ message: "Failed to cancel booking" });
+    }
+  });
+
   // Announcements routes
   app.get("/api/announcements", requireAuth, async (req, res) => {
     try {
