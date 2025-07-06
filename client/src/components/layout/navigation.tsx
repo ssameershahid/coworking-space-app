@@ -48,7 +48,7 @@ export default function Navigation() {
               <Link 
                 key={item.name} 
                 href={item.href}
-                className={`pb-4 font-medium transition-colors ${
+                className={`pb-4 font-medium transition-colors cursor-pointer ${
                   item.current
                     ? "text-primary border-b-2 border-primary"
                     : "text-gray-500 hover:text-gray-700"

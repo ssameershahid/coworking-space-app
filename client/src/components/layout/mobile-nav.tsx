@@ -24,17 +24,15 @@ export default function MobileNav() {
         {navigation.map((item) => {
           const Icon = item.icon;
           return (
-            <Link key={item.name} href={item.href}>
-              <a
-                className={`flex flex-col items-center py-2 px-3 transition-colors ${
-                  item.current
-                    ? "text-primary"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                <Icon className="h-5 w-5 mb-1" />
-                <span className="text-xs">{item.name}</span>
-              </a>
+            <Link key={item.name} href={item.href}
+              className={`flex flex-col items-center py-2 px-3 transition-colors ${
+                item.current
+                  ? "text-primary"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <Icon className="h-5 w-5 mb-1" />
+              <span className="text-xs">{item.name}</span>
             </Link>
           );
         })}
