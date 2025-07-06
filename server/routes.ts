@@ -662,7 +662,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/announcements", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      const result = schema.insertAnnouncementSchema.safeParse(req.body);
+      // Handle multi-site data
+      const { sites, ...otherData } = req.body;
+      
+      // Convert sites array to proper format
+      let processedSites = sites;
+      if (sites && sites.includes('all')) {
+        processedSites = ['blue_area', 'i_10']; // Include all available sites
+      }
+      
+      const announcementData = {
+        ...otherData,
+        sites: processedSites || [otherData.site || 'blue_area'] // Fallback to single site
+      };
+      
+      const result = schema.insertAnnouncementSchema.safeParse(announcementData);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
       }
@@ -678,7 +692,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/announcements/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const updates = req.body;
+      const { sites, ...otherUpdates } = req.body;
+      
+      // Convert sites array to proper format
+      let processedSites = sites;
+      if (sites && sites.includes('all')) {
+        processedSites = ['blue_area', 'i_10']; // Include all available sites
+      }
+      
+      const updates = {
+        ...otherUpdates,
+        sites: processedSites || [otherUpdates.site || 'blue_area'] // Fallback to single site
+      };
       
       const announcement = await storage.updateAnnouncement(id, updates);
       res.json(announcement);

@@ -423,7 +423,14 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(schema.announcements.is_active, true),
-            eq(schema.announcements.site, site as any),
+            or(
+              // Check if site is in the sites array
+              sql`${schema.announcements.sites} @> ${[site]}`,
+              // Check if 'all' is in the sites array
+              sql`${schema.announcements.sites} @> ${['all']}`,
+              // Fallback to old single site field for backwards compatibility
+              eq(schema.announcements.site, site as any)
+            ),
             sql`${schema.announcements.show_until} IS NULL OR ${schema.announcements.show_until} > NOW()`
           )
         )

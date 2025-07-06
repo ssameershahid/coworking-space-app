@@ -1651,16 +1651,48 @@ export default function AdminDashboard() {
       image_url: '',
       show_until: '',
       is_active: true,
-      site: 'blue_area'
+      sites: ['blue_area'] // Changed to array to support multiple sites
     });
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const submitData = {
         ...formData,
-        show_until: formData.show_until || null
+        show_until: formData.show_until || null,
+        sites: formData.sites
       };
       createAnnouncement.mutate(submitData);
+    };
+
+    const handleSiteChange = (selectedSites: string[]) => {
+      setFormData({...formData, sites: selectedSites});
+    };
+
+    const toggleSite = (site: string) => {
+      if (site === 'all') {
+        // If "All" is selected, select all sites
+        if (formData.sites.includes('all')) {
+          setFormData({...formData, sites: []});
+        } else {
+          setFormData({...formData, sites: ['all', 'blue_area', 'i_10']});
+        }
+      } else {
+        // Remove "all" if a specific site is toggled
+        let newSites = formData.sites.filter(s => s !== 'all');
+        
+        if (newSites.includes(site)) {
+          newSites = newSites.filter(s => s !== site);
+        } else {
+          newSites = [...newSites, site];
+        }
+        
+        // If all specific sites are selected, add "all"
+        if (newSites.includes('blue_area') && newSites.includes('i_10')) {
+          newSites = ['all', 'blue_area', 'i_10'];
+        }
+        
+        setFormData({...formData, sites: newSites});
+      }
     };
 
     return (
@@ -1716,16 +1748,39 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div>
-          <Label htmlFor="announcement_site">Site</Label>
-          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blue_area">Blue Area</SelectItem>
-              <SelectItem value="i_10">I-10</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="announcement_sites">Sites</Label>
+          <div className="space-y-2 border rounded-lg p-3 mt-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="all-sites"
+                checked={formData.sites.includes('all')}
+                onChange={() => toggleSite('all')}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="all-sites" className="text-sm font-medium">All Sites</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="blue-area"
+                checked={formData.sites.includes('blue_area')}
+                onChange={() => toggleSite('blue_area')}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="blue-area" className="text-sm">Blue Area</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="i-10"
+                checked={formData.sites.includes('i_10')}
+                onChange={() => toggleSite('i_10')}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="i-10" className="text-sm">I-10</label>
+            </div>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
           <input
@@ -1751,14 +1806,15 @@ export default function AdminDashboard() {
       image_url: announcement.image_url || '',
       show_until: announcement.show_until ? new Date(announcement.show_until).toISOString().slice(0, 16) : '',
       is_active: announcement.is_active ?? true,
-      site: announcement.site || 'blue_area'
+      sites: announcement.sites || [announcement.site || 'blue_area'] // Support both old single site and new multi-site
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       const submitData = {
         ...formData,
-        show_until: formData.show_until || null
+        show_until: formData.show_until || null,
+        sites: formData.sites
       };
       
       try {
@@ -1766,6 +1822,33 @@ export default function AdminDashboard() {
         onClose();
       } catch (error) {
         console.error('Failed to update announcement:', error);
+      }
+    };
+
+    const toggleSite = (site: string) => {
+      if (site === 'all') {
+        // If "All" is selected, select all sites
+        if (formData.sites.includes('all')) {
+          setFormData({...formData, sites: []});
+        } else {
+          setFormData({...formData, sites: ['all', 'blue_area', 'i_10']});
+        }
+      } else {
+        // Remove "all" if a specific site is toggled
+        let newSites = formData.sites.filter(s => s !== 'all');
+        
+        if (newSites.includes(site)) {
+          newSites = newSites.filter(s => s !== site);
+        } else {
+          newSites = [...newSites, site];
+        }
+        
+        // If all specific sites are selected, add "all"
+        if (newSites.includes('blue_area') && newSites.includes('i_10')) {
+          newSites = ['all', 'blue_area', 'i_10'];
+        }
+        
+        setFormData({...formData, sites: newSites});
       }
     };
 
@@ -1822,16 +1905,39 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div>
-          <Label htmlFor="edit_announcement_site">Site</Label>
-          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blue_area">Blue Area</SelectItem>
-              <SelectItem value="i_10">I-10</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="edit_announcement_sites">Sites</Label>
+          <div className="space-y-2 border rounded-lg p-3 mt-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="edit-all-sites"
+                checked={formData.sites.includes('all')}
+                onChange={() => toggleSite('all')}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="edit-all-sites" className="text-sm font-medium">All Sites</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="edit-blue-area"
+                checked={formData.sites.includes('blue_area')}
+                onChange={() => toggleSite('blue_area')}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="edit-blue-area" className="text-sm">Blue Area</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="edit-i-10"
+                checked={formData.sites.includes('i_10')}
+                onChange={() => toggleSite('i_10')}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="edit-i-10" className="text-sm">I-10</label>
+            </div>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
           <input

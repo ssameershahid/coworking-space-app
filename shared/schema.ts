@@ -128,7 +128,8 @@ export const announcements = pgTable("announcements", {
   image_url: text("image_url"),
   show_until: timestamp("show_until"),
   is_active: boolean("is_active").default(true),
-  site: siteEnum("site").notNull().default("blue_area"),
+  site: siteEnum("site").notNull().default("blue_area"), // Keep for backwards compatibility
+  sites: text("sites").array().default(["blue_area"]), // New array field for multiple sites
   created_at: timestamp("created_at").defaultNow(),
 });
 
