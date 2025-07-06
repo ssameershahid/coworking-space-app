@@ -34,6 +34,8 @@ export function RoomAvailabilityCalendar({
 
   // Generate time slots for the day (8 AM to 8 PM in 1-hour intervals)
   useEffect(() => {
+    if (!Array.isArray(bookings)) return;
+    
     const slots: TimeSlot[] = [];
     
     for (let hour = 8; hour <= 20; hour++) {

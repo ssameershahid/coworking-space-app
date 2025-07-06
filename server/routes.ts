@@ -446,11 +446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bookings = await db.select()
         .from(schema.meeting_bookings)
         .where(
-          and(
-            eq(schema.meeting_bookings.room_id, roomId),
-            eq(schema.meeting_bookings.status, "confirmed"),
-            sql`DATE(${schema.meeting_bookings.start_time}) = ${date}`
-          )
+          sql`room_id = ${roomId} AND status = 'confirmed' AND DATE(start_time) = ${date}`
         )
         .orderBy(asc(schema.meeting_bookings.start_time));
       
