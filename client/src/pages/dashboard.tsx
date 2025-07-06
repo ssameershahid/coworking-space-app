@@ -38,6 +38,68 @@ export default function Dashboard() {
   const [dismissedAnnouncements, setDismissedAnnouncements] = useState<number[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  const downloadCafePDF = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      
+      const response = await fetch(`/api/cafe/orders/pdf?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cafe-orders-${startDate || 'all'}-${endDate || 'all'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        console.error('Failed to download PDF');
+      }
+    } catch (error) {
+      console.error('Error downloading café PDF:', error);
+    }
+  };
+
+  const downloadRoomPDF = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      
+      const response = await fetch(`/api/bookings/pdf?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `room-bookings-${startDate || 'all'}-${endDate || 'all'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        console.error('Failed to download PDF');
+      }
+    } catch (error) {
+      console.error('Error downloading room PDF:', error);
+    }
+  };
   
   const { data: announcements = [] } = useQuery<Announcement[]>({
     queryKey: ["/api/announcements", user?.site],
@@ -364,133 +426,38 @@ export default function Dashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">All Transactions</TabsTrigger>
+          <Tabs defaultValue="cafe" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="cafe">Café Orders</TabsTrigger>
               <TabsTrigger value="rooms">Room Bookings</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="all" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{recentOrders.length}</div>
-                      <div className="text-sm text-gray-600">Total Café Orders</div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{recentBookings.length}</div>
-                      <div className="text-sm text-gray-600">Total Room Bookings</div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">
-                        ${(recentOrders.reduce((sum, order) => sum + (parseFloat(order.total_amount) || 0), 0)).toFixed(2)}
-                      </div>
-                      <div className="text-sm text-gray-600">Total Spent</div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-4 items-end">
-                  <div className="flex-1">
-                    <Label htmlFor="start-date">Start Date</Label>
-                    <Input
-                      type="date"
-                      id="start-date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Label htmlFor="end-date">End Date</Label>
-                    <Input
-                      type="date"
-                      id="end-date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                  <Button>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download PDF Report
-                  </Button>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold">Recent Transactions</h4>
-                  {[...recentOrders.map(order => ({
-                    id: `order-${order.id}`,
-                    type: 'cafe',
-                    title: `Café Order #${order.id}`,
-                    date: order.created_at,
-                    amount: `$${parseFloat(order.total_amount) || 0}`,
-                    status: order.status,
-                    items: order.items?.length || 0
-                  })), ...recentBookings.map(booking => ({
-                    id: `booking-${booking.id}`,
-                    type: 'room',
-                    title: `${booking.room?.name} Booking`,
-                    date: booking.created_at,
-                    amount: `${booking.credits_used} credits`,
-                    status: booking.status,
-                    duration: booking.duration_minutes
-                  }))].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10).map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        {transaction.type === 'cafe' ? (
-                          <Coffee className="h-5 w-5 text-orange-600" />
-                        ) : (
-                          <Calendar className="h-5 w-5 text-blue-600" />
-                        )}
-                        <div>
-                          <p className="font-medium">{transaction.title}</p>
-                          <p className="text-sm text-gray-500">
-                            {new Date(transaction.date).toLocaleDateString()} • {new Date(transaction.date).toLocaleTimeString()}
-                          </p>
-                          {transaction.type === 'cafe' && (
-                            <p className="text-xs text-gray-400">{transaction.items} items</p>
-                          )}
-                          {transaction.type === 'room' && transaction.duration && (
-                            <p className="text-xs text-gray-400">{transaction.duration} minutes</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{transaction.amount}</p>
-                        <Badge 
-                          variant={transaction.status === 'confirmed' || transaction.status === 'delivered' ? 'default' : 'secondary'}
-                          className={
-                            transaction.status === 'confirmed' || transaction.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                            transaction.status === 'ready' || transaction.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                            transaction.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
-                          }
-                        >
-                          {transaction.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                  {recentOrders.length === 0 && recentBookings.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      No transactions found
-                    </div>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-            
             <TabsContent value="cafe" className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-end mb-6">
+                <div className="flex-1">
+                  <Label htmlFor="cafe-start-date">Start Date</Label>
+                  <Input
+                    type="date"
+                    id="cafe-start-date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="cafe-end-date">End Date</Label>
+                  <Input
+                    type="date"
+                    id="cafe-end-date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+                <Button onClick={() => downloadCafePDF()}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF Report
+                </Button>
+              </div>
+
               <div className="space-y-3">
                 <h4 className="font-semibold">Café Orders</h4>
                 {recentOrders.map((order) => (
@@ -529,6 +496,31 @@ export default function Dashboard() {
             </TabsContent>
             
             <TabsContent value="rooms" className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-end mb-6">
+                <div className="flex-1">
+                  <Label htmlFor="room-start-date">Start Date</Label>
+                  <Input
+                    type="date"
+                    id="room-start-date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="room-end-date">End Date</Label>
+                  <Input
+                    type="date"
+                    id="room-end-date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+                <Button onClick={() => downloadRoomPDF()}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF Report
+                </Button>
+              </div>
+
               <div className="space-y-3">
                 <h4 className="font-semibold">Room Bookings</h4>
                 {recentBookings.map((booking) => (
