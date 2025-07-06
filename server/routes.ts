@@ -660,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/announcements", requireAuth, requireRole(["enterprise_administrator"]), async (req, res) => {
+  app.post("/api/announcements", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const result = schema.insertAnnouncementSchema.safeParse(req.body);
       if (!result.success) {
@@ -672,6 +672,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating announcement:", error);
       res.status(500).json({ message: "Failed to create announcement" });
+    }
+  });
+
+  app.patch("/api/announcements/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const announcement = await storage.updateAnnouncement(id, updates);
+      res.json(announcement);
+    } catch (error) {
+      console.error("Error updating announcement:", error);
+      res.status(500).json({ message: "Failed to update announcement" });
+    }
+  });
+
+  app.delete("/api/announcements/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      await storage.deleteAnnouncement(id);
+      res.json({ message: "Announcement deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting announcement:", error);
+      res.status(500).json({ message: "Failed to delete announcement" });
     }
   });
 

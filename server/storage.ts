@@ -51,6 +51,7 @@ export interface IStorage {
   getAnnouncements(site?: string): Promise<schema.Announcement[]>;
   createAnnouncement(announcement: schema.InsertAnnouncement): Promise<schema.Announcement>;
   updateAnnouncement(id: number, updates: Partial<schema.Announcement>): Promise<schema.Announcement>;
+  deleteAnnouncement(id: number): Promise<void>;
   
   // Organization Management
   getOrganizationEmployees(orgId: string): Promise<schema.User[]>;
@@ -447,6 +448,10 @@ export class DatabaseStorage implements IStorage {
   async updateAnnouncement(id: number, updates: Partial<schema.Announcement>): Promise<schema.Announcement> {
     const [updatedAnnouncement] = await db.update(schema.announcements).set(updates).where(eq(schema.announcements.id, id)).returning();
     return updatedAnnouncement;
+  }
+
+  async deleteAnnouncement(id: number): Promise<void> {
+    await db.delete(schema.announcements).where(eq(schema.announcements.id, id));
   }
 
   async getOrganizationEmployees(orgId: string): Promise<schema.User[]> {

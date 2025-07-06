@@ -125,6 +125,10 @@ export default function AdminDashboard() {
   const [newMenuItemDialog, setNewMenuItemDialog] = useState(false);
   const [editMenuItemDialog, setEditMenuItemDialog] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<any>(null);
+  const [editRoomDialog, setEditRoomDialog] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  const [editAnnouncementDialog, setEditAnnouncementDialog] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
 
   // Handle "View As User" functionality
   const handleViewAsUser = async (userId: number) => {
@@ -457,6 +461,73 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({ title: "Organization updated successfully" });
+    }
+  });
+
+  const updateRoom = useMutation({
+    mutationFn: async ({ roomId, updates }: { roomId: number; updates: any }) => {
+      const response = await apiRequest('PATCH', `/api/rooms/${roomId}`, updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
+      setEditRoomDialog(false);
+      toast({ title: "Meeting room updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update room", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const toggleRoomStatus = useMutation({
+    mutationFn: async ({ roomId, isAvailable }: { roomId: number; isAvailable: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/rooms/${roomId}`, { is_available: isAvailable });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rooms'] });
+      toast({ title: "Room status updated" });
+    }
+  });
+
+  const updateAnnouncement = useMutation({
+    mutationFn: async ({ announcementId, updates }: { announcementId: number; updates: any }) => {
+      const response = await apiRequest('PATCH', `/api/announcements/${announcementId}`, updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+      setEditAnnouncementDialog(false);
+      toast({ title: "Announcement updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update announcement", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteAnnouncement = useMutation({
+    mutationFn: async (announcementId: number) => {
+      const response = await apiRequest('DELETE', `/api/announcements/${announcementId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+      toast({ title: "Announcement deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete announcement", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -1324,6 +1395,466 @@ export default function AdminDashboard() {
     );
   };
 
+  const NewRoomForm = () => {
+    const [formData, setFormData] = useState({
+      name: '',
+      description: '',
+      capacity: '',
+      credit_cost_per_hour: '',
+      amenities: '',
+      image_url: '',
+      is_available: true,
+      site: 'blue_area'
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      const submitData = {
+        ...formData,
+        capacity: parseInt(formData.capacity) || 0,
+        credit_cost_per_hour: parseInt(formData.credit_cost_per_hour) || 0,
+        amenities: formData.amenities ? formData.amenities.split(',').map(a => a.trim()).filter(a => a) : []
+      };
+      createRoom.mutate(submitData);
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="room_name">Room Name</Label>
+          <Input
+            id="room_name"
+            placeholder="Conference Room A"
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="room_description">Description</Label>
+          <Textarea
+            id="room_description"
+            placeholder="Large conference room with projector"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            rows={2}
+          />
+        </div>
+        <div>
+          <Label htmlFor="room_capacity">Capacity (people)</Label>
+          <Input
+            id="room_capacity"
+            type="number"
+            placeholder="12"
+            value={formData.capacity}
+            onChange={(e) => setFormData({...formData, capacity: e.target.value})}
+            required
+            min="1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="room_cost">Cost per Hour (credits)</Label>
+          <Input
+            id="room_cost"
+            type="number"
+            placeholder="5"
+            value={formData.credit_cost_per_hour}
+            onChange={(e) => setFormData({...formData, credit_cost_per_hour: e.target.value})}
+            required
+            min="1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="room_amenities">Amenities</Label>
+          <Input
+            id="room_amenities"
+            placeholder="projector, whiteboard, wifi (comma separated)"
+            value={formData.amenities}
+            onChange={(e) => setFormData({...formData, amenities: e.target.value})}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Separate amenities with commas
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="room_image">Image URL</Label>
+          <Input
+            id="room_image"
+            placeholder="https://example.com/room-image.jpg"
+            value={formData.image_url}
+            onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="room_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="room_available"
+            checked={formData.is_available}
+            onChange={(e) => setFormData({...formData, is_available: e.target.checked})}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="room_available">Available for booking</Label>
+        </div>
+        <Button type="submit" disabled={createRoom.isPending}>
+          {createRoom.isPending ? "Creating..." : "Create Meeting Room"}
+        </Button>
+      </form>
+    );
+  };
+
+  const EditRoomForm = ({ room, onClose }: { room: any; onClose: () => void }) => {
+    const [formData, setFormData] = useState({
+      name: room.name || '',
+      description: room.description || '',
+      capacity: room.capacity?.toString() || '',
+      credit_cost_per_hour: room.credit_cost_per_hour?.toString() || '',
+      amenities: Array.isArray(room.amenities) ? room.amenities.join(', ') : (room.amenities || ''),
+      image_url: room.image_url || '',
+      is_available: room.is_available ?? true,
+      site: room.site || 'blue_area'
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const submitData = {
+        ...formData,
+        capacity: parseInt(formData.capacity) || 0,
+        credit_cost_per_hour: parseInt(formData.credit_cost_per_hour) || 0,
+        amenities: formData.amenities ? formData.amenities.split(',').map(a => a.trim()).filter(a => a) : []
+      };
+      
+      try {
+        await updateRoom.mutateAsync({ roomId: room.id, updates: submitData });
+        onClose();
+      } catch (error) {
+        console.error('Failed to update room:', error);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="edit_room_name">Room Name</Label>
+          <Input
+            id="edit_room_name"
+            placeholder="Conference Room A"
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_room_description">Description</Label>
+          <Textarea
+            id="edit_room_description"
+            placeholder="Large conference room with projector"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            rows={2}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_room_capacity">Capacity (people)</Label>
+          <Input
+            id="edit_room_capacity"
+            type="number"
+            placeholder="12"
+            value={formData.capacity}
+            onChange={(e) => setFormData({...formData, capacity: e.target.value})}
+            required
+            min="1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_room_cost">Cost per Hour (credits)</Label>
+          <Input
+            id="edit_room_cost"
+            type="number"
+            placeholder="5"
+            value={formData.credit_cost_per_hour}
+            onChange={(e) => setFormData({...formData, credit_cost_per_hour: e.target.value})}
+            required
+            min="1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_room_amenities">Amenities</Label>
+          <Input
+            id="edit_room_amenities"
+            placeholder="projector, whiteboard, wifi (comma separated)"
+            value={formData.amenities}
+            onChange={(e) => setFormData({...formData, amenities: e.target.value})}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Separate amenities with commas
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="edit_room_image">Image URL</Label>
+          <Input
+            id="edit_room_image"
+            placeholder="https://example.com/room-image.jpg"
+            value={formData.image_url}
+            onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_room_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="edit_room_available"
+            checked={formData.is_available}
+            onChange={(e) => setFormData({...formData, is_available: e.target.checked})}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="edit_room_available">Available for booking</Label>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateRoom.isPending}>
+            {updateRoom.isPending ? "Updating..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
+
+  const NewAnnouncementForm = () => {
+    const [formData, setFormData] = useState({
+      title: '',
+      body: '',
+      image_url: '',
+      show_until: '',
+      is_active: true,
+      site: 'blue_area'
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      const submitData = {
+        ...formData,
+        show_until: formData.show_until || null
+      };
+      createAnnouncement.mutate(submitData);
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="announcement_title">Title</Label>
+          <Input
+            id="announcement_title"
+            placeholder="Enter announcement title (max 80 characters)"
+            value={formData.title}
+            onChange={(e) => setFormData({...formData, title: e.target.value.slice(0, 80)})}
+            required
+            maxLength={80}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            {formData.title.length}/80 characters
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="announcement_body">Body</Label>
+          <Textarea
+            id="announcement_body"
+            placeholder="Enter announcement body (max 500 characters)"
+            value={formData.body}
+            onChange={(e) => setFormData({...formData, body: e.target.value.slice(0, 500)})}
+            required
+            rows={4}
+            maxLength={500}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            {formData.body.length}/500 characters
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="announcement_image">Image (Optional)</Label>
+          <Input
+            id="announcement_image"
+            placeholder="https://example.com/image.jpg"
+            value={formData.image_url}
+            onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="announcement_hide">Hide After (Optional)</Label>
+          <Input
+            id="announcement_hide"
+            type="datetime-local"
+            value={formData.show_until}
+            onChange={(e) => setFormData({...formData, show_until: e.target.value})}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Leave empty to show indefinitely
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="announcement_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="announcement_active"
+            checked={formData.is_active}
+            onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="announcement_active">Send push notification to all members</Label>
+        </div>
+        <Button type="submit" disabled={createAnnouncement.isPending}>
+          {createAnnouncement.isPending ? "Creating..." : "Create Announcement"}
+        </Button>
+      </form>
+    );
+  };
+
+  const EditAnnouncementForm = ({ announcement, onClose }: { announcement: any; onClose: () => void }) => {
+    const [formData, setFormData] = useState({
+      title: announcement.title || '',
+      body: announcement.body || '',
+      image_url: announcement.image_url || '',
+      show_until: announcement.show_until ? new Date(announcement.show_until).toISOString().slice(0, 16) : '',
+      is_active: announcement.is_active ?? true,
+      site: announcement.site || 'blue_area'
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const submitData = {
+        ...formData,
+        show_until: formData.show_until || null
+      };
+      
+      try {
+        await updateAnnouncement.mutateAsync({ announcementId: announcement.id, updates: submitData });
+        onClose();
+      } catch (error) {
+        console.error('Failed to update announcement:', error);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="edit_announcement_title">Title</Label>
+          <Input
+            id="edit_announcement_title"
+            placeholder="Enter announcement title (max 80 characters)"
+            value={formData.title}
+            onChange={(e) => setFormData({...formData, title: e.target.value.slice(0, 80)})}
+            required
+            maxLength={80}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            {formData.title.length}/80 characters
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="edit_announcement_body">Body</Label>
+          <Textarea
+            id="edit_announcement_body"
+            placeholder="Enter announcement body (max 500 characters)"
+            value={formData.body}
+            onChange={(e) => setFormData({...formData, body: e.target.value.slice(0, 500)})}
+            required
+            rows={4}
+            maxLength={500}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            {formData.body.length}/500 characters
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="edit_announcement_image">Image (Optional)</Label>
+          <Input
+            id="edit_announcement_image"
+            placeholder="https://example.com/image.jpg"
+            value={formData.image_url}
+            onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_announcement_hide">Hide After (Optional)</Label>
+          <Input
+            id="edit_announcement_hide"
+            type="datetime-local"
+            value={formData.show_until}
+            onChange={(e) => setFormData({...formData, show_until: e.target.value})}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Leave empty to show indefinitely
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="edit_announcement_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="edit_announcement_active"
+            checked={formData.is_active}
+            onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="edit_announcement_active">Active</Label>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateAnnouncement.isPending}>
+            {updateAnnouncement.isPending ? "Updating..." : "Save Changes"}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  };
+
   const EditMenuItemForm = ({ item, onClose }: { item: any; onClose: () => void }) => {
     const [formData, setFormData] = useState({
       name: item.name || '',
@@ -1858,7 +2389,23 @@ export default function AdminDashboard() {
         <TabsContent value="rooms">
           <Card>
             <CardHeader>
-              <CardTitle>Meeting Room Management</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Meeting Room Management</CardTitle>
+                <Dialog open={newRoomDialog} onOpenChange={setNewRoomDialog}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Meeting Room
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Add New Meeting Room</DialogTitle>
+                    </DialogHeader>
+                    <NewRoomForm />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -1897,6 +2444,10 @@ export default function AdminDashboard() {
                                 <Button 
                                   size="icon" 
                                   variant="ghost"
+                                  onClick={() => {
+                                    setSelectedRoom(room);
+                                    setEditRoomDialog(true);
+                                  }}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
@@ -1929,6 +2480,7 @@ export default function AdminDashboard() {
                                 <Button 
                                   size="icon" 
                                   variant="ghost"
+                                  onClick={() => toggleRoomStatus.mutate({ roomId: room.id, isAvailable: !room.is_available })}
                                   className={!room.is_available ? "text-red-500" : ""}
                                 >
                                   <Ban className="h-4 w-4" />
@@ -1953,7 +2505,23 @@ export default function AdminDashboard() {
         <TabsContent value="announcements">
           <Card>
             <CardHeader>
-              <CardTitle>Announcements</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Announcements</CardTitle>
+                <Dialog open={newAnnouncementDialog} onOpenChange={setNewAnnouncementDialog}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add New Announcement
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Create New Announcement</DialogTitle>
+                    </DialogHeader>
+                    <NewAnnouncementForm />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -1984,12 +2552,39 @@ export default function AdminDashboard() {
                       <TableCell>{format(new Date(announcement.created_at), 'MMM d, yyyy')}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedAnnouncement(announcement);
+                                    setEditAnnouncementDialog(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit announcement</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => deleteAnnouncement.mutate(announcement.id)}
+                                  disabled={deleteAnnouncement.isPending}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Delete announcement</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -2118,6 +2713,42 @@ export default function AdminDashboard() {
               onClose={() => {
                 setEditMenuItemDialog(false);
                 setSelectedMenuItem(null);
+              }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Room Dialog */}
+      <Dialog open={editRoomDialog} onOpenChange={setEditRoomDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Meeting Room</DialogTitle>
+          </DialogHeader>
+          {selectedRoom && (
+            <EditRoomForm 
+              room={selectedRoom} 
+              onClose={() => {
+                setEditRoomDialog(false);
+                setSelectedRoom(null);
+              }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Announcement Dialog */}
+      <Dialog open={editAnnouncementDialog} onOpenChange={setEditAnnouncementDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Announcement</DialogTitle>
+          </DialogHeader>
+          {selectedAnnouncement && (
+            <EditAnnouncementForm 
+              announcement={selectedAnnouncement} 
+              onClose={() => {
+                setEditAnnouncementDialog(false);
+                setSelectedAnnouncement(null);
               }} 
             />
           )}
