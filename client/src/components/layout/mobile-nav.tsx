@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Home, Coffee, Calendar, User, Building2 } from "lucide-react";
+import { Home, Coffee, Calendar, User, Building2, Users } from "lucide-react";
 
 export default function MobileNav() {
   const { user } = useAuth();
@@ -12,7 +12,10 @@ export default function MobileNav() {
     { name: "Home", href: "/", icon: Home, current: location === "/" },
     { name: "Café", href: "/cafe", icon: Coffee, current: location === "/cafe" },
     { name: "Rooms", href: "/rooms", icon: Calendar, current: location === "/rooms" },
-    ...(user.role === "member_organization" || user.role === "enterprise_administrator" 
+    ...(user.role === "member_individual" || user.role === "member_organization" || user.role === "member_organization_admin" 
+      ? [{ name: "Community", href: "/community", icon: Users, current: location === "/community" }] 
+      : []),
+    ...(user.role === "member_organization" || user.role === "member_organization_admin" 
       ? [{ name: "Org", href: "/organization", icon: Building2, current: location === "/organization" }] 
       : []),
     { name: "Profile", href: "/profile", icon: User, current: location === "/profile" },

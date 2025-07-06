@@ -38,6 +38,11 @@ export const users = pgTable("users", {
   can_charge_cafe_to_org: boolean("can_charge_cafe_to_org").default(false),
   can_charge_room_to_org: boolean("can_charge_room_to_org").default(true),
   start_date: timestamp("start_date").defaultNow(),
+  bio: text("bio"),
+  linkedin_url: text("linkedin_url"),
+  profile_image: text("profile_image"),
+  job_title: text("job_title"),
+  company: text("company"),
   created_at: timestamp("created_at").defaultNow(),
 });
 

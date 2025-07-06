@@ -10,6 +10,7 @@ import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import CafePage from "@/pages/cafe";
 import RoomsPage from "@/pages/rooms";
+import CommunityPage from "@/pages/community";
 import OrganizationPage from "@/pages/organization";
 import AdminPage from "@/pages/admin";
 import ProfilePage from "@/pages/profile";
@@ -80,6 +81,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/cafe" component={CafePage} />
       <Route path="/rooms" component={RoomsPage} />
+      <Route path="/community" component={CommunityPage} />
       {user.role === 'member_organization_admin' && (
         <Route path="/organization" component={OrganizationPage} />
       )}

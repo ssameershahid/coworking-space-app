@@ -867,6 +867,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Community API - Get all members for networking
+  app.get("/api/community/members", requireAuth, async (req, res) => {
+    try {
+      const users = await db
+        .select({
+          id: schema.users.id,
+          first_name: schema.users.first_name,
+          last_name: schema.users.last_name,
+          email: schema.users.email,
+          role: schema.users.role,
+          site: schema.users.site,
+          office_type: schema.users.office_type,
+          bio: schema.users.bio,
+          linkedin_url: schema.users.linkedin_url,
+          profile_image: schema.users.profile_image,
+          job_title: schema.users.job_title,
+          company: schema.users.company,
+          organization: {
+            id: schema.organizations.id,
+            name: schema.organizations.name,
+          },
+        })
+        .from(schema.users)
+        .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id))
+        .where(and(
+          eq(schema.users.is_active, true),
+          // Only show member roles in community directory
+          or(
+            eq(schema.users.role, "member_individual"),
+            eq(schema.users.role, "member_organization"),
+            eq(schema.users.role, "member_organization_admin")
+          )
+        ))
+        .orderBy(schema.users.first_name);
+
+      res.json(users);
+    } catch (error) {
+      console.error("Failed to fetch community members:", error);
+      res.status(500).json({ error: "Failed to fetch community members" });
+    }
+  });
+
   // Admin-only routes for CalmKaaj administrators
   app.get("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {

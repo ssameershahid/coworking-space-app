@@ -35,7 +35,7 @@ import { CafeOrder, MeetingBooking, Announcement } from "@/lib/types";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [dismissedAnnouncements, setDismissedAnnouncements] = useState<number[]>([]);
+  // Removed dismissedAnnouncements state - moved to Community page
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -101,10 +101,7 @@ export default function Dashboard() {
     }
   };
   
-  const { data: announcements = [] } = useQuery<Announcement[]>({
-    queryKey: ["/api/announcements", user?.site],
-    enabled: !!user,
-  });
+  // Announcements moved to Community page
 
   const { data: recentOrders = [] } = useQuery<CafeOrder[]>({
     queryKey: ["/api/cafe/orders"],
@@ -129,13 +126,6 @@ export default function Dashboard() {
   if (!user) return null;
 
   const creditsUsedPercentage = user.credits > 0 ? (user.used_credits / user.credits) * 100 : 0;
-  const activeAnnouncements = announcements.filter(a => 
-    a.is_active && !dismissedAnnouncements.includes(a.id)
-  );
-
-  const dismissAnnouncement = (id: number) => {
-    setDismissedAnnouncements(prev => [...prev, id]);
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -156,45 +146,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Active Announcements */}
-      {activeAnnouncements.length > 0 && (
-        <div className="space-y-4">
-          {activeAnnouncements.map((announcement) => (
-            <Alert key={announcement.id} className="relative border-l-4 border-l-blue-500 bg-blue-50">
-              <Bell className="h-4 w-4" />
-              <AlertDescription className="pr-8">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-blue-900 mb-1">{announcement.title}</h4>
-                    <p className="text-blue-800 mb-2">{announcement.body}</p>
-                    {announcement.image_url && (
-                      <div className="mt-3">
-                        <img 
-                          src={announcement.image_url} 
-                          alt={announcement.title}
-                          className="max-w-full h-auto max-h-48 rounded-lg shadow-sm"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-2 right-2 h-6 w-6 p-0"
-                    onClick={() => dismissAnnouncement(announcement.id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              </AlertDescription>
-            </Alert>
-          ))}
-        </div>
-      )}
+      {/* Announcements moved to Community page */}
 
       {/* Quick Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
