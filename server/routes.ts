@@ -673,18 +673,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processedSites = ['blue_area', 'i_10']; // Include all available sites
       }
       
-      // Handle Pakistan timezone (GMT+5) conversion
-      let showUntilDate = null;
-      if (otherData.show_until) {
-        // Treat the input as Pakistan time and convert to UTC for storage
-        const pakistanDate = new Date(otherData.show_until);
-        showUntilDate = new Date(pakistanDate.getTime() - (5 * 60 * 60 * 1000)); // Subtract 5 hours to get UTC
-      }
-      
+      // Store everything as Pakistan time - no UTC conversion
       const announcementData = {
         ...otherData,
         sites: processedSites || [otherData.site || 'blue_area'], // Fallback to single site
-        show_until: showUntilDate
+        show_until: otherData.show_until ? new Date(otherData.show_until) : null // Store as Pakistan time directly
       };
       
       console.log("Processed announcement data:", announcementData);
@@ -714,18 +707,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processedSites = ['blue_area', 'i_10']; // Include all available sites
       }
       
-      // Handle Pakistan timezone (GMT+5) conversion for updates
-      let showUntilDate = null;
-      if (otherUpdates.show_until) {
-        // Treat the input as Pakistan time and convert to UTC for storage
-        const pakistanDate = new Date(otherUpdates.show_until);
-        showUntilDate = new Date(pakistanDate.getTime() - (5 * 60 * 60 * 1000)); // Subtract 5 hours to get UTC
-      }
-      
+      // Store everything as Pakistan time - no UTC conversion
       const updates = {
         ...otherUpdates,
         sites: processedSites || [otherUpdates.site || 'blue_area'], // Fallback to single site
-        show_until: showUntilDate
+        show_until: otherUpdates.show_until ? new Date(otherUpdates.show_until) : null // Store as Pakistan time directly
       };
       
       const announcement = await storage.updateAnnouncement(id, updates);
