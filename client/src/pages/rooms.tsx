@@ -70,6 +70,7 @@ export default function RoomsPage() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
   const [filterCapacity, setFilterCapacity] = useState("all");
   const [sortBy, setSortBy] = useState("name");
+  const [selectedDateView, setSelectedDateView] = useState(new Date().toISOString().split('T')[0]);
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
     queryKey: ["/api/rooms", user?.site],
@@ -246,6 +247,7 @@ export default function RoomsPage() {
     setSelectedRoom(room);
     setSelectedTimeSlot(time);
     setStartTime(time);
+    setBookingDate(selectedDateView); // Set booking date to match selected date view
     setDuration("1");
     setBillingType("personal");
     setBookingNotes("");
@@ -349,7 +351,45 @@ export default function RoomsPage() {
         </Card>
       )}
 
-      
+      {/* Date Selector */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex gap-2 overflow-x-auto">
+            {Array.from({ length: 7 }, (_, i) => {
+              const date = new Date();
+              date.setDate(date.getDate() + i);
+              const dateString = date.toISOString().split('T')[0];
+              const isToday = i === 0;
+              const isSelected = selectedDateView === dateString;
+              
+              return (
+                <Button
+                  key={dateString}
+                  variant={isSelected ? "default" : "outline"}
+                  className={`min-w-fit px-4 py-2 ${isToday ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''} ${isSelected && !isToday ? 'bg-blue-500 hover:bg-blue-600 text-white' : ''}`}
+                  onClick={() => setSelectedDateView(dateString)}
+                >
+                  {isToday ? (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      Today
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-sm font-medium">
+                        {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                      </div>
+                      <div className="text-xs">
+                        {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                  )}
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Room Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -408,7 +448,7 @@ export default function RoomsPage() {
               {/* Embedded Calendar */}
               <RoomCardCalendar
                 room={room}
-                selectedDate={bookingDate}
+                selectedDate={selectedDateView}
                 onTimeSlotSelect={handleTimeSlotSelect}
                 selectedTimeSlot={selectedTimeSlot}
               />
