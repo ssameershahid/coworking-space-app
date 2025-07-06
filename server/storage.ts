@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import { eq, and, desc, asc, gte, lte, sql } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt } from "drizzle-orm";
 import * as schema from "@shared/schema";
 
 const sql_client = neon(process.env.DATABASE_URL!);
@@ -431,7 +431,10 @@ export class DatabaseStorage implements IStorage {
               // Fallback to old single site field for backwards compatibility
               eq(schema.announcements.site, site as any)
             ),
-            sql`${schema.announcements.show_until} IS NULL OR ${schema.announcements.show_until} > NOW()`
+            or(
+              isNull(schema.announcements.show_until),
+              gt(schema.announcements.show_until, new Date())
+            )
           )
         )
         .orderBy(desc(schema.announcements.created_at));
@@ -440,7 +443,10 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(schema.announcements.is_active, true),
-            sql`${schema.announcements.show_until} IS NULL OR ${schema.announcements.show_until} > NOW()`
+            or(
+              isNull(schema.announcements.show_until),
+              gt(schema.announcements.show_until, new Date())
+            )
           )
         )
         .orderBy(desc(schema.announcements.created_at));

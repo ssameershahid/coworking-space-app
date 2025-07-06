@@ -163,10 +163,23 @@ export default function Dashboard() {
             <Alert key={announcement.id} className="relative border-l-4 border-l-blue-500 bg-blue-50">
               <Bell className="h-4 w-4" />
               <AlertDescription className="pr-8">
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
                     <h4 className="font-semibold text-blue-900 mb-1">{announcement.title}</h4>
-                    <p className="text-blue-800">{announcement.body}</p>
+                    <p className="text-blue-800 mb-2">{announcement.body}</p>
+                    {announcement.image_url && (
+                      <div className="mt-3">
+                        <img 
+                          src={announcement.image_url} 
+                          alt={announcement.title}
+                          className="max-w-full h-auto max-h-48 rounded-lg shadow-sm"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                   <Button
                     variant="ghost"
