@@ -197,6 +197,18 @@ export default function RoomsPage() {
 
     const startDateTime = new Date(`${bookingDate}T${startTime}`);
     const endDateTime = new Date(startDateTime.getTime() + parseInt(duration) * 60 * 60 * 1000);
+    
+    // Check if booking is in the past (with 5-minute buffer for processing)
+    const now = new Date();
+    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+    if (startDateTime < fiveMinutesFromNow) {
+      toast({
+        title: "Invalid Booking Time",
+        description: "You cannot book a room for a time in the past or too close to the current time. Please select a time at least 5 minutes in the future.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const bookingData = {
       room_id: selectedRoom.id,
