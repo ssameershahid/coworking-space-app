@@ -242,75 +242,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Daily Deals & Featured Content Carousel */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500" />
-            Today's Highlights
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Carousel className="w-full">
-            <CarouselContent>
-              {/* Daily Specials */}
-              {dailySpecials.map((special: any) => (
-                <CarouselItem key={special.id} className="md:basis-1/2 lg:basis-1/3">
-                  <Card className="border-2 border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Gift className="h-4 w-4 text-yellow-600" />
-                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                          Daily Special
-                        </Badge>
-                      </div>
-                      <h4 className="font-semibold text-gray-900 mb-1">{special.name}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{special.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-green-600">${special.price}</span>
-                        <Link href="/cafe">
-                          <Button size="sm" variant="outline">Order Now</Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-              
-              {/* Next Available Room */}
-              {availableRooms.slice(0, 3).map((room: any) => (
-                <CarouselItem key={room.id} className="md:basis-1/2 lg:basis-1/3">
-                  <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="h-4 w-4 text-blue-600" />
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                          Available Now
-                        </Badge>
-                      </div>
-                      <h4 className="font-semibold text-gray-900 mb-1">{room.name}</h4>
-                      <p className="text-sm text-gray-600 mb-2">
-                        <Users className="h-3 w-3 inline mr-1" />
-                        Capacity: {room.capacity} people
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-blue-600">
-                          {room.credit_cost_per_hour} credits/hour
-                        </span>
-                        <Link href="/rooms">
-                          <Button size="sm" variant="outline">Book Now</Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </CardContent>
-      </Card>
+      
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

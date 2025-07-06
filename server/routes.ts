@@ -1163,6 +1163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startDate = req.query.start_date as string;
       const endDate = req.query.end_date as string;
       
+      // Get orders for the user only - remove invalid parameters
       const orders = await storage.getCafeOrders(userId);
       
       let filteredOrders = orders;
@@ -1196,6 +1197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startDate = req.query.start_date as string;
       const endDate = req.query.end_date as string;
       
+      // Get bookings for the user only - remove invalid parameters
       const bookings = await storage.getMeetingBookings(userId);
       
       let filteredBookings = bookings;
