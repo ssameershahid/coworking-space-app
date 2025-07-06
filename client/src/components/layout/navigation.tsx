@@ -25,7 +25,7 @@ export default function Navigation() {
     ...(user.role === "member_individual" || user.role === "member_organization_admin" || user.role === "calmkaaj_admin" 
       ? [{ name: "Rooms", href: "/rooms", current: location === "/rooms" }] 
       : []),
-    ...(user.role === "member_individual" || user.role === "member_organization" || user.role === "member_organization_admin" 
+    ...(user.role === "member_individual" || user.role === "member_organization" || user.role === "member_organization_admin" || user.role === "calmkaaj_admin"
       ? [{ name: "Community", href: "/community", current: location === "/community" }] 
       : []),
     ...(user.role === "member_organization_admin" 
