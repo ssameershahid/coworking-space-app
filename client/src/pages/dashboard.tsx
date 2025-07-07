@@ -232,12 +232,20 @@ export default function Dashboard() {
                       <p className="text-sm text-gray-500">
                         {new Date(order.created_at).toLocaleDateString()}
                       </p>
+                      {order.created_by && (
+                        <p className="text-xs text-blue-600">Created by café staff</p>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold">${parseFloat(order.total_amount) || 0}</p>
-                      <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
-                        {order.status}
-                      </Badge>
+                    <div className="text-right space-y-1">
+                      <p className="font-semibold">Rs. {parseFloat(order.total_amount) || 0}</p>
+                      <div className="flex gap-1 flex-col">
+                        <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
+                          {order.status}
+                        </Badge>
+                        <Badge variant={order.payment_status === 'paid' ? 'default' : 'destructive'} className="text-xs">
+                          {order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 ))}

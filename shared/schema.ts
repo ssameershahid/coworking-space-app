@@ -78,6 +78,10 @@ export const cafe_orders = pgTable("cafe_orders", {
   billed_to: billingTypeEnum("billed_to").default("personal"),
   org_id: uuid("org_id").references(() => organizations.id),
   handled_by: integer("handled_by").references(() => users.id),
+  created_by: integer("created_by").references(() => users.id), // For cafe manager created orders
+  payment_status: text("payment_status").default("unpaid"), // paid/unpaid
+  payment_updated_by: integer("payment_updated_by").references(() => users.id),
+  payment_updated_at: timestamp("payment_updated_at"),
   notes: text("notes"),
   delivery_location: text("delivery_location"),
   site: siteEnum("site").notNull().default("blue_area"),

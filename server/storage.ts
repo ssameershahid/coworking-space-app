@@ -33,6 +33,8 @@ export interface IStorage {
   getCafeOrders(userId?: number, orgId?: string, site?: string): Promise<any[]>;
   getCafeOrderById(id: number): Promise<any>;
   updateCafeOrderStatus(id: number, status: string, handledBy?: number): Promise<schema.CafeOrder>;
+  updateCafeOrderPaymentStatus(id: number, paymentStatus: string, updatedBy: number): Promise<schema.CafeOrder>;
+  createCafeOrderOnBehalf(order: schema.InsertCafeOrder, items: schema.InsertCafeOrderItem[], createdBy: number): Promise<any>;
   
   // Meeting Rooms
   getMeetingRooms(site?: string): Promise<schema.MeetingRoom[]>;
@@ -166,6 +168,10 @@ export class DatabaseStorage implements IStorage {
       billed_to: schema.cafe_orders.billed_to,
       org_id: schema.cafe_orders.org_id,
       handled_by: schema.cafe_orders.handled_by,
+      created_by: schema.cafe_orders.created_by,
+      payment_status: schema.cafe_orders.payment_status,
+      payment_updated_by: schema.cafe_orders.payment_updated_by,
+      payment_updated_at: schema.cafe_orders.payment_updated_at,
       notes: schema.cafe_orders.notes,
       delivery_location: schema.cafe_orders.delivery_location,
       site: schema.cafe_orders.site,
@@ -234,6 +240,10 @@ export class DatabaseStorage implements IStorage {
       total_amount: schema.cafe_orders.total_amount,
       status: schema.cafe_orders.status,
       billed_to: schema.cafe_orders.billed_to,
+      created_by: schema.cafe_orders.created_by,
+      payment_status: schema.cafe_orders.payment_status,
+      payment_updated_by: schema.cafe_orders.payment_updated_by,
+      payment_updated_at: schema.cafe_orders.payment_updated_at,
       notes: schema.cafe_orders.notes,
       created_at: schema.cafe_orders.created_at,
       user: {
@@ -278,6 +288,45 @@ export class DatabaseStorage implements IStorage {
     
     const [updatedOrder] = await db.update(schema.cafe_orders).set(updates).where(eq(schema.cafe_orders.id, id)).returning();
     return updatedOrder;
+  }
+
+  async updateCafeOrderPaymentStatus(id: number, paymentStatus: string, updatedBy: number): Promise<schema.CafeOrder> {
+    const [order] = await db.update(schema.cafe_orders)
+      .set({ 
+        payment_status: paymentStatus,
+        payment_updated_by: updatedBy,
+        payment_updated_at: new Date(),
+        updated_at: new Date()
+      })
+      .where(eq(schema.cafe_orders.id, id))
+      .returning();
+    
+    return order;
+  }
+
+  async createCafeOrderOnBehalf(order: schema.InsertCafeOrder, items: schema.InsertCafeOrderItem[], createdBy: number): Promise<any> {
+    // Create order with created_by field
+    const [newOrder] = await db.insert(schema.cafe_orders)
+      .values({
+        ...order,
+        created_by: createdBy
+      })
+      .returning();
+
+    // Create order items
+    const orderItems = [];
+    for (const item of items) {
+      const [orderItem] = await db.insert(schema.cafe_order_items)
+        .values({
+          ...item,
+          order_id: newOrder.id
+        })
+        .returning();
+      orderItems.push(orderItem);
+    }
+
+    // Return the complete order with items and user details
+    return this.getCafeOrderById(newOrder.id);
   }
 
   async getMeetingRooms(site?: string): Promise<schema.MeetingRoom[]> {

@@ -7,7 +7,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { storage, db } from "./storage";
 import * as schema from "@shared/schema";
-import { eq, desc, sql, asc } from "drizzle-orm";
+import { eq, desc, sql, asc, and, or } from "drizzle-orm";
 import { emailService } from "./email-service";
 
 // Session configuration
@@ -426,6 +426,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating cafe order status:", error);
       res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
+  // Update payment status
+  app.patch("/api/cafe/orders/:id/payment", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { payment_status } = req.body;
+      const user = req.user as schema.User;
+      
+      const order = await storage.updateCafeOrderPaymentStatus(id, payment_status, user.id);
+      
+      // Broadcast update to user
+      const orderWithDetails = await storage.getCafeOrderById(id);
+      if (orderWithDetails) {
+        broadcast(orderWithDetails.user.id, {
+          type: "order_payment_update",
+          order: orderWithDetails,
+        });
+      }
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating cafe order payment status:", error);
+      res.status(500).json({ message: "Failed to update payment status" });
+    }
+  });
+
+  // Create order on behalf of user
+  app.post("/api/cafe/orders/create-on-behalf", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
+    try {
+      const { user_id, items, billed_to, notes, delivery_location } = req.body;
+      const cafeManager = req.user as schema.User;
+
+      if (!user_id || !items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: "User ID and items are required" });
+      }
+
+      // Get the user for whom the order is being created
+      const targetUser = await storage.getUserById(user_id);
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Calculate total and prepare order items
+      let total = 0;
+      const orderItems = [];
+      
+      for (const item of items) {
+        const menuItem = await storage.getMenuItemById(item.menu_item_id);
+        if (!menuItem) {
+          return res.status(400).json({ message: `Menu item ${item.menu_item_id} not found` });
+        }
+        
+        const itemTotal = parseFloat(menuItem.price) * item.quantity;
+        total += itemTotal;
+        orderItems.push({
+          menu_item_id: item.menu_item_id,
+          quantity: item.quantity,
+          price: menuItem.price,
+        });
+      }
+
+      // Create order
+      const orderData = {
+        user_id: user_id,
+        total_amount: total.toString(),
+        status: "pending" as const,
+        billed_to: billed_to || "personal",
+        org_id: billed_to === "organization" ? targetUser.organization_id : undefined,
+        notes,
+        delivery_location,
+        site: cafeManager.site,
+      };
+
+      const order = await storage.createCafeOrderOnBehalf(orderData, orderItems, cafeManager.id);
+      
+      // Broadcast to user that order was created for them
+      broadcast(user_id, {
+        type: "order_created_on_behalf",
+        order: order,
+        created_by: cafeManager.first_name + " " + cafeManager.last_name,
+      });
+      
+      res.status(201).json(order);
+    } catch (error) {
+      console.error("Error creating cafe order on behalf:", error);
+      res.status(500).json({ message: "Failed to create order on behalf" });
+    }
+  });
+
+  // Get users for cafe manager to select when creating orders on behalf
+  app.get("/api/cafe/users", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
+    try {
+      const user = req.user as schema.User;
+      const { site } = req.query;
+      
+      // For cafe managers, filter by their site. For admins, use the site query parameter
+      const filterSite = user.role === 'calmkaaj_admin' ? (site as string) : user.site;
+      
+      // Get all users that can place orders (individual members and org admins)
+      const users = await db.select({
+        id: schema.users.id,
+        first_name: schema.users.first_name,
+        last_name: schema.users.last_name,
+        email: schema.users.email,
+        role: schema.users.role,
+        organization_id: schema.users.organization_id,
+        site: schema.users.site,
+      })
+      .from(schema.users)
+      .where(
+        and(
+          or(
+            eq(schema.users.role, "member_individual"),
+            eq(schema.users.role, "member_organization"),
+            eq(schema.users.role, "member_organization_admin")
+          ),
+          filterSite ? eq(schema.users.site, filterSite) : undefined
+        )
+      )
+      .orderBy(schema.users.first_name, schema.users.last_name);
+      
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users for cafe manager:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
     }
   });
 

@@ -53,11 +53,16 @@ export interface CafeOrder {
   id: number;
   user_id: number;
   total_amount: string;
-  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
   billed_to: 'personal' | 'organization';
   org_id?: string;
   handled_by?: number;
+  created_by?: number;
+  payment_status?: 'paid' | 'unpaid';
+  payment_updated_by?: number;
+  payment_updated_at?: string;
   notes?: string;
+  delivery_location?: string;
   site: string;
   created_at: string;
   updated_at?: string;
