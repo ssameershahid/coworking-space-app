@@ -165,6 +165,13 @@ Changelog:
   * Moved Create Order and Billing/Transactions from dashboard tabs to main navbar for better access
   * Real-time WebSocket notifications for both order creation and payment status updates
   * Two-way transparency: both cafe managers and members can see payment status
+- July 08, 2025. COMPLETED Self-service community profile editing and meeting room cancellation policy update:
+  * Implemented member self-service profile editing - users can now update their own community profile information
+  * Added community profile fields to member profile page: bio, LinkedIn URL, profile image, job title, company
+  * Created dedicated user profile update API endpoint with proper authorization and field filtering
+  * Fixed meeting room cancellation logic: users can only cancel up to 5 minutes before start time (not 15 minutes after)
+  * Updated cancellation notifications and error messages to reflect new 5-minute rule
+  * Reduced admin workload by allowing members to manage their own community presence
 ```
 
 ## User Preferences

@@ -145,7 +145,7 @@ export default function RoomsPage() {
     onError: (error: any) => {
       toast({
         title: "Cancellation Failed", 
-        description: error.message || "Cannot cancel booking more than 15 minutes after start time.",
+        description: error.message || "Cannot cancel booking within 5 minutes of start time.",
         variant: "destructive",
       });
     },
@@ -648,7 +648,7 @@ export default function RoomsPage() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Are you sure you want to cancel this booking? This action cannot be undone, but your credits will be refunded to your account.
+                Are you sure you want to cancel this booking? This action cannot be undone, but your credits will be refunded to your account. Note: You can only cancel up to 5 minutes before the meeting start time.
               </AlertDescription>
             </Alert>
             <div className="flex gap-3 pt-4">

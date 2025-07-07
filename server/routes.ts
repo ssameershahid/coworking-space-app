@@ -743,14 +743,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Booking is already cancelled" });
       }
 
-      // Check 15-minute grace period rule - allow cancellation anytime before start time or up to 15 minutes after start time
+      // Check 5-minute rule - allow cancellation only up to 5 minutes before start time
       const now = new Date();
       const startTime = new Date(booking.start_time);
-      const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000); // 15 minutes after start
+      const fiveMinutesBeforeStart = new Date(startTime.getTime() - 5 * 60 * 1000); // 5 minutes before start
       
-      if (now > fifteenMinutesAfterStart) {
+      if (now > fiveMinutesBeforeStart) {
         return res.status(400).json({ 
-          message: "Cannot cancel booking more than 15 minutes after start time" 
+          message: "Cannot cancel booking within 5 minutes of start time" 
         });
       }
 
@@ -1119,6 +1119,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  // Regular user can update their own profile
+  app.patch("/api/users/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // Check if user is updating their own profile
+      if (req.user.id !== userId) {
+        return res.status(403).json({ message: "Not authorized to update this profile" });
+      }
+      
+      // Allow users to update their own profile information
+      const allowedFields = ['first_name', 'last_name', 'phone', 'bio', 'linkedin_url', 'profile_image', 'job_title', 'company'];
+      const filteredUpdates = Object.keys(updates)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = updates[key];
+          return obj;
+        }, {});
+      
+      const user = await storage.updateUser(userId, filteredUpdates);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
     }
   });
 

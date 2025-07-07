@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -18,6 +19,11 @@ export default function ProfilePage() {
     last_name: user?.last_name || "",
     phone: user?.phone || "",
     email: user?.email || "",
+    bio: user?.bio || "",
+    linkedin_url: user?.linkedin_url || "",
+    profile_image: user?.profile_image || "",
+    job_title: user?.job_title || "",
+    company: user?.company || "",
   });
 
   const updateProfileMutation = useMutation({
@@ -47,7 +53,7 @@ export default function ProfilePage() {
     updateProfileMutation.mutate(formData);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -60,6 +66,11 @@ export default function ProfilePage() {
       last_name: user?.last_name || "",
       phone: user?.phone || "",
       email: user?.email || "",
+      bio: user?.bio || "",
+      linkedin_url: user?.linkedin_url || "",
+      profile_image: user?.profile_image || "",
+      job_title: user?.job_title || "",
+      company: user?.company || "",
     });
     setIsEditing(false);
   };
@@ -137,6 +148,57 @@ export default function ProfilePage() {
                     onChange={handleChange}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="job_title">Job Title</Label>
+                  <Input
+                    id="job_title"
+                    name="job_title"
+                    value={formData.job_title}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="company">Company</Label>
+                  <Input
+                    id="company"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="linkedin_url">LinkedIn URL</Label>
+                  <Input
+                    id="linkedin_url"
+                    name="linkedin_url"
+                    type="url"
+                    value={formData.linkedin_url}
+                    onChange={handleChange}
+                    placeholder="https://linkedin.com/in/yourprofile"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="profile_image">Profile Image URL</Label>
+                  <Input
+                    id="profile_image"
+                    name="profile_image"
+                    type="url"
+                    value={formData.profile_image}
+                    onChange={handleChange}
+                    placeholder="https://example.com/your-photo.jpg"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    placeholder="Tell us about yourself..."
+                    rows={4}
+                  />
+                </div>
                 <div className="flex space-x-2">
                   <Button
                     type="submit"
@@ -172,6 +234,40 @@ export default function ProfilePage() {
                 <div>
                   <Label>Phone</Label>
                   <p className="text-gray-900">{user.phone || "Not provided"}</p>
+                </div>
+                <div>
+                  <Label>Job Title</Label>
+                  <p className="text-gray-900">{user.job_title || "Not provided"}</p>
+                </div>
+                <div>
+                  <Label>Company</Label>
+                  <p className="text-gray-900">{user.company || "Not provided"}</p>
+                </div>
+                <div>
+                  <Label>LinkedIn URL</Label>
+                  <p className="text-gray-900">
+                    {user.linkedin_url ? (
+                      <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {user.linkedin_url}
+                      </a>
+                    ) : (
+                      "Not provided"
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <Label>Profile Image</Label>
+                  <p className="text-gray-900">
+                    {user.profile_image ? (
+                      <img src={user.profile_image} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
+                    ) : (
+                      "Not provided"
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <Label>Bio</Label>
+                  <p className="text-gray-900">{user.bio || "Not provided"}</p>
                 </div>
               </div>
             )}
