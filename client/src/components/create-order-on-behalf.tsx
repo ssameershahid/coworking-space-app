@@ -62,7 +62,7 @@ export default function CreateOrderOnBehalf() {
   // Create order mutation
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
-      return apiRequest('/api/cafe/orders/create-on-behalf', 'POST', orderData);
+      return apiRequest('POST', '/api/cafe/orders/create-on-behalf', orderData);
     },
     onSuccess: () => {
       toast({

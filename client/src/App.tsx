@@ -16,6 +16,8 @@ import AdminPage from "@/pages/admin";
 import ProfilePage from "@/pages/profile";
 import CafeManagerDashboard from "@/pages/cafe-manager-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
+import CreateOrderPage from "@/pages/create-order";
+import BillingTransactionsPage from "@/pages/billing-transactions";
 import Navigation from "@/components/layout/navigation";
 import MobileNav from "@/components/layout/mobile-nav";
 import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
@@ -56,6 +58,8 @@ function Router() {
     return (
       <Switch>
         <Route path="/" component={CafeManagerDashboard} />
+        <Route path="/create-order" component={CreateOrderPage} />
+        <Route path="/billing-transactions" component={BillingTransactionsPage} />
         <Route path="/profile" component={ProfilePage} />
         <Route component={NotFound} />
       </Switch>

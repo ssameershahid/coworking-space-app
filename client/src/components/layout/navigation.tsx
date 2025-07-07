@@ -20,9 +20,14 @@ export default function Navigation() {
   const showCafeAndRooms = ["member_individual", "member_organization_admin", "calmkaaj_admin"].includes(user.role);
   const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin"].includes(user.role);
   const showOrganization = user.role === "member_organization_admin";
+  const isCafeManager = user.role === "cafe_manager";
 
   const navigation = [
     { name: "Dashboard", href: "/", current: location === "/" },
+    ...(isCafeManager ? [
+      { name: "Create Order", href: "/create-order", current: location === "/create-order" },
+      { name: "Billing & Transactions", href: "/billing-transactions", current: location === "/billing-transactions" }
+    ] : []),
     ...(showCafeAndRooms ? [{ name: "Café", href: "/cafe", current: location === "/cafe" }] : []),
     ...(showCafeAndRooms ? [{ name: "Rooms", href: "/rooms", current: location === "/rooms" }] : []),
     ...(showCommunity ? [{ name: "Community", href: "/community", current: location === "/community" }] : []),

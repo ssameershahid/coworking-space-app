@@ -157,6 +157,14 @@ Changelog:
   * Member directory auto-populates from existing users created via admin panel
   * Removed announcements from dashboard - now exclusively displayed in Community page
   * Added Community tab to Admin Dashboard for administrators to access networking features
+- July 07, 2025. COMPLETED Cafe manager features for cash-only order creation and payment tracking:
+  * Fixed API endpoint parameter order issues for create-on-behalf and payment status updates
+  * Implemented Create Order on Behalf functionality - cafe managers can create orders for members physically present
+  * Built comprehensive Billing & Transactions system with manual "Paid/Unpaid" toggle for cash payments
+  * Added payment status display in member dashboard for complete transparency
+  * Moved Create Order and Billing/Transactions from dashboard tabs to main navbar for better access
+  * Real-time WebSocket notifications for both order creation and payment status updates
+  * Two-way transparency: both cafe managers and members can see payment status
 ```
 
 ## User Preferences

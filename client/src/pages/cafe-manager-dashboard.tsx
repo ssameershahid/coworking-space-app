@@ -3,15 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, CheckCircle, Truck, Package, User, DollarSign, Calendar, TrendingUp, ShoppingCart, Receipt } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
-import CreateOrderOnBehalf from "@/components/create-order-on-behalf";
-import BillingTransactions from "@/components/billing-transactions";
+
 
 interface CafeOrder {
   id: number;
@@ -243,24 +242,16 @@ export default function CafeManagerDashboard() {
         <p className="text-gray-600">Manage orders and monitor café operations</p>
       </div>
 
-      <Tabs defaultValue="orders" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="orders" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
+      <div className="w-full">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Package className="h-5 w-5" />
             Order Management
-          </TabsTrigger>
-          <TabsTrigger value="create-order" className="flex items-center gap-2">
-            <ShoppingCart className="h-4 w-4" />
-            Create Order
-          </TabsTrigger>
-          <TabsTrigger value="billing" className="flex items-center gap-2">
-            <Receipt className="h-4 w-4" />
-            Billing & Transactions
-          </TabsTrigger>
-        </TabsList>
+          </h2>
+          <p className="text-gray-600 mt-1">Manage and track all café orders</p>
+        </div>
 
-        <TabsContent value="orders">
-          {/* Stats Overview */}
+        {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
@@ -401,16 +392,7 @@ export default function CafeManagerDashboard() {
           </CardContent>
         </Card>
       </div>
-        </TabsContent>
-
-        <TabsContent value="create-order">
-          <CreateOrderOnBehalf />
-        </TabsContent>
-
-        <TabsContent value="billing">
-          <BillingTransactions />
-        </TabsContent>
-      </Tabs>
+      </div>
     </div>
   );
 }

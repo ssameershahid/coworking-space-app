@@ -82,7 +82,7 @@ export default function BillingTransactions() {
   // Update payment status mutation
   const updatePaymentMutation = useMutation({
     mutationFn: async ({ orderId, paymentStatus }: { orderId: number; paymentStatus: string }) => {
-      return apiRequest(`/api/cafe/orders/${orderId}/payment`, 'PATCH', { payment_status: paymentStatus });
+      return apiRequest('PATCH', `/api/cafe/orders/${orderId}/payment`, { payment_status: paymentStatus });
     },
     onSuccess: () => {
       toast({
