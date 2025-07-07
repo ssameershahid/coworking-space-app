@@ -37,6 +37,10 @@ interface Announcement {
 export default function Community() {
   const [searchTerm, setSearchTerm] = useState("");
 
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
   const { data: announcements = [] } = useQuery<Announcement[]>({
     queryKey: ["/api/announcements"],
   });
@@ -57,9 +61,7 @@ export default function Community() {
     );
   });
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  };
+
 
   const formatRole = (role: string) => {
     return role.replace('member_', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -183,17 +185,18 @@ export default function Community() {
               <Card key={user.id} className="p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-start space-x-4">
                   {/* Profile Avatar */}
-                  <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-lg font-semibold text-gray-700 flex-shrink-0">
-                    {user.profile_image ? (
-                      <img 
+                  <Avatar className="w-16 h-16 flex-shrink-0">
+                    {user.profile_image && (
+                      <AvatarImage 
                         src={user.profile_image} 
                         alt={`${user.first_name} ${user.last_name}`}
-                        className="w-16 h-16 rounded-full object-cover"
+                        className="object-cover"
                       />
-                    ) : (
-                      getInitials(user.first_name, user.last_name)
                     )}
-                  </div>
+                    <AvatarFallback className="bg-primary text-white text-lg font-semibold">
+                      {getInitials(user.first_name, user.last_name)}
+                    </AvatarFallback>
+                  </Avatar>
                   
                   {/* User Info */}
                   <div className="flex-1 min-w-0">

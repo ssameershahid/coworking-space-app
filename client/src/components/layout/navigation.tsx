@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Building, Bell, User } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +73,13 @@ export default function Navigation() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
+                    {user.profile_image && (
+                      <AvatarImage 
+                        src={user.profile_image} 
+                        alt={`${user.first_name} ${user.last_name}`}
+                        className="object-cover"
+                      />
+                    )}
                     <AvatarFallback className="bg-primary text-white text-sm">
                       {getInitials(user.first_name, user.last_name)}
                     </AvatarFallback>

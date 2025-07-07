@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MoreHorizontal, Plus } from "lucide-react";
 import {
   Table,
@@ -111,6 +111,13 @@ export default function UserManagement({ users }: UserManagementProps) {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-8 w-8">
+                        {user.profile_image && (
+                          <AvatarImage 
+                            src={user.profile_image} 
+                            alt={`${user.first_name} ${user.last_name}`}
+                            className="object-cover"
+                          />
+                        )}
                         <AvatarFallback className="bg-gray-300 text-gray-600 text-sm">
                           {getInitials(user.first_name, user.last_name)}
                         </AvatarFallback>
