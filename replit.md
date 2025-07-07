@@ -172,6 +172,13 @@ Changelog:
   * Fixed meeting room cancellation logic: users can only cancel up to 5 minutes before start time (not 15 minutes after)
   * Updated cancellation notifications and error messages to reflect new 5-minute rule
   * Reduced admin workload by allowing members to manage their own community presence
+- July 08, 2025. Enhanced profile UI and community visibility controls:
+  * Added community visibility toggle - members can control whether they appear in community directory
+  * Completely redesigned profile page with modern UI featuring gradient headers and better visual hierarchy
+  * Implemented separate sections for personal information and account summary with distinct styling
+  * Added visual profile image display with fallback avatar and better contact information layout
+  * Updated community API to filter users based on visibility preference
+  * Enhanced database schema with community_visible field for privacy control
 ```
 
 ## User Preferences

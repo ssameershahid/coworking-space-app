@@ -43,6 +43,7 @@ export const users = pgTable("users", {
   profile_image: text("profile_image"),
   job_title: text("job_title"),
   company: text("company"),
+  community_visible: boolean("community_visible").default(true),
   created_at: timestamp("created_at").defaultNow(),
 });
 

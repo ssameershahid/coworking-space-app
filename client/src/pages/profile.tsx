@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { User, Briefcase, MapPin, Globe, Eye, EyeOff } from "lucide-react";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -24,6 +26,7 @@ export default function ProfilePage() {
     profile_image: user?.profile_image || "",
     job_title: user?.job_title || "",
     company: user?.company || "",
+    community_visible: user?.community_visible !== false,
   });
 
   const updateProfileMutation = useMutation({
@@ -60,6 +63,13 @@ export default function ProfilePage() {
     }));
   };
 
+  const handleSwitchChange = (name: string) => (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: checked,
+    }));
+  };
+
   const handleCancel = () => {
     setFormData({
       first_name: user?.first_name || "",
@@ -71,6 +81,7 @@ export default function ProfilePage() {
       profile_image: user?.profile_image || "",
       job_title: user?.job_title || "",
       company: user?.company || "",
+      community_visible: user?.community_visible !== false,
     });
     setIsEditing(false);
   };
@@ -84,24 +95,28 @@ export default function ProfilePage() {
         <p className="text-gray-600">Manage your account information</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Profile Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Profile Information
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Personal Information */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+            <CardTitle className="flex items-center justify-between text-xl">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-blue-600" />
+                Personal Information
+              </div>
               {!isEditing && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsEditing(true)}
+                  className="bg-white"
                 >
-                  Edit
+                  Edit Profile
                 </Button>
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {isEditing ? (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -199,6 +214,30 @@ export default function ProfilePage() {
                     rows={4}
                   />
                 </div>
+                
+                {/* Community Visibility Toggle */}
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    {formData.community_visible ? (
+                      <Eye className="h-5 w-5 text-blue-600" />
+                    ) : (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    )}
+                    <div>
+                      <Label htmlFor="community_visible" className="text-sm font-medium text-gray-900">
+                        Show in Community Directory
+                      </Label>
+                      <p className="text-sm text-gray-600">
+                        Other members can see your profile in the community section
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="community_visible"
+                    checked={formData.community_visible}
+                    onCheckedChange={handleSwitchChange('community_visible')}
+                  />
+                </div>
                 <div className="flex space-x-2">
                   <Button
                     type="submit"
@@ -216,89 +255,147 @@ export default function ProfilePage() {
                 </div>
               </form>
             ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>First Name</Label>
-                    <p className="text-gray-900">{user.first_name}</p>
-                  </div>
-                  <div>
-                    <Label>Last Name</Label>
-                    <p className="text-gray-900">{user.last_name}</p>
-                  </div>
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <p className="text-gray-900">{user.email}</p>
-                </div>
-                <div>
-                  <Label>Phone</Label>
-                  <p className="text-gray-900">{user.phone || "Not provided"}</p>
-                </div>
-                <div>
-                  <Label>Job Title</Label>
-                  <p className="text-gray-900">{user.job_title || "Not provided"}</p>
-                </div>
-                <div>
-                  <Label>Company</Label>
-                  <p className="text-gray-900">{user.company || "Not provided"}</p>
-                </div>
-                <div>
-                  <Label>LinkedIn URL</Label>
-                  <p className="text-gray-900">
-                    {user.linkedin_url ? (
-                      <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {user.linkedin_url}
-                      </a>
-                    ) : (
-                      "Not provided"
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <Label>Profile Image</Label>
-                  <p className="text-gray-900">
+              <div className="space-y-6">
+                {/* Profile Image and Basic Info */}
+                <div className="flex items-start gap-6">
+                  <div className="flex-shrink-0">
                     {user.profile_image ? (
-                      <img src={user.profile_image} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
+                      <img 
+                        src={user.profile_image} 
+                        alt="Profile" 
+                        className="w-24 h-24 rounded-full object-cover border-4 border-blue-100" 
+                      />
                     ) : (
-                      "Not provided"
+                      <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+                        <User className="h-12 w-12 text-blue-600" />
+                      </div>
                     )}
-                  </p>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                      {user.first_name} {user.last_name}
+                    </h3>
+                    <p className="text-lg text-gray-600 mb-2">{user.job_title || "Member"}</p>
+                    {user.company && (
+                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                        <Briefcase className="h-4 w-4" />
+                        {user.company}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <Label>Bio</Label>
-                  <p className="text-gray-900">{user.bio || "Not provided"}</p>
+
+                {/* Contact Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Email</Label>
+                    <p className="text-gray-900 font-medium">{user.email}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Phone</Label>
+                    <p className="text-gray-900 font-medium">{user.phone || "Not provided"}</p>
+                  </div>
+                </div>
+
+                {/* Bio */}
+                {user.bio && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">About</Label>
+                    <p className="text-gray-900 mt-1 leading-relaxed">{user.bio}</p>
+                  </div>
+                )}
+
+                {/* LinkedIn */}
+                {user.linkedin_url && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">LinkedIn</Label>
+                    <a 
+                      href={user.linkedin_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:underline font-medium flex items-center gap-1 mt-1"
+                    >
+                      <Globe className="h-4 w-4" />
+                      View LinkedIn Profile
+                    </a>
+                  </div>
+                )}
+
+                {/* Community Visibility Status */}
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    {user.community_visible !== false ? (
+                      <Eye className="h-5 w-5 text-blue-600" />
+                    ) : (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Community Directory</p>
+                      <p className="text-sm text-gray-600">
+                        {user.community_visible !== false 
+                          ? "Your profile is visible to other members" 
+                          : "Your profile is hidden from other members"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    user.community_visible !== false 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {user.community_visible !== false ? 'Visible' : 'Hidden'}
+                  </div>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Account Details */}
+        {/* Account Summary */}
         <Card>
-          <CardHeader>
-            <CardTitle>Account Details</CardTitle>
+          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <MapPin className="h-5 w-5 text-green-600" />
+              Account Summary
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Role</Label>
-              <p className="text-gray-900 capitalize">{user.role?.replace("_", " ")}</p>
+          <CardContent className="p-6 space-y-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <Label className="text-sm font-medium text-gray-600">Role</Label>
+              <p className="text-lg font-semibold text-gray-900 capitalize">
+                {user.role?.replace(/_/g, " ")}
+              </p>
             </div>
-            <div>
-              <Label>Site</Label>
-              <p className="text-gray-900">{user.site?.replace("_", " ")}</p>
+            
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <Label className="text-sm font-medium text-gray-600">Location</Label>
+              <p className="text-lg font-semibold text-gray-900 capitalize">
+                {user.site?.replace("_", " ")} Campus
+              </p>
             </div>
-            <div>
-              <Label>Credits Available</Label>
-              <p className="text-gray-900">{user.credits - user.used_credits}</p>
+            
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
+              <Label className="text-sm font-medium text-blue-700">Available Credits</Label>
+              <p className="text-2xl font-bold text-blue-900">
+                {user.credits - user.used_credits}
+              </p>
             </div>
-            <div>
-              <Label>Credits Used This Month</Label>
-              <p className="text-gray-900">{user.used_credits}</p>
+            
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <Label className="text-sm font-medium text-gray-600">Credits Used This Month</Label>
+              <p className="text-lg font-semibold text-gray-900">{user.used_credits}</p>
             </div>
-            <div>
-              <Label>Member Since</Label>
-              <p className="text-gray-900">{new Date(user.created_at!).toLocaleDateString()}</p>
+            
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <Label className="text-sm font-medium text-gray-600">Member Since</Label>
+              <p className="text-lg font-semibold text-gray-900">
+                {new Date(user.created_at!).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
             </div>
           </CardContent>
         </Card>
