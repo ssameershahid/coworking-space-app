@@ -9,13 +9,15 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Briefcase, MapPin, Globe, Eye, EyeOff } from "lucide-react";
+import { User, Briefcase, MapPin, Globe, Eye, EyeOff, Upload, X } from "lucide-react";
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string>("");
   const [formData, setFormData] = useState({
     first_name: user?.first_name || "",
     last_name: user?.last_name || "",
@@ -31,7 +33,27 @@ export default function ProfilePage() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PATCH", `/api/users/${user?.id}`, data);
+      let finalData = { ...data };
+      
+      // If there's a profile image file, upload it first
+      if (profileImageFile) {
+        const formData = new FormData();
+        formData.append('image', profileImageFile);
+        
+        const uploadResponse = await fetch('/api/upload/profile-image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          finalData.profile_image = uploadResult.imageUrl;
+        } else {
+          throw new Error('Failed to upload profile image');
+        }
+      }
+      
+      const response = await apiRequest("PATCH", `/api/users/${user?.id}`, finalData);
       return response.json();
     },
     onSuccess: () => {
@@ -40,6 +62,8 @@ export default function ProfilePage() {
         description: "Profile updated successfully",
       });
       setIsEditing(false);
+      setProfileImageFile(null);
+      setProfileImagePreview("");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
     onError: (error: any) => {
@@ -70,6 +94,43 @@ export default function ProfilePage() {
     }));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setProfileImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImageUpload = () => {
+    setProfileImageFile(null);
+    setProfileImagePreview("");
+  };
+
   const handleCancel = () => {
     setFormData({
       first_name: user?.first_name || "",
@@ -83,6 +144,8 @@ export default function ProfilePage() {
       company: user?.company || "",
       community_visible: user?.community_visible !== false,
     });
+    setProfileImageFile(null);
+    setProfileImagePreview("");
     setIsEditing(false);
   };
 
@@ -193,15 +256,70 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="profile_image">Profile Image URL</Label>
-                  <Input
-                    id="profile_image"
-                    name="profile_image"
-                    type="url"
-                    value={formData.profile_image}
-                    onChange={handleChange}
-                    placeholder="https://example.com/your-photo.jpg"
-                  />
+                  <Label htmlFor="profile_image">Profile Image</Label>
+                  <div className="space-y-4">
+                    {/* File Upload */}
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="file"
+                        id="profile_image_upload"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('profile_image_upload')?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload Image
+                      </Button>
+                      {profileImageFile && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeImageUpload}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Image Preview */}
+                    {(profileImagePreview || formData.profile_image) && (
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src={profileImagePreview || formData.profile_image} 
+                          alt="Profile preview" 
+                          className="w-16 h-16 rounded-full object-cover border-2 border-gray-200" 
+                        />
+                        <div className="text-sm text-gray-600">
+                          {profileImageFile ? 'New image ready to upload' : 'Current profile image'}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* URL Input as Alternative */}
+                    <div>
+                      <Label htmlFor="profile_image_url" className="text-sm text-gray-600">
+                        Or provide image URL
+                      </Label>
+                      <Input
+                        id="profile_image_url"
+                        name="profile_image"
+                        type="url"
+                        value={formData.profile_image}
+                        onChange={handleChange}
+                        placeholder="https://example.com/your-photo.jpg"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="bio">Bio</Label>
@@ -285,7 +403,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Contact Information */}
+                {/* All Profile Information as Micro-cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <Label className="text-sm font-medium text-gray-600">Email</Label>
@@ -295,20 +413,26 @@ export default function ProfilePage() {
                     <Label className="text-sm font-medium text-gray-600">Phone</Label>
                     <p className="text-gray-900 font-medium">{user.phone || "Not provided"}</p>
                   </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Job Title</Label>
+                    <p className="text-gray-900 font-medium">{user.job_title || "Not provided"}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Company</Label>
+                    <p className="text-gray-900 font-medium">{user.company || "Not provided"}</p>
+                  </div>
                 </div>
 
                 {/* Bio */}
-                {user.bio && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">About</Label>
-                    <p className="text-gray-900 mt-1 leading-relaxed">{user.bio}</p>
-                  </div>
-                )}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <Label className="text-sm font-medium text-gray-600">About</Label>
+                  <p className="text-gray-900 mt-1 leading-relaxed">{user.bio || "Not provided"}</p>
+                </div>
 
                 {/* LinkedIn */}
-                {user.linkedin_url && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">LinkedIn</Label>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <Label className="text-sm font-medium text-gray-600">LinkedIn</Label>
+                  {user.linkedin_url ? (
                     <a 
                       href={user.linkedin_url} 
                       target="_blank" 
@@ -318,8 +442,10 @@ export default function ProfilePage() {
                       <Globe className="h-4 w-4" />
                       View LinkedIn Profile
                     </a>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-gray-900 font-medium">Not provided</p>
+                  )}
+                </div>
 
                 {/* Community Visibility Status */}
                 <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">

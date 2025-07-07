@@ -1,10 +1,14 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { storage, db } from "./storage";
 import * as schema from "@shared/schema";
 import { eq, desc, sql, asc, and, or } from "drizzle-orm";
@@ -86,11 +90,44 @@ const requireRole = (roles: string[]) => {
   };
 };
 
+// Multer configuration for profile image uploads
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage_multer = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `profile-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage_multer,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session and passport setup
   app.use(session(sessionConfig));
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Serve uploaded images
+  app.use('/uploads', express.static(uploadsDir));
 
   // WebSocket setup
   const httpServer = createServer(app);
@@ -132,6 +169,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       client.send(JSON.stringify(message));
     }
   };
+
+  // File upload endpoint
+  app.post("/api/upload/profile-image", requireAuth, upload.single('image'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file uploaded" });
+      }
+      
+      const imageUrl = `/uploads/${req.file.filename}`;
+      res.json({ imageUrl });
+    } catch (error) {
+      console.error("Profile image upload error:", error);
+      res.status(500).json({ error: "Failed to upload image" });
+    }
+  });
 
   // Authentication routes
   app.post("/api/auth/login", (req, res, next) => {
