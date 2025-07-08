@@ -83,7 +83,7 @@ export default function Community() {
       <div className="mb-12">
         <div className="flex items-center mb-6">
           <Calendar className="h-5 w-5 text-primary mr-2" />
-          <h2 className="text-2xl font-semibold text-gray-900">What's New at <img src="/logo-main.png" alt="CalmKaaj" className="inline h-6 w-auto mx-1" /></h2>
+          <h2 className="text-2xl font-semibold text-gray-900">What's New at CalmKaaj</h2>
         </div>
 
         <div className="space-y-6">
