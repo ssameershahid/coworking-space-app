@@ -8,7 +8,7 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center">
-              <span className="text-2xl font-bold text-gray-800">CalmKaaj</span>
+              <img src="/logo-main.png" alt="CalmKaaj" className="h-8 w-auto" />
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
               Your ideal workspace solution combining productivity, comfort, and a vibrant community environment.

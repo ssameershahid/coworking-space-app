@@ -213,6 +213,13 @@ Changelog:
   * Enhanced duration buttons with 30% increased height and 10% larger font size for better usability
   * Removed orange diamond from auth page and blue info box for cleaner login interface
   * All booking interfaces now follow Pakistan time zone and date standards
+- July 08, 2025. COMPLETED Calendar picker upgrade and logo standardization:
+  * Replaced dropdown date selector with visual calendar picker allowing 2-week advance booking
+  * Implemented proper month view calendar with date restrictions and Pakistan date format
+  * Added calendar icon and removed dropdown arrows for cleaner design consistency
+  * Standardized CalmKaaj logo usage in footer - replaced text with actual logo image
+  * Cleaned up community page heading by removing inline logo and using text only
+  * Enhanced user experience with intuitive date selection interface
 ```
 
 ## User Preferences
