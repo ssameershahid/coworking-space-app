@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -43,6 +45,7 @@ import {
 } from "lucide-react";
 import { MeetingRoom, MeetingBooking } from "@/lib/types";
 import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime } from "@/lib/pakistan-time";
+import { format } from "date-fns";
 
 // Amenity icons mapping
 const AMENITY_ICONS = {
@@ -468,28 +471,32 @@ export default function RoomsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-base font-medium mb-1 block">Select a Date</Label>
-                  <select
-                    value={bookingDate}
-                    onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
-                  >
-                    <option value="">Select date</option>
-                    {Array.from({ length: 7 }, (_, i) => {
-                      const date = new Date();
-                      date.setDate(date.getDate() + i);
-                      const dateString = date.toISOString().split('T')[0];
-                      const displayDate = date.toLocaleDateString('en-GB', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: 'numeric' 
-                      });
-                      return (
-                        <option key={dateString} value={dateString}>
-                          {displayDate}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-center text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white px-3 py-2"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {bookingDate
+                          ? format(new Date(bookingDate), "dd/MM/yyyy")
+                          : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={bookingDate ? new Date(bookingDate) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setBookingDate(date.toISOString().split('T')[0]);
+                          }
+                        }}
+                        disabled={(date) => date < new Date() || date > new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label htmlFor="start-time" className="text-base font-medium mb-1 block">Start Time</Label>
