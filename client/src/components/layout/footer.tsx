@@ -59,9 +59,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
-                  Contact
-                </a>
+                <a href="#" className="hover:text-orange-500 transition-colors">Services</a>
               </li>
               <li>
                 <a href="#" className="hover:text-orange-500 transition-colors">Contact</a>
