@@ -513,9 +513,9 @@ export default function ProfilePage() {
               </p>
             </div>
             
-            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
-              <Label className="text-sm font-medium text-green-700">Available Credits</Label>
-              <p className="text-2xl font-bold text-green-900">
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4">
+              <Label className="text-sm font-medium text-orange-700">Available Credits</Label>
+              <p className="text-2xl font-bold text-orange-900">
                 {user.credits - user.used_credits}
               </p>
             </div>
