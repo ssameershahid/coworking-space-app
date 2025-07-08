@@ -15,7 +15,7 @@ import { Clock, CheckCircle, Truck, Package, User, DollarSign, Calendar, Trendin
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocationContext } from "@/contexts/LocationContext";
+import { useLocation } from "@/contexts/LocationContext";
 import { format } from "date-fns";
 import { MenuManagement } from "@/components/menu-management";
 
@@ -71,7 +71,7 @@ const statusConfig = {
 export default function CafeManagerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedLocation } = useLocationContext();
+  const { selectedLocation } = useLocation();
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<CafeOrder | null>(null);
   
