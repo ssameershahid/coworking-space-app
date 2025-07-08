@@ -567,7 +567,7 @@ export default function CreateOrderOnBehalf() {
 
               {/* Delivery Location */}
               <div>
-                <Label htmlFor="delivery-location" className="text-sm font-medium block mb-2">Delivery Location</Label>
+                <Label htmlFor="delivery-location" className="text-sm font-medium block mb-2">Delivery Location (Optional)</Label>
                 <Input
                   id="delivery-location"
                   placeholder="e.g., Desk 15, Conference Room A"
@@ -594,7 +594,7 @@ export default function CreateOrderOnBehalf() {
               <Button 
                 className="w-full h-12 text-lg"
                 onClick={handleSubmit}
-                disabled={createOrderMutation.isPending || !selectedUserId || !deliveryLocation}
+                disabled={createOrderMutation.isPending || !selectedUserId}
               >
                 {createOrderMutation.isPending ? (
                   <div className="flex items-center gap-2">
