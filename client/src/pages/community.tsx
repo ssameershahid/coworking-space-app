@@ -81,9 +81,9 @@ export default function Community() {
 
       {/* What's New at CalmKaaj Section */}
       <div className="mb-12">
-        <div className="flex items-center mb-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border-l-4 border-l-green-500">
-          <Calendar className="h-6 w-6 text-green-600 mr-3" />
-          <h2 className="text-2xl font-bold text-green-900">What's New at CalmKaaj</h2>
+        <div className="flex items-center mb-6">
+          <Calendar className="h-6 w-6 text-gray-600 mr-3" />
+          <h2 className="text-2xl font-bold text-gray-900">What's New at CalmKaaj</h2>
         </div>
 
         <div className="space-y-6">
