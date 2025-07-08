@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, ShoppingCart, User, Search, Coffee, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useCart } from "@/hooks/use-cart";
 
 interface User {
   id: number;
@@ -46,8 +45,8 @@ export default function CreateOrderOnBehalf() {
   const [billedTo, setBilledTo] = useState<"personal" | "organization">("personal");
   const [notes, setNotes] = useState("");
   const [deliveryLocation, setDeliveryLocation] = useState("");
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const { cart, addToCart, updateQuantity, removeFromCart, clearCart } = useCart();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -69,15 +68,15 @@ export default function CreateOrderOnBehalf() {
     onSuccess: () => {
       toast({
         title: "Order Created Successfully",
-        description: "The order has been placed for the selected user",
+        description: "The order has been placed on behalf of the user.",
       });
-      clearCart();
+      // Reset form
       setSelectedUserId("");
       setSelectedUser(null);
       setBilledTo("personal");
       setNotes("");
       setDeliveryLocation("");
-      setSearchTerm("");
+      setCart([]);
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
     },
@@ -96,8 +95,37 @@ export default function CreateOrderOnBehalf() {
     setSelectedUser(user || null);
   };
 
+  const addToCart = (menuItem: MenuItem) => {
+    const existingItem = cart.find(item => item.menu_item_id === menuItem.id);
+    if (existingItem) {
+      setCart(cart.map(item =>
+        item.menu_item_id === menuItem.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
+    } else {
+      setCart([...cart, { menu_item_id: menuItem.id, quantity: 1, menu_item: menuItem }]);
+    }
+  };
+
+  const removeFromCart = (menuItemId: number) => {
+    setCart(cart.filter(item => item.menu_item_id !== menuItemId));
+  };
+
+  const updateQuantity = (menuItemId: number, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(menuItemId);
+    } else {
+      setCart(cart.map(item =>
+        item.menu_item_id === menuItemId
+          ? { ...item, quantity }
+          : item
+      ));
+    }
+  };
+
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + parseFloat(item.price) * item.quantity, 0);
+    return cart.reduce((total, item) => total + parseFloat(item.menu_item.price) * item.quantity, 0);
   };
 
   const handleSubmit = () => {
@@ -113,7 +141,7 @@ export default function CreateOrderOnBehalf() {
     const orderData = {
       user_id: selectedUser.id,
       items: cart.map(item => ({
-        menu_item_id: item.id,
+        menu_item_id: item.menu_item_id,
         quantity: item.quantity,
       })),
       billed_to: billedTo,
@@ -124,122 +152,126 @@ export default function CreateOrderOnBehalf() {
     createOrderMutation.mutate(orderData);
   };
 
-  const filteredUsers = users.filter(user =>
-    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   if (usersLoading || menuLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-700"></div>
-      </div>
-    );
+    return <div className="flex justify-center p-8">Loading...</div>;
   }
 
-  return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <ShoppingCart className="h-5 w-5 text-green-700" />
-        <h1 className="text-2xl font-bold text-gray-900">Create Order on Behalf</h1>
-      </div>
+  console.log('Menu items:', menuItems.filter(item => item.is_available));
 
-      {/* User Selection */}
+  return (
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Select User</CardTitle>
-          <CardDescription>Choose the user to place the order for</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5" />
+            Create Order on Behalf
+          </CardTitle>
+          <CardDescription>
+            Create an order for a member who is physically at the café
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="user-search">Search Users</Label>
-              <div className="relative mt-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="user-search"
-                  placeholder="Search by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+        <CardContent className="space-y-6">
+          {/* User Selection */}
+          <div className="space-y-2">
+            <Label>Select User</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search users by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-
-            <div>
-              <Label htmlFor="user-select">Select User</Label>
-              <Select value={selectedUserId} onValueChange={handleUserSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a user" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredUsers.map(user => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span>{user.first_name} {user.last_name}</span>
-                        <span className="text-gray-500">({user.email})</span>
+            {searchTerm && (
+              <div className="border rounded-md bg-white shadow-md max-h-48 overflow-y-auto">
+                {users
+                  .filter(user => 
+                    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map(user => (
+                    <div 
+                      key={user.id} 
+                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setSelectedUserId(user.id.toString());
+                        setSearchTerm(`${user.first_name} ${user.last_name}`);
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">{user.first_name} {user.last_name}</span>
+                          <p className="text-sm text-gray-600">{user.email}</p>
+                        </div>
+                        <Badge variant="secondary" className="ml-2">
+                          {user.role.replace('member_', '').replace('_', ' ')}
+                        </Badge>
                       </div>
-                    </SelectItem>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selectedUser && (
-              <div className="p-4 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-800">
-                  <strong>Selected:</strong> {selectedUser.first_name} {selectedUser.last_name}
-                </p>
-                <p className="text-sm text-green-700">
-                  Email: {selectedUser.email} | Role: {selectedUser.role}
-                </p>
+                {users.filter(user => 
+                  `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  user.email.toLowerCase().includes(searchTerm.toLowerCase())
+                ).length === 0 && (
+                  <div className="p-3 text-gray-500 text-center">No users found</div>
+                )}
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Order Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Order Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label htmlFor="billed-to">Billing Type</Label>
+          {selectedUser && (
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <User className="h-4 w-4" />
+                <span className="font-medium">Selected User</span>
+              </div>
+              <p className="text-sm text-gray-600">
+                {selectedUser.first_name} {selectedUser.last_name} ({selectedUser.email})
+              </p>
+              {selectedUser.organization_id && (
+                <p className="text-sm text-gray-600">Organization Member</p>
+              )}
+            </div>
+          )}
+
+          {/* Billing Options */}
+          {selectedUser && (
+            <div className="space-y-2">
+              <Label>Billing Type</Label>
               <Select value={billedTo} onValueChange={(value: "personal" | "organization") => setBilledTo(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="personal">Personal</SelectItem>
-                  <SelectItem value="organization">Organization</SelectItem>
+                  {selectedUser.organization_id && (
+                    <SelectItem value="organization">Organization</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
+          )}
 
-            <div>
-              <Label htmlFor="delivery-location">Delivery Location</Label>
-              <Input
-                id="delivery-location"
-                placeholder="e.g., Desk 12, Meeting Room A"
-                value={deliveryLocation}
-                onChange={(e) => setDeliveryLocation(e.target.value)}
-              />
-            </div>
+          {/* Delivery Location */}
+          <div className="space-y-2">
+            <Label>Delivery Location (Optional)</Label>
+            <Input
+              placeholder="e.g., Table 5, Meeting Room A"
+              value={deliveryLocation}
+              onChange={(e) => setDeliveryLocation(e.target.value)}
+            />
+          </div>
 
-            <div className="md:col-span-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="Special instructions or notes for the order..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label>Notes (Optional)</Label>
+            <Textarea
+              placeholder="Special instructions..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -314,13 +346,7 @@ export default function CreateOrderOnBehalf() {
                         <Button
                           size="sm"
                           className="bg-green-700 hover:bg-green-800 text-white h-7 px-3 sm:h-8 sm:px-4 text-xs sm:text-sm"
-                          onClick={() => addToCart({
-                            id: item.id,
-                            name: item.name,
-                            price: item.price,
-                            quantity: 1,
-                            image_url: item.image_url,
-                          })}
+                          onClick={() => addToCart(item)}
                         >
                           <Plus className="h-3 w-3 mr-1" />
                           Add
@@ -342,26 +368,41 @@ export default function CreateOrderOnBehalf() {
         </CardContent>
       </Card>
 
-      {/* Cart Summary */}
+      {/* Cart */}
       {cart.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Order Summary</CardTitle>
+            <CardTitle>Cart</CardTitle>
+            <CardDescription>Items in the current order</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {cart.map(item => (
-                <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-600">Rs. {item.price} x {item.quantity}</p>
+                <div key={item.menu_item_id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-semibold">{item.menu_item.name}</h4>
+                    <p className="text-sm text-gray-600">Rs. {item.menu_item.price} each</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold">Rs. {(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
-                    <Button
+                    <Button 
+                      variant="outline" 
                       size="sm"
-                      variant="outline"
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="font-semibold">{item.quantity}</span>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => removeFromCart(item.menu_item_id)}
                     >
                       Remove
                     </Button>
