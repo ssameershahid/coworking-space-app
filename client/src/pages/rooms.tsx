@@ -471,7 +471,7 @@ export default function RoomsPage() {
                   <select
                     value={bookingDate}
                     onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
                   >
                     <option value="">Select date</option>
                     {Array.from({ length: 7 }, (_, i) => {
@@ -497,7 +497,7 @@ export default function RoomsPage() {
                     id="start-time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
                   >
                     <option value="">Select time</option>
                     {Array.from({ length: 48 }, (_, i) => {
@@ -528,7 +528,7 @@ export default function RoomsPage() {
                     variant={duration === "0.5" ? "default" : "outline"}
                     size="xs"
                     onClick={() => setDuration("0.5")}
-                    className={`text-sm py-2 ${duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                    className={`text-base py-2 font-medium ${duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     30 min
                   </Button>
@@ -537,7 +537,7 @@ export default function RoomsPage() {
                     variant={duration === "1" ? "default" : "outline"}
                     size="xs"
                     onClick={() => setDuration("1")}
-                    className={`text-sm py-2 ${duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                    className={`text-base py-2 font-medium ${duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     1 hour
                   </Button>
@@ -546,7 +546,7 @@ export default function RoomsPage() {
                     variant={duration === "1.5" ? "default" : "outline"}
                     size="xs"
                     onClick={() => setDuration("1.5")}
-                    className={`text-sm py-2 ${duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                    className={`text-base py-2 font-medium ${duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     1.5 hrs
                   </Button>
@@ -555,7 +555,7 @@ export default function RoomsPage() {
                     variant={duration === "2" ? "default" : "outline"}
                     size="xs"
                     onClick={() => setDuration("2")}
-                    className={`text-sm py-2 ${duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                    className={`text-base py-2 font-medium ${duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     2 hrs
                   </Button>
@@ -564,7 +564,7 @@ export default function RoomsPage() {
                     variant={duration === "3" ? "default" : "outline"}
                     size="xs"
                     onClick={() => setDuration("3")}
-                    className={`text-sm py-2 ${duration === "3" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                    className={`text-base py-2 font-medium ${duration === "3" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     3 hrs
                   </Button>
@@ -573,7 +573,7 @@ export default function RoomsPage() {
                     variant={duration === "4" ? "default" : "outline"}
                     size="xs"
                     onClick={() => setDuration("4")}
-                    className={`text-sm py-2 ${duration === "4" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                    className={`text-base py-2 font-medium ${duration === "4" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     4 hrs
                   </Button>
