@@ -270,15 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Menu routes
   app.get("/api/menu/categories", requireAuth, async (req, res) => {
     try {
-      const user = req.user as schema.User;
-      const { site } = req.query;
-      
-      // For admins, use the site parameter or default to all
-      // For non-admins, use their assigned site
-      const locationFilter = user.role === 'calmkaaj_admin' ? 
-        (site as string) : user.site;
-      
-      const categories = await storage.getMenuCategories(locationFilter);
+      const categories = await storage.getMenuCategories();
       res.json(categories);
     } catch (error) {
       console.error("Error fetching menu categories:", error);
@@ -288,15 +280,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/menu/items", requireAuth, async (req, res) => {
     try {
-      const user = req.user as schema.User;
       const { site } = req.query;
-      
-      // For admins, use the site parameter or default to all
-      // For non-admins, use their assigned site
-      const locationFilter = user.role === 'calmkaaj_admin' ? 
-        (site as string) : user.site;
-      
-      const items = await storage.getMenuItems(locationFilter);
+      const items = await storage.getMenuItems(site as string);
       res.json(items);
     } catch (error) {
       console.error("Error fetching menu items:", error);
@@ -307,15 +292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin endpoint to get all menu items (including inactive ones)
   app.get("/api/admin/menu/items", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
     try {
-      const user = req.user as schema.User;
       const { site } = req.query;
-      
-      // For admins, use the site parameter or default to all
-      // For cafe managers, use their assigned site
-      const locationFilter = user.role === 'calmkaaj_admin' ? 
-        (site as string) : user.site;
-      
-      const items = await storage.getAllMenuItems(locationFilter);
+      const items = await storage.getAllMenuItems(site as string);
       res.json(items);
     } catch (error) {
       console.error("Error fetching all menu items:", error);
@@ -658,7 +636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filterSite = user.role === 'calmkaaj_admin' ? (site as string) : user.site;
       
       // Get all users that can place orders (individual members and org admins)
-      let usersQuery = db.select({
+      const users = await db.select({
         id: schema.users.id,
         first_name: schema.users.first_name,
         last_name: schema.users.last_name,
@@ -669,18 +647,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(schema.users)
       .where(
-        and(
-          or(
-            eq(schema.users.role, "member_individual"),
-            eq(schema.users.role, "member_organization"),
-            eq(schema.users.role, "member_organization_admin")
-          ),
-          filterSite && filterSite !== 'all' ? eq(schema.users.site, filterSite) : undefined
+        or(
+          eq(schema.users.role, "member_individual"),
+          eq(schema.users.role, "member_organization"),
+          eq(schema.users.role, "member_organization_admin")
         )
       )
       .orderBy(schema.users.first_name, schema.users.last_name);
-      
-      const users = await usersQuery;
       
       res.json(users);
     } catch (error) {

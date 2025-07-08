@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./contexts/auth-context";
 import { CartProvider } from "./contexts/cart-context";
-import { LocationProvider } from "./contexts/LocationContext";
 import { InstallPrompt } from "./components/pwa/install-prompt";
 import { NotificationSetup } from "./components/pwa/notification-setup";
 import NotFound from "@/pages/not-found";
@@ -18,7 +17,7 @@ import OrganizationPage from "@/pages/organization";
 import AdminPage from "@/pages/admin";
 import ProfilePage from "@/pages/profile";
 import CafeManagerDashboard from "@/pages/cafe-manager-dashboard";
-import AdminDashboard from "@/pages/admin-dashboard-backup";
+import AdminDashboard from "@/pages/admin-dashboard";
 import CreateOrderPage from "@/pages/create-order";
 import BillingTransactionsPage from "@/pages/billing-transactions";
 import Navigation from "@/components/layout/navigation";
@@ -106,14 +105,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <LocationProvider>
-            <CartProvider>
+          <CartProvider>
             <Toaster />
             <ProtectedRoute>
               <Router />
             </ProtectedRoute>
-            </CartProvider>
-          </LocationProvider>
+          </CartProvider>
         </AuthProvider>
         
         {/* PWA Components */}

@@ -55,7 +55,6 @@ export const menu_categories = pgTable("menu_categories", {
   description: text("description"),
   display_order: integer("display_order").default(0),
   is_active: boolean("is_active").default(true),
-  site: siteEnum("site").notNull().default("blue_area"),
 });
 
 // Menu Items

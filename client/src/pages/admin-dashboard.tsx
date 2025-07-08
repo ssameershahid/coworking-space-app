@@ -14,8 +14,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "@/contexts/LocationContext";
-import { LocationToggle } from "@/components/location-toggle";
 import { 
   Users, 
   Coffee, 
@@ -303,27 +301,7 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // Initialize with default state
-  const [selectedLocation, setSelectedLocation] = useState<string>('all');
-  
-  // Debug: Check if component is loading
-  console.log('AdminDashboard loading, user:', user);
-  
-  if (!user) {
-    return <div>Loading...</div>;
-  }
-  
-  if (user.role !== 'calmkaaj_admin') {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have admin privileges.</p>
-        </div>
-      </div>
-    );
-  }
+  const [selectedSite, setSelectedSite] = useState<string>("all");
   const [newUserDialog, setNewUserDialog] = useState(false);
   const [newOrgDialog, setNewOrgDialog] = useState(false);
   const [newRoomDialog, setNewRoomDialog] = useState(false);
@@ -426,33 +404,33 @@ export default function AdminDashboard() {
   });
 
   const { data: organizations = [] } = useQuery<Organization[]>({
-    queryKey: ['/api/organizations', selectedLocation],
+    queryKey: ['/api/organizations', selectedSite],
     queryFn: async () => {
-      const url = selectedLocation === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedLocation}`;
+      const url = selectedSite === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedSite}`;
       const response = await fetch(url);
       return response.json();
     },
-    enabled: !!user && user.role === 'calmkaaj_admin' && selectedLocation
+    enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
-    queryKey: ['/api/admin/menu/items', selectedLocation],
+    queryKey: ['/api/admin/menu/items', selectedSite],
     queryFn: async () => {
-      const url = selectedLocation === 'all' ? '/api/admin/menu/items' : `/api/admin/menu/items?site=${selectedLocation}`;
+      const url = selectedSite === 'all' ? '/api/admin/menu/items' : `/api/admin/menu/items?site=${selectedSite}`;
       const response = await fetch(url);
       return response.json();
     },
-    enabled: !!user && user.role === 'calmkaaj_admin' && selectedLocation
+    enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
-    queryKey: ['/api/rooms', selectedLocation],
+    queryKey: ['/api/rooms', selectedSite],
     queryFn: async () => {
-      const url = selectedLocation === 'all' ? '/api/rooms' : `/api/rooms?site=${selectedLocation}`;
+      const url = selectedSite === 'all' ? '/api/rooms' : `/api/rooms?site=${selectedSite}`;
       const response = await fetch(url);
       return response.json();
     },
-    enabled: !!user && user.role === 'calmkaaj_admin' && selectedLocation
+    enabled: !!user && user.role === 'calmkaaj_admin'
   });
 
   const { data: announcements = [] } = useQuery<Announcement[]>({
@@ -2496,7 +2474,7 @@ export default function AdminDashboard() {
             <p className="text-gray-600">Complete system oversight and analytics</p>
           </div>
           <div className="flex items-center gap-4">
-            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+            <Select value={selectedSite} onValueChange={setSelectedSite}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>

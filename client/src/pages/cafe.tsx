@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
-import { useLocation } from "@/contexts/LocationContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +42,6 @@ import calmkaajLogo from "@assets/calmkaaj-logo.png";
 export default function CafePage() {
   const { user } = useAuth();
   const { cart, addToCart, updateQuantity, removeFromCart, clearCart } = useCart();
-  const { selectedLocation } = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -59,22 +57,12 @@ export default function CafePage() {
   const [currentOrder, setCurrentOrder] = useState<CafeOrder | null>(null);
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["/api/menu/categories", selectedLocation],
-    queryFn: async () => {
-      const url = `/api/menu/categories?site=${selectedLocation}`;
-      const response = await fetch(url);
-      return response.json();
-    },
+    queryKey: ["/api/menu/categories"],
     enabled: !!user,
   });
 
   const { data: menuItems = [] } = useQuery<MenuItemType[]>({
-    queryKey: ["/api/menu/items", selectedLocation],
-    queryFn: async () => {
-      const url = `/api/menu/items?site=${selectedLocation}`;
-      const response = await fetch(url);
-      return response.json();
-    },
+    queryKey: ["/api/menu/items", user?.site],
     enabled: !!user,
   });
 
