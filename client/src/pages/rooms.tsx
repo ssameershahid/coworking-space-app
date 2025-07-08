@@ -341,7 +341,7 @@ export default function RoomsPage() {
           <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="aspect-video bg-gray-100 relative">
               <img 
-                src={room.image_url || "/default-conference-room.png"} 
+                src={room.image_url || "/conference-room.svg"} 
                 alt={room.name}
                 className="w-full h-full object-cover"
               />

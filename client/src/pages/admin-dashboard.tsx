@@ -1732,7 +1732,7 @@ export default function AdminDashboard() {
       capacity: '',
       credit_cost_per_hour: '',
       amenities: '',
-      image_url: '/default-conference-room.png',
+      image_url: '/conference-room.svg',
       is_available: true,
       site: 'blue_area'
     });
@@ -1810,7 +1810,7 @@ export default function AdminDashboard() {
           <Label htmlFor="room_image">Image URL</Label>
           <Input
             id="room_image"
-            placeholder="/default-conference-room.png"
+            placeholder="/conference-room.svg"
             value={formData.image_url}
             onChange={(e) => setFormData({...formData, image_url: e.target.value})}
           />

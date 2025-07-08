@@ -48,7 +48,7 @@ export default function RoomManagement({ rooms }: RoomManagementProps) {
     capacity: "",
     credit_cost_per_hour: "",
     amenities: "",
-    image_url: "/default-conference-room.png",
+    image_url: "/conference-room.svg",
     is_available: true,
     site: "blue_area",
   });
@@ -107,7 +107,7 @@ export default function RoomManagement({ rooms }: RoomManagementProps) {
       capacity: "",
       credit_cost_per_hour: "",
       amenities: "",
-      image_url: "/default-conference-room.png",
+      image_url: "/conference-room.svg",
       is_available: true,
       site: "blue_area",
     });
