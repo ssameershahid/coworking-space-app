@@ -40,11 +40,7 @@ export default function Footer() {
                   Meeting Rooms
                 </a>
               </li>
-              <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
-                  Podcast Studio
-                </a>
-              </li>
+              
               <li>
                 <a href="#" className="hover:text-orange-500 transition-colors">
                   Coworking Space
