@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "@/contexts/LocationContext";
+import { LocationToggle } from "@/components/location-toggle";
 import { 
   Users, 
   Coffee, 
@@ -300,8 +302,8 @@ const CommunitySection = () => {
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedLocation } = useLocation();
   const queryClient = useQueryClient();
-  const [selectedSite, setSelectedSite] = useState<string>("all");
   const [newUserDialog, setNewUserDialog] = useState(false);
   const [newOrgDialog, setNewOrgDialog] = useState(false);
   const [newRoomDialog, setNewRoomDialog] = useState(false);
@@ -404,9 +406,9 @@ export default function AdminDashboard() {
   });
 
   const { data: organizations = [] } = useQuery<Organization[]>({
-    queryKey: ['/api/organizations', selectedSite],
+    queryKey: ['/api/organizations', selectedLocation],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedSite}`;
+      const url = selectedLocation === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedLocation}`;
       const response = await fetch(url);
       return response.json();
     },
@@ -414,9 +416,9 @@ export default function AdminDashboard() {
   });
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
-    queryKey: ['/api/admin/menu/items', selectedSite],
+    queryKey: ['/api/admin/menu/items', selectedLocation],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/admin/menu/items' : `/api/admin/menu/items?site=${selectedSite}`;
+      const url = selectedLocation === 'all' ? '/api/admin/menu/items' : `/api/admin/menu/items?site=${selectedLocation}`;
       const response = await fetch(url);
       return response.json();
     },
@@ -424,9 +426,9 @@ export default function AdminDashboard() {
   });
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
-    queryKey: ['/api/rooms', selectedSite],
+    queryKey: ['/api/rooms', selectedLocation],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/rooms' : `/api/rooms?site=${selectedSite}`;
+      const url = selectedLocation === 'all' ? '/api/rooms' : `/api/rooms?site=${selectedLocation}`;
       const response = await fetch(url);
       return response.json();
     },
@@ -2474,16 +2476,7 @@ export default function AdminDashboard() {
             <p className="text-gray-600">Complete system oversight and analytics</p>
           </div>
           <div className="flex items-center gap-4">
-            <Select value={selectedSite} onValueChange={setSelectedSite}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sites</SelectItem>
-                <SelectItem value="blue_area">Blue Area</SelectItem>
-                <SelectItem value="i_10">I-10</SelectItem>
-              </SelectContent>
-            </Select>
+            <LocationToggle />
           </div>
         </div>
       </div>

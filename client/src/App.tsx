@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./contexts/auth-context";
 import { CartProvider } from "./contexts/cart-context";
+import { LocationProvider } from "./contexts/LocationContext";
 import { InstallPrompt } from "./components/pwa/install-prompt";
 import { NotificationSetup } from "./components/pwa/notification-setup";
 import NotFound from "@/pages/not-found";
@@ -105,12 +106,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <CartProvider>
+          <LocationProvider>
+            <CartProvider>
             <Toaster />
             <ProtectedRoute>
               <Router />
             </ProtectedRoute>
-          </CartProvider>
+            </CartProvider>
+          </LocationProvider>
         </AuthProvider>
         
         {/* PWA Components */}

@@ -15,6 +15,7 @@ import { Clock, CheckCircle, Truck, Package, User, DollarSign, Calendar, Trendin
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "@/contexts/LocationContext";
 import { format } from "date-fns";
 import { MenuManagement } from "@/components/menu-management";
 
@@ -70,6 +71,7 @@ const statusConfig = {
 export default function CafeManagerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedLocation } = useLocation();
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<CafeOrder | null>(null);
   
@@ -83,18 +85,28 @@ export default function CafeManagerDashboard() {
     category: "beverages",
     is_available: true,
     is_daily_special: false,
-    site: "blue_area",
+    site: selectedLocation,
   });
 
   // Fetch all orders for the cafe manager
   const { data: orders = [], isLoading } = useQuery<CafeOrder[]>({
-    queryKey: ['/api/cafe/orders/all'],
+    queryKey: ['/api/cafe/orders/all', selectedLocation],
+    queryFn: async () => {
+      const url = `/api/cafe/orders/all?site=${selectedLocation}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'cafe_manager'
   });
 
   // Fetch menu items for menu management
   const { data: menuItems = [] } = useQuery({
-    queryKey: ['/api/admin/menu/items'],
+    queryKey: ['/api/admin/menu/items', selectedLocation],
+    queryFn: async () => {
+      const url = `/api/admin/menu/items?site=${selectedLocation}`;
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user && user.role === 'cafe_manager'
   });
 

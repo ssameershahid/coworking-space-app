@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { MenuGrid } from "@/components/menu-grid";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useLocation } from "@/contexts/LocationContext";
 import calmkaajLogo from "@assets/calmkaaj-logo.png";
 
 interface User {
@@ -56,16 +57,27 @@ export default function CreateOrderOnBehalf() {
   const [sortBy, setSortBy] = useState("name");
   const [showCart, setShowCart] = useState(false);
   const { toast } = useToast();
+  const { selectedLocation } = useLocation();
   const queryClient = useQueryClient();
 
   // Fetch users
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
-    queryKey: ['/api/cafe/users'],
+    queryKey: ['/api/cafe/users', selectedLocation],
+    queryFn: async () => {
+      const url = `/api/cafe/users?site=${selectedLocation}`;
+      const response = await fetch(url);
+      return response.json();
+    },
   });
 
   // Fetch menu items
   const { data: menuItems = [], isLoading: menuLoading } = useQuery<MenuItem[]>({
-    queryKey: ['/api/menu/items'],
+    queryKey: ['/api/menu/items', selectedLocation],
+    queryFn: async () => {
+      const url = `/api/menu/items?site=${selectedLocation}`;
+      const response = await fetch(url);
+      return response.json();
+    },
   });
 
   // Fetch categories

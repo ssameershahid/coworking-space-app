@@ -22,7 +22,7 @@ export interface IStorage {
   deleteOrganization(id: string): Promise<void>;
   
   // Menu
-  getMenuCategories(): Promise<schema.MenuCategory[]>;
+  getMenuCategories(site?: string): Promise<schema.MenuCategory[]>;
   getMenuItems(site?: string): Promise<schema.MenuItem[]>;
   getAllMenuItems(site?: string): Promise<schema.MenuItem[]>;
   getMenuItemById(id: number): Promise<schema.MenuItem | undefined>;
@@ -176,8 +176,19 @@ export class DatabaseStorage implements IStorage {
     await db.delete(schema.organizations).where(eq(schema.organizations.id, id));
   }
 
-  async getMenuCategories(): Promise<schema.MenuCategory[]> {
-    return await db.select().from(schema.menu_categories).where(eq(schema.menu_categories.is_active, true)).orderBy(asc(schema.menu_categories.display_order));
+  async getMenuCategories(site?: string): Promise<schema.MenuCategory[]> {
+    if (site && site !== 'all') {
+      return await db.select().from(schema.menu_categories)
+        .where(and(
+          eq(schema.menu_categories.is_active, true),
+          eq(schema.menu_categories.site, site)
+        ))
+        .orderBy(asc(schema.menu_categories.display_order));
+    } else {
+      return await db.select().from(schema.menu_categories)
+        .where(eq(schema.menu_categories.is_active, true))
+        .orderBy(asc(schema.menu_categories.display_order));
+    }
   }
 
   async getMenuItems(site?: string): Promise<schema.MenuItem[]> {
