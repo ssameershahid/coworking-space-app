@@ -117,7 +117,7 @@ export default function AuthPage() {
         {/* Logo and Title */}
         <div className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <img src="/logo-main.png" alt="CalmKaaj" className="h-10 w-auto" />
+            <img src="/logo-main.png" alt="CalmKaaj" className="h-15 w-auto" />
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome to CalmKaaj</h1>
           <p className="text-gray-600 text-sm">Sign in to access your account</p>
