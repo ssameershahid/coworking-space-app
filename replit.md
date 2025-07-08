@@ -246,6 +246,13 @@ Changelog:
   * Reduced gaps and improved visual hierarchy for compact design
   * Made Download PDF button full-width on mobile for better usability
   * Transaction History section now looks clean and seamless on mobile devices
+- July 09, 2025. COMPLETED Mobile menu optimization for better browsing experience:
+  * Optimized menu item cards for mobile - changed from single column to 2 columns at small screens
+  * Reduced image aspect ratio from square to 4:3 on mobile for more compact display
+  * Decreased padding, text sizes, and button sizes for mobile while maintaining readability
+  * Optimized button spacing and layout for better mobile interaction
+  * Users can now see more menu items per screen on mobile devices
+  * Maintained clean and modern design with improved browsing efficiency
 - July 09, 2025. COMPLETED Comprehensive USD to PKR conversion - FINAL FIX:
   * Fixed hardcoded "$" symbols in cafe.tsx menu item display (line 260)
   * Fixed "$" symbols in organization.tsx recent café orders (Badge component)

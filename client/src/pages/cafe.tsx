@@ -228,7 +228,7 @@ export default function CafePage() {
       </div>
 
       {/* Menu Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8">
         {filteredItems.map((item) => (
           <Card key={item.id} className="relative overflow-hidden hover:shadow-lg transition-shadow">
             {item.is_daily_special && (
@@ -238,7 +238,7 @@ export default function CafePage() {
               </Badge>
             )}
             
-            <div className="aspect-square bg-gray-100 relative">
+            <div className="aspect-[4/3] sm:aspect-square bg-gray-100 relative">
               {item.image_url ? (
                 <img 
                   src={item.image_url} 
@@ -247,24 +247,25 @@ export default function CafePage() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <Coffee className="h-12 w-12" />
+                  <Coffee className="h-8 w-8 sm:h-12 sm:w-12" />
                 </div>
               )}
             </div>
             
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-1">{item.name}</h3>
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+            <CardContent className="p-3 sm:p-4">
+              <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{item.name}</h3>
+              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">{item.description}</p>
               
               <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-green-600">Rs. {item.price}</span>
+                <span className="text-sm sm:text-lg font-bold text-green-600">Rs. {item.price}</span>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1 sm:space-x-2">
                   {cart.find(cartItem => cartItem.id === item.id) ? (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 sm:space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                         onClick={() => {
                           const cartItem = cart.find(cartItem => cartItem.id === item.id);
                           if (cartItem && cartItem.quantity > 1) {
@@ -276,12 +277,13 @@ export default function CafePage() {
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="font-medium">
+                      <span className="font-medium text-sm min-w-[1.5rem] text-center">
                         {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
                       </span>
                       <Button
                         size="sm"
                         variant="outline"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                         onClick={() => {
                           const cartItem = cart.find(cartItem => cartItem.id === item.id);
                           if (cartItem) {
@@ -295,6 +297,7 @@ export default function CafePage() {
                   ) : (
                     <Button
                       size="sm"
+                      className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
                       onClick={() => addToCart({
                         id: item.id,
                         name: item.name,
