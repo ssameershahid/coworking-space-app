@@ -84,6 +84,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<void> {
+    // Delete related records first to avoid foreign key constraint errors
+    
+    // Delete user's cafe orders and their items
+    const userOrders = await db.select({ id: schema.cafe_orders.id })
+      .from(schema.cafe_orders)
+      .where(eq(schema.cafe_orders.user_id, id));
+    
+    for (const order of userOrders) {
+      await db.delete(schema.cafe_order_items)
+        .where(eq(schema.cafe_order_items.order_id, order.id));
+    }
+    
+    // Delete cafe orders where user is involved
+    await db.delete(schema.cafe_orders).where(eq(schema.cafe_orders.user_id, id));
+    
+    // Update orders where user is referenced in other fields (set to null)
+    await db.update(schema.cafe_orders)
+      .set({ 
+        created_by: null, 
+        handled_by: null, 
+        payment_updated_by: null 
+      })
+      .where(or(
+        eq(schema.cafe_orders.created_by, id),
+        eq(schema.cafe_orders.handled_by, id),
+        eq(schema.cafe_orders.payment_updated_by, id)
+      ));
+    
+    // Delete user's meeting bookings
+    await db.delete(schema.meeting_bookings).where(eq(schema.meeting_bookings.user_id, id));
+    
+    // Finally, delete the user
     await db.delete(schema.users).where(eq(schema.users.id, id));
   }
 
@@ -114,9 +146,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteOrganization(id: string): Promise<void> {
-    // Delete all users associated with this organization first
+    // Get all users associated with this organization
+    const orgUsers = await db.select({ id: schema.users.id })
+      .from(schema.users)
+      .where(eq(schema.users.organization_id, id));
+    
+    // Delete all related records for each user
+    for (const user of orgUsers) {
+      // Delete user's cafe orders and their items
+      const userOrders = await db.select({ id: schema.cafe_orders.id })
+        .from(schema.cafe_orders)
+        .where(eq(schema.cafe_orders.user_id, user.id));
+      
+      for (const order of userOrders) {
+        await db.delete(schema.cafe_order_items)
+          .where(eq(schema.cafe_order_items.order_id, order.id));
+      }
+      
+      await db.delete(schema.cafe_orders).where(eq(schema.cafe_orders.user_id, user.id));
+      
+      // Delete user's meeting bookings
+      await db.delete(schema.meeting_bookings).where(eq(schema.meeting_bookings.user_id, user.id));
+    }
+    
+    // Delete all users associated with this organization
     await db.delete(schema.users).where(eq(schema.users.organization_id, id));
-    // Then delete the organization
+    
+    // Finally, delete the organization
     await db.delete(schema.organizations).where(eq(schema.organizations.id, id));
   }
 

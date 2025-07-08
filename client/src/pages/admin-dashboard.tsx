@@ -317,6 +317,12 @@ export default function AdminDashboard() {
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [editAnnouncementDialog, setEditAnnouncementDialog] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
+  
+  // Delete confirmation dialog states
+  const [deleteUserDialog, setDeleteUserDialog] = useState(false);
+  const [deleteOrgDialog, setDeleteOrgDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [orgToDelete, setOrgToDelete] = useState<{ id: string; name: string } | null>(null);
 
   // Handle "View As User" functionality
   const handleViewAsUser = async (userId: number) => {
@@ -738,16 +744,30 @@ export default function AdminDashboard() {
     }
   });
 
-  // Delete functions with confirmation
+  // Delete functions with modal confirmation
   const handleDeleteUser = (userId: number, userName: string) => {
-    if (window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
-      deleteUserMutation.mutate(userId);
-    }
+    setUserToDelete({ id: userId, name: userName });
+    setDeleteUserDialog(true);
   };
 
   const handleDeleteOrganization = (orgId: string, orgName: string) => {
-    if (window.confirm(`Are you sure you want to delete organization "${orgName}"? This will also delete all associated users. This action cannot be undone.`)) {
-      deleteOrganizationMutation.mutate(orgId);
+    setOrgToDelete({ id: orgId, name: orgName });
+    setDeleteOrgDialog(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate(userToDelete.id);
+      setDeleteUserDialog(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const confirmDeleteOrganization = () => {
+    if (orgToDelete) {
+      deleteOrganizationMutation.mutate(orgToDelete.id);
+      setDeleteOrgDialog(false);
+      setOrgToDelete(null);
     }
   };
 
@@ -3275,6 +3295,91 @@ export default function AdminDashboard() {
               }} 
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={deleteUserDialog} onOpenChange={setDeleteUserDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Delete User Confirmation
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete user "<strong>{userToDelete?.name}</strong>"? 
+              This action cannot be undone and will permanently remove:
+            </p>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4">
+              <li>• User account and profile</li>
+              <li>• All cafe orders and order history</li>
+              <li>• All meeting room bookings</li>
+              <li>• Community profile and interactions</li>
+            </ul>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteUserDialog(false);
+                setUserToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteUser}
+              disabled={deleteUserMutation.isPending}
+            >
+              {deleteUserMutation.isPending ? "Deleting..." : "Yes, Delete User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Organization Confirmation Dialog */}
+      <Dialog open={deleteOrgDialog} onOpenChange={setDeleteOrgDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Delete Organization Confirmation
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete organization "<strong>{orgToDelete?.name}</strong>"? 
+              This action cannot be undone and will permanently remove:
+            </p>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4">
+              <li>• Organization account and settings</li>
+              <li>• All associated users and their data</li>
+              <li>• All cafe orders from organization members</li>
+              <li>• All meeting room bookings</li>
+              <li>• Billing history and invoices</li>
+            </ul>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteOrgDialog(false);
+                setOrgToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteOrganization}
+              disabled={deleteOrganizationMutation.isPending}
+            >
+              {deleteOrganizationMutation.isPending ? "Deleting..." : "Yes, Delete Organization"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
