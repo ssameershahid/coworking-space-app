@@ -518,12 +518,7 @@ export default function ProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <Label className="text-sm font-medium text-gray-600">Role</Label>
-              <p className="text-lg font-semibold text-gray-900 capitalize">
-                {user.role?.replace(/_/g, " ")}
-              </p>
-            </div>
+            
             
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <Label className="text-sm font-medium text-gray-600">Location</Label>
