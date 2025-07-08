@@ -269,7 +269,6 @@ export default function RoomsPage() {
           {user?.site === 'blue_area' ? 'Blue Area' : 'I-10'} Location
         </p>
       </div>
-
       {/* Credits Display */}
       <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
         <CardContent className="p-6">
@@ -291,9 +290,6 @@ export default function RoomsPage() {
           </div>
         </CardContent>
       </Card>
-
-
-
       {/* Date Selector */}
       <Card>
         <CardHeader>
@@ -371,7 +367,6 @@ export default function RoomsPage() {
           </div>
         </CardContent>
       </Card>
-
       {/* Room Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRooms.map((room) => (
@@ -386,7 +381,7 @@ export default function RoomsPage() {
               ) : (
                 <div className="w-full h-full relative" style={{background: 'linear-gradient(135deg, #e67e22 0%, #d68910 100%)'}}>
                   <div className="absolute inset-0 flex items-center justify-between px-4">
-                    <div className="text-white font-bold text-base">
+                    <div className="text-white font-bold text-[21px]">
                       Conference Room {room.name.split(' ')[2] || room.name.charAt(room.name.length - 1)}
                     </div>
                     <div className="w-6 h-6 bg-white bg-opacity-20 rounded transform rotate-45"></div>
@@ -456,7 +451,6 @@ export default function RoomsPage() {
           </Card>
         ))}
       </div>
-
       {/* Booking Modal */}
       <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
         <DialogContent className="max-w-lg">
@@ -600,9 +594,6 @@ export default function RoomsPage() {
           </div>
         </DialogContent>
       </Dialog>
-
-
-
       {/* Cancel Booking Confirmation Modal */}
       <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
         <DialogContent className="sm:max-w-md">
@@ -653,7 +644,6 @@ export default function RoomsPage() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Current Bookings - Moved to bottom */}
       <Card>
         <CardHeader>
@@ -723,7 +713,7 @@ export default function RoomsPage() {
             </div>
           ) : (
             // Empty state
-            <div className="text-center py-12 px-4">
+            (<div className="text-center py-12 px-4">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                 <CalendarIcon className="h-8 w-8 text-gray-400" />
               </div>
@@ -731,7 +721,7 @@ export default function RoomsPage() {
               <p className="text-gray-600 mb-4 max-w-sm mx-auto">
                 Your confirmed meeting room reservations will appear here. Book a room above to get started.
               </p>
-            </div>
+            </div>)
           )}
         </CardContent>
       </Card>
