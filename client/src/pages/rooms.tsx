@@ -521,16 +521,7 @@ export default function RoomsPage() {
                       return days;
                     })()}
                   </div>
-                  {bookingDate && (
-                    <div className="mt-3 text-center text-sm text-gray-600">
-                      Selected: {new Date(bookingDate).toLocaleDateString('en-PK', { 
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </div>
-                  )}
+                  
                 </div>
                 
                 {/* Legend */}
