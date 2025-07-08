@@ -471,13 +471,13 @@ export default function RoomsPage() {
               </div>
             )}
 
-            {/* Modern Date and Time Selection */}
-            <div className="grid grid-cols-2 gap-6">
-              {/* Date Selection */}
-              <div>
-                <Label className="text-base font-medium mb-3 block">Select a Date</Label>
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <div className="text-center text-sm font-medium text-gray-700 mb-3">
+            {/* Compact Date and Time Selection */}
+            <div>
+              <Label className="text-base font-medium mb-3 block">Book Your Meeting</Label>
+              <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
+                {/* Date Selection */}
+                <div>
+                  <div className="text-center text-sm font-medium text-gray-700 mb-2">
                     {new Date(bookingDate || getPakistanDateString()).toLocaleDateString('en-PK', { 
                       weekday: 'long', 
                       year: 'numeric', 
@@ -493,83 +493,96 @@ export default function RoomsPage() {
                     className="text-center"
                   />
                 </div>
-              </div>
 
-              {/* Time Selection */}
-              <div>
-                <Label className="text-base font-medium mb-3 block">Select Time Slots</Label>
-                <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="start-time" className="text-sm text-gray-600 mb-1 block">Start Time</Label>
-                    <Input
-                      type="time"
-                      id="start-time"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                      className="text-center"
-                    />
-                  </div>
-                  
-                  {/* Duration Selection with Orange Button Style */}
-                  <div>
-                    <Label className="text-sm text-gray-600 mb-2 block">Duration (Optional)</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        type="button"
-                        variant={duration === "0.5" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setDuration("0.5")}
-                        className={duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                      >
-                        30 min
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={duration === "1" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setDuration("1")}
-                        className={duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                      >
-                        1 hour
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={duration === "1.5" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setDuration("1.5")}
-                        className={duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                      >
-                        1.5 hrs
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={duration === "2" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setDuration("2")}
-                        className={duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                      >
-                        2 hrs
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {/* End Time Display */}
-                  {startTime && duration && (
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-1 block">End Time</Label>
-                      <div className="p-2 bg-gray-100 rounded text-center text-sm">
-                        {(() => {
-                          const [hours, minutes] = startTime.split(':').map(Number);
-                          const startMinutes = hours * 60 + minutes;
-                          const endMinutes = startMinutes + parseFloat(duration) * 60;
-                          const endHours = Math.floor(endMinutes / 60) % 24;
-                          const endMins = endMinutes % 60;
-                          return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-                        })()}
-                      </div>
-                    </div>
-                  )}
+                {/* Time Selection - Whole Hours Only */}
+                <div>
+                  <Label className="text-sm text-gray-600 mb-2 block">Start Time (Whole Hours Only)</Label>
+                  <Select value={startTime} onValueChange={setStartTime}>
+                    <SelectTrigger className="text-center">
+                      <SelectValue placeholder="Select start time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({length: 24}, (_, i) => {
+                        const hour = i.toString().padStart(2, '0');
+                        const time12 = new Date(`2000-01-01T${hour}:00:00`).toLocaleTimeString([], { 
+                          hour: 'numeric', 
+                          minute: undefined,
+                          hour12: true 
+                        });
+                        return (
+                          <SelectItem key={hour} value={`${hour}:00`}>
+                            {time12}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
                 </div>
+                
+                {/* Duration Selection */}
+                <div>
+                  <Label className="text-sm text-gray-600 mb-2 block">Duration (Required)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant={duration === "0.5" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDuration("0.5")}
+                      className={duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      30 min
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={duration === "1" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDuration("1")}
+                      className={duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      1 hour
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={duration === "1.5" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDuration("1.5")}
+                      className={duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      1.5 hrs
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={duration === "2" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDuration("2")}
+                      className={duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      2 hrs
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* End Time Display */}
+                {startTime && duration && (
+                  <div>
+                    <Label className="text-sm text-gray-600 mb-1 block">End Time</Label>
+                    <div className="p-2 bg-gray-100 rounded text-center text-sm">
+                      {(() => {
+                        const [hours, minutes] = startTime.split(':').map(Number);
+                        const startMinutes = hours * 60 + minutes;
+                        const endMinutes = startMinutes + parseFloat(duration) * 60;
+                        const endHours = Math.floor(endMinutes / 60) % 24;
+                        const endMins = endMinutes % 60;
+                        const endTime12 = new Date(`2000-01-01T${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}:00`).toLocaleTimeString([], { 
+                          hour: 'numeric', 
+                          minute: endMins > 0 ? '2-digit' : undefined,
+                          hour12: true 
+                        });
+                        return endTime12;
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
