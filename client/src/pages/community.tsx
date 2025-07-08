@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, Mail, Linkedin, MapPin, Calendar, User, Building2 } from "lucide-react";
-import { useState } from "react";
+import { Search, Mail, Linkedin, MapPin, Calendar, User, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
 interface User {
@@ -36,6 +36,22 @@ interface Announcement {
 
 export default function Community() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Responsive items per page - 30 on desktop, 10 on mobile
+  const [itemsPerPage, setItemsPerPage] = useState(30);
+  
+  // Update items per page based on screen size
+  useEffect(() => {
+    const updateItemsPerPage = () => {
+      setItemsPerPage(window.innerWidth >= 768 ? 30 : 10);
+    };
+    
+    updateItemsPerPage();
+    window.addEventListener('resize', updateItemsPerPage);
+    
+    return () => window.removeEventListener('resize', updateItemsPerPage);
+  }, []);
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -60,6 +76,17 @@ export default function Community() {
       (user.company && user.company.toLowerCase().includes(searchLower))
     );
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
 
 
@@ -214,7 +241,7 @@ export default function Community() {
               </Card>
             </div>
           ) : (
-            filteredUsers.map((user) => (
+            paginatedUsers.map((user) => (
               <Card key={user.id} className="p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-start space-x-4">
                   {/* Profile Avatar */}
@@ -290,6 +317,40 @@ export default function Community() {
             ))
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {filteredUsers.length > itemsPerPage && (
+          <div className="flex items-center justify-center mt-8 space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <span className="text-sm text-gray-500">
+                ({filteredUsers.length} total members)
+              </span>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage >= totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
