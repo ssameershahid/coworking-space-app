@@ -257,7 +257,7 @@ export default function CafePage() {
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
               
               <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-green-600">${item.price}</span>
+                <span className="text-lg font-bold text-green-600">Rs. {item.price}</span>
                 
                 <div className="flex items-center space-x-2">
                   {cart.find(cartItem => cartItem.id === item.id) ? (

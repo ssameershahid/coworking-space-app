@@ -378,7 +378,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">${parseFloat(order.total_amount) || 0}</p>
+                      <p className="font-semibold">Rs. {parseFloat(order.total_amount) || 0}</p>
                       <Badge 
                         variant={order.status === 'delivered' ? 'default' : 'secondary'}
                         className={

@@ -157,7 +157,7 @@ export default function OrganizationPage() {
                           <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString()}</p>
                         </div>
                       </div>
-                      <Badge variant="outline">${order.total_amount}</Badge>
+                      <Badge variant="outline">Rs. {order.total_amount}</Badge>
                     </div>
                   ))}
                   {monthlyOrders.length === 0 && (
