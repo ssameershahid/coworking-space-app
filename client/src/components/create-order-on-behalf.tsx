@@ -156,6 +156,8 @@ export default function CreateOrderOnBehalf() {
     return <div className="flex justify-center p-8">Loading...</div>;
   }
 
+  console.log('Menu items:', menuItems.filter(item => item.is_available));
+
   return (
     <div className="space-y-6">
       <Card>
@@ -281,26 +283,31 @@ export default function CreateOrderOnBehalf() {
           <CardDescription>Select items for the order</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {menuItems.filter(item => item.is_available).map(item => (
-              <div key={item.id} className="border rounded-lg p-4 flex flex-col min-h-[180px]">
-                <div className="flex justify-between items-start mb-3 flex-grow">
-                  <div className="flex-grow">
-                    <h3 className="font-semibold text-gray-900 mb-1">{item.name}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                    <p className="text-lg font-bold text-green-700">Rs. {item.price}</p>
+              <div key={item.id} className="border rounded-lg p-4 bg-white shadow-sm">
+                <div className="mb-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                    {item.is_daily_special && (
+                      <Badge variant="destructive">Special</Badge>
+                    )}
                   </div>
-                  {item.is_daily_special && (
-                    <Badge variant="destructive">Special</Badge>
-                  )}
+                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                  <p className="text-lg font-bold text-green-700">Rs. {item.price}</p>
                 </div>
-                <Button 
-                  onClick={() => addToCart(item)} 
-                  className="w-full bg-green-700 hover:bg-green-800 text-white mt-auto"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add to Cart
-                </Button>
+                <div className="mt-4">
+                  <Button 
+                    onClick={() => {
+                      console.log('Button clicked for item:', item.name);
+                      addToCart(item);
+                    }} 
+                    className="w-full bg-green-700 hover:bg-green-800 text-white h-10"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add to Cart
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
