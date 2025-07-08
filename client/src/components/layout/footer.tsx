@@ -31,9 +31,7 @@ export default function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">Services</h3>
             <ul className="space-y-3 text-sm text-gray-600">
               <li>
-                <a href="/cafe" className="hover:text-orange-500 transition-colors">
-                  Cafe
-                </a>
+                <a href="/cafe" className="hover:text-orange-500 transition-colors">Cafe Ordering</a>
               </li>
               <li>
                 <a href="/rooms" className="hover:text-orange-500 transition-colors">
