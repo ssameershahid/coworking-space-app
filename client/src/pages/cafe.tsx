@@ -393,7 +393,7 @@ export default function CafePage() {
                   <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1">
                       <h4 className="font-medium">{item.name}</h4>
-                      <p className="text-sm text-gray-600">${item.price} each</p>
+                      <p className="text-sm text-gray-600">Rs. {item.price} each</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
