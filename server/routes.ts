@@ -1279,6 +1279,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/admin/users/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      await storage.deleteUser(userId);
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  app.delete("/api/admin/organizations/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const orgId = req.params.id;
+      
+      await storage.deleteOrganization(orgId);
+      res.json({ message: "Organization deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting organization:", error);
+      res.status(500).json({ message: "Failed to delete organization" });
+    }
+  });
+
   app.get("/api/admin/bookings", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const { site } = req.query;

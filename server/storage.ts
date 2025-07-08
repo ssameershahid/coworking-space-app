@@ -12,12 +12,14 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<schema.User | undefined>;
   createUser(user: schema.InsertUser): Promise<schema.User>;
   updateUser(id: number, updates: Partial<schema.User>): Promise<schema.User>;
+  deleteUser(id: number): Promise<void>;
   
   // Organizations
   getOrganizations(site?: string): Promise<schema.Organization[]>;
   getOrganizationById(id: string): Promise<schema.Organization | undefined>;
   createOrganization(org: schema.InsertOrganization): Promise<schema.Organization>;
   updateOrganization(id: string, updates: Partial<schema.Organization>): Promise<schema.Organization>;
+  deleteOrganization(id: string): Promise<void>;
   
   // Menu
   getMenuCategories(): Promise<schema.MenuCategory[]>;
@@ -81,6 +83,10 @@ export class DatabaseStorage implements IStorage {
     return updatedUser;
   }
 
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(schema.users).where(eq(schema.users.id, id));
+  }
+
   async getOrganizations(site?: string): Promise<schema.Organization[]> {
     if (site && site !== 'all') {
       return await db.select().from(schema.organizations)
@@ -105,6 +111,13 @@ export class DatabaseStorage implements IStorage {
   async updateOrganization(id: string, updates: Partial<schema.Organization>): Promise<schema.Organization> {
     const [updatedOrg] = await db.update(schema.organizations).set(updates).where(eq(schema.organizations.id, id)).returning();
     return updatedOrg;
+  }
+
+  async deleteOrganization(id: string): Promise<void> {
+    // Delete all users associated with this organization first
+    await db.delete(schema.users).where(eq(schema.users.organization_id, id));
+    // Then delete the organization
+    await db.delete(schema.organizations).where(eq(schema.organizations.id, id));
   }
 
   async getMenuCategories(): Promise<schema.MenuCategory[]> {

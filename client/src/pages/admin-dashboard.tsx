@@ -701,6 +701,56 @@ export default function AdminDashboard() {
     }
   });
 
+  // Delete mutations with confirmation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await apiRequest('DELETE', `/api/admin/users/${userId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({ title: "User deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete user", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteOrganizationMutation = useMutation({
+    mutationFn: async (orgId: string) => {
+      const response = await apiRequest('DELETE', `/api/admin/organizations/${orgId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      toast({ title: "Organization deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete organization", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete functions with confirmation
+  const handleDeleteUser = (userId: number, userName: string) => {
+    if (window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+      deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleDeleteOrganization = (orgId: string, orgName: string) => {
+    if (window.confirm(`Are you sure you want to delete organization "${orgName}"? This will also delete all associated users. This action cannot be undone.`)) {
+      deleteOrganizationMutation.mutate(orgId);
+    }
+  };
+
   const deleteAnnouncement = useMutation({
     mutationFn: async (announcementId: number) => {
       const response = await apiRequest('DELETE', `/api/announcements/${announcementId}`);
@@ -2589,6 +2639,19 @@ export default function AdminDashboard() {
                               </TooltipTrigger>
                               <TooltipContent>{user.is_active ? "Deactivate" : "Activate"}</TooltipContent>
                             </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteUser(user.id, `${user.first_name} ${user.last_name}`)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Delete User</TooltipContent>
+                            </Tooltip>
                           </div>
                         </TooltipProvider>
                       </TableCell>
@@ -2696,6 +2759,19 @@ export default function AdminDashboard() {
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>{isActive ? "Deactivate" : "Activate"}</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDeleteOrganization(org.id, org.name)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Delete Organization</TooltipContent>
                               </Tooltip>
                             </div>
                           </TooltipProvider>
