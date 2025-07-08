@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Minus, ShoppingCart, User, Search, Coffee, Star, Filter } from "lucide-react";
+import { Plus, Minus, ShoppingCart, User, Search, Coffee, Star, Filter, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { MenuGrid } from "@/components/menu-grid";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import calmkaajLogo from "@assets/calmkaaj-logo.png";
 
 interface User {
   id: number;
@@ -52,6 +54,7 @@ export default function CreateOrderOnBehalf() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState("name");
+  const [showCart, setShowCart] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -179,6 +182,13 @@ export default function CreateOrderOnBehalf() {
 
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + parseFloat(item.menu_item.price) * item.quantity, 0);
+  };
+
+  const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+  const totalAmount = calculateTotal();
+
+  const clearCart = () => {
+    setCart([]);
   };
 
   const handleSubmit = () => {
@@ -458,6 +468,87 @@ export default function CreateOrderOnBehalf() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Floating Cart Button with CalmKaaj Logo */}
+      {totalItems > 0 && (
+        <Dialog open={showCart} onOpenChange={setShowCart}>
+          <DialogTrigger asChild>
+            <div className="fixed bottom-20 right-4 z-40">
+              <div className="relative">
+                <div className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-200">
+                  <img 
+                    src={calmkaajLogo} 
+                    alt="CalmKaaj Cart"
+                    className="w-12 h-12 rounded-full cursor-pointer hover:scale-110 transition-transform duration-200"
+                  />
+                </div>
+                <div className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
+                  {totalItems}
+                </div>
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap shadow-md">
+                  Rs. {totalAmount.toFixed(2)}
+                </div>
+              </div>
+            </div>
+          </DialogTrigger>
+          <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="flex items-center justify-between">
+                <span>Order Summary</span>
+                <Button variant="ghost" size="sm" onClick={clearCart}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto space-y-4">
+              {cart.map(item => (
+                <div key={item.menu_item_id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h4 className="font-semibold">{item.menu_item.name}</h4>
+                    <p className="text-sm text-gray-600">Rs. {item.menu_item.price} each</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="font-semibold min-w-[2rem] text-center">{item.quantity}</span>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => removeFromCart(item.menu_item_id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex-shrink-0 border-t pt-4 mt-4">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-lg font-semibold">Total: Rs. {totalAmount.toFixed(2)}</span>
+              </div>
+              <Button 
+                onClick={handleSubmit} 
+                className="w-full h-12 text-lg bg-green-700 hover:bg-green-800 text-white"
+                disabled={createOrderMutation.isPending}
+              >
+                {createOrderMutation.isPending ? "Creating Order..." : "Create Order"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
