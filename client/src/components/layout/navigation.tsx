@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Building, Bell, User } from "lucide-react";
+import { Building, Bell, User, Coffee, Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -9,11 +9,16 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 export default function Navigation() {
   const { user, logout } = useAuth();
   const [location] = useLocation();
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   if (!user) return null;
 
@@ -36,6 +41,74 @@ export default function Navigation() {
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  // Fetch recent orders for notifications
+  const { data: recentOrders = [] } = useQuery({
+    queryKey: ["/api/cafe/orders"],
+    enabled: !!user,
+  });
+
+  // Fetch recent bookings for notifications
+  const { data: recentBookings = [] } = useQuery({
+    queryKey: ["/api/bookings"],
+    enabled: !!user,
+  });
+
+  // Create notifications from recent orders and bookings
+  const notifications = [
+    ...recentOrders.slice(0, 3).map((order: any) => ({
+      id: `order-${order.id}`,
+      type: 'order',
+      title: 'Café Order Update',
+      message: `Your ${order.items?.[0]?.name || 'order'} is ${order.status}`,
+      time: new Date(order.created_at).toLocaleString(),
+      status: order.status,
+      icon: Coffee,
+    })),
+    ...recentBookings.slice(0, 3).map((booking: any) => ({
+      id: `booking-${booking.id}`,
+      type: 'booking',
+      title: 'Room Booking',
+      message: `${booking.room?.name || 'Room'} booking ${booking.status}`,
+      time: new Date(booking.created_at).toLocaleString(),
+      status: booking.status,
+      icon: Calendar,
+    })),
+  ].slice(0, 5);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'delivered':
+      case 'confirmed':
+        return 'bg-green-100 text-green-800';
+      case 'preparing':
+      case 'accepted':
+        return 'bg-blue-100 text-blue-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'delivered':
+      case 'confirmed':
+        return CheckCircle;
+      case 'preparing':
+      case 'accepted':
+        return Clock;
+      case 'pending':
+        return AlertCircle;
+      case 'cancelled':
+        return AlertCircle;
+      default:
+        return Clock;
+    }
   };
 
   return (
