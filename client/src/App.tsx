@@ -18,7 +18,7 @@ import OrganizationPage from "@/pages/organization";
 import AdminPage from "@/pages/admin";
 import ProfilePage from "@/pages/profile";
 import CafeManagerDashboard from "@/pages/cafe-manager-dashboard";
-import AdminDashboard from "@/pages/admin-dashboard";
+import AdminDashboard from "@/pages/admin-dashboard-backup";
 import CreateOrderPage from "@/pages/create-order";
 import BillingTransactionsPage from "@/pages/billing-transactions";
 import Navigation from "@/components/layout/navigation";
