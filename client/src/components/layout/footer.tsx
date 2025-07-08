@@ -72,11 +72,6 @@ export default function Footer() {
                   Careers
                 </a>
               </li>
-              <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
-                  Privacy Policy
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -107,11 +102,6 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <p>© 2025 CalmKaaj. All rights reserved.</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="hover:text-orange-500 transition-colors">Terms</a>
-            <a href="#" className="hover:text-orange-500 transition-colors">Privacy</a>
-            <a href="#" className="hover:text-orange-500 transition-colors">Cookies</a>
-          </div>
         </div>
       </div>
     </footer>
