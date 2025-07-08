@@ -65,7 +65,7 @@ export default function Footer() {
 
           {/* Hours & Location Section */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Hours & Location</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Locations</h3>
             <div className="space-y-3 text-sm text-gray-600">
               <div className="flex items-start space-x-2">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
