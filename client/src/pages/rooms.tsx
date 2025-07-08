@@ -701,19 +701,6 @@ export default function RoomsPage() {
               <p className="text-gray-600 mb-4 max-w-sm mx-auto">
                 Your confirmed meeting room reservations will appear here. Book a room above to get started.
               </p>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  const firstRoom = filteredRooms[0];
-                  if (firstRoom) {
-                    setSelectedRoom(firstRoom);
-                    setShowBookingModal(true);
-                  }
-                }}
-                className="text-sm"
-              >
-                Book Your First Room
-              </Button>
             </div>
           )}
         </CardContent>
