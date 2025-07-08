@@ -125,13 +125,6 @@ export default function AuthPage() {
           <p className="text-gray-600 text-sm">Sign in to access your account</p>
         </div>
 
-        {/* Blue Info Box */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-blue-800 text-sm">
-            Please log in to continue to your requested page.
-          </p>
-        </div>
-
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

@@ -36,7 +36,8 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
 
   const calculateCreditsNeeded = () => {
     if (!room) return 0;
-    return parseFloat(bookingData.duration) * room.credit_cost_per_hour;
+    // Fixed credit calculation: 1 hour = 1 credit, 30 min = 0.5 credits
+    return parseFloat(bookingData.duration);
   };
 
   const calculateEndTime = () => {

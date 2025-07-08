@@ -190,8 +190,8 @@ export default function RoomsPage() {
 
   const calculateCredits = () => {
     if (!selectedRoom || !duration) return 0;
-    // Proportional credit calculation: 1 hour = 1 credit, 30 min = 0.5 credit, etc.
-    return selectedRoom.credit_cost_per_hour * parseFloat(duration);
+    // Fixed credit calculation: 1 hour = 1 credit, 30 min = 0.5 credits
+    return parseFloat(duration);
   };
 
   const handleBookRoom = () => {
