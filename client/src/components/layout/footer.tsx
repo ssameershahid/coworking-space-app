@@ -70,8 +70,7 @@ export default function Footer() {
               <div className="flex items-start space-x-2">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p>First Floor, Tower B</p>
-                  <p>123 Business Park, Innovation District</p>
+                  <p>Blue Area</p>
                 </div>
               </div>
               
