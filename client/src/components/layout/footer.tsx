@@ -41,7 +41,7 @@ export default function Footer() {
               
               <li>
                 <a href="#" className="hover:text-orange-500 transition-colors">
-                  Coworking Space
+                  Community
                 </a>
               </li>
             </ul>
@@ -74,10 +74,7 @@ export default function Footer() {
                   <p>123 Business Park, Innovation District</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                <span>+91 12345 67890</span>
-              </div>
+              
               
               
             </div>
