@@ -64,10 +64,10 @@ export default function Footer() {
                 <a href="#" className="hover:text-orange-500 transition-colors">Services</a>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">Contact</a>
+                <a href="#" className="hover:text-orange-500 transition-colors">About</a>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">Website</a>
+                <a href="#" className="hover:text-orange-500 transition-colors">Contact</a>
               </li>
             </ul>
           </div>
