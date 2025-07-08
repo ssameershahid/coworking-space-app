@@ -333,7 +333,7 @@ export default function CafePage() {
                       {new Date(order.created_at).toLocaleString()}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {order.items?.length || 0} items • ${order.total_amount}
+                      {order.items?.length || 0} items • Rs. {order.total_amount}
                     </p>
                   </div>
                   <div className="text-right">
@@ -372,7 +372,7 @@ export default function CafePage() {
               size="lg"
             >
               <ShoppingCart className="h-5 w-5 mr-2" />
-              Cart ({totalItems}) • ${totalAmount.toFixed(2)}
+              Cart ({totalItems}) • Rs. {totalAmount.toFixed(2)}
             </Button>
           </DrawerTrigger>
           <DrawerContent className="max-h-[80vh]">
@@ -419,7 +419,7 @@ export default function CafePage() {
                       </Button>
                     </div>
                     <div className="text-right ml-4">
-                      <p className="font-semibold">${(parseFloat(item.price) * item.quantity).toFixed(2)}</p>
+                      <p className="font-semibold">Rs. {(parseFloat(item.price) * item.quantity).toFixed(2)}</p>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -496,11 +496,11 @@ export default function CafePage() {
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal ({totalItems} items)</span>
-                  <span>${totalAmount.toFixed(2)}</span>
+                  <span>Rs. {totalAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>${totalAmount.toFixed(2)}</span>
+                  <span>Rs. {totalAmount.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -516,7 +516,7 @@ export default function CafePage() {
                     Placing Order...
                   </div>
                 ) : (
-                  `Place Order • $${totalAmount.toFixed(2)}`
+                  `Place Order • Rs. ${totalAmount.toFixed(2)}`
                 )}
               </Button>
             </div>

@@ -231,7 +231,7 @@ export default function InvoiceGeneration() {
                 {filteredOrders.slice(0, 3).map((order: any) => (
                   <div key={order.id} className="flex items-center justify-between text-sm">
                     <span>{new Date(order.created_at).toLocaleDateString()}</span>
-                    <span className="font-medium">${order.total_amount}</span>
+                    <span className="font-medium">Rs. {order.total_amount}</span>
                   </div>
                 ))}
                 {filteredOrders.length === 0 && (
