@@ -57,14 +57,17 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center bg-primary text-white rounded-t-lg">
           <div className="flex justify-center mb-4">
-            <Building className="h-12 w-12" />
+            <img 
+              src="/logo-main.png" 
+              alt="CalmKaaj" 
+              className="h-16 w-auto"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold">CalmKaaj</CardTitle>
-          <p className="text-blue-100">Your Coworking Space Hub</p>
+          <p className="text-primary-foreground/80">Your Coworking Space Hub</p>
         </CardHeader>
         
         <CardContent className="p-8">

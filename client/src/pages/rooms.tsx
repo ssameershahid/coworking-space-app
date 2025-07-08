@@ -369,7 +369,7 @@ export default function RoomsPage() {
                     isToday 
                       ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500' 
                       : isSelected 
-                        ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' 
+                        ? 'bg-green-500 hover:bg-green-600 text-white border-green-500' 
                         : 'hover:bg-gray-50'
                   }`}
                   onClick={() => setSelectedDateView(dateString)}
@@ -573,7 +573,7 @@ export default function RoomsPage() {
 
             {/* Credit Check */}
             {selectedRoom && duration && (
-              <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="bg-green-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <span>Credits Required:</span>
                   <span className="font-semibold">{calculateCredits()}</span>

@@ -43,8 +43,11 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Building className="h-6 w-6 text-primary mr-3" />
-            <h1 className="text-xl font-bold text-gray-900">CalmKaaj</h1>
+            <img 
+              src="/logo-main.png" 
+              alt="CalmKaaj" 
+              className="h-8 w-auto"
+            />
           </div>
           
           <nav className="hidden md:flex space-x-8">

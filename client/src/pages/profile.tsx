@@ -334,10 +334,10 @@ export default function ProfilePage() {
                 </div>
                 
                 {/* Community Visibility Toggle */}
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-3">
                     {formData.community_visible ? (
-                      <Eye className="h-5 w-5 text-blue-600" />
+                      <Eye className="h-5 w-5 text-green-600" />
                     ) : (
                       <EyeOff className="h-5 w-5 text-gray-400" />
                     )}
@@ -384,8 +384,8 @@ export default function ProfilePage() {
                         className="w-24 h-24 rounded-full object-cover border-4 border-blue-100" 
                       />
                     ) : (
-                      <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
-                        <User className="h-12 w-12 text-blue-600" />
+                      <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
+                        <User className="h-12 w-12 text-green-600" />
                       </div>
                     )}
                   </div>
@@ -448,10 +448,10 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Community Visibility Status */}
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-3">
                     {user.community_visible !== false ? (
-                      <Eye className="h-5 w-5 text-blue-600" />
+                      <Eye className="h-5 w-5 text-green-600" />
                     ) : (
                       <EyeOff className="h-5 w-5 text-gray-400" />
                     )}
