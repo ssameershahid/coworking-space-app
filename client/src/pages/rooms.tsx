@@ -190,7 +190,8 @@ export default function RoomsPage() {
 
   const calculateCredits = () => {
     if (!selectedRoom || !duration) return 0;
-    return selectedRoom.credit_cost_per_hour * parseInt(duration);
+    // Proportional credit calculation: 1 hour = 1 credit, 30 min = 0.5 credit, etc.
+    return selectedRoom.credit_cost_per_hour * parseFloat(duration);
   };
 
   const handleBookRoom = () => {
@@ -470,46 +471,109 @@ export default function RoomsPage() {
               </div>
             )}
 
-            {/* Date and Time */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Modern Date and Time Selection */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Date Selection */}
               <div>
-                <Label htmlFor="booking-date">Date</Label>
-                <Input
-                  type="date"
-                  id="booking-date"
-                  value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                />
+                <Label className="text-base font-medium mb-3 block">Select a Date</Label>
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="text-center text-sm font-medium text-gray-700 mb-3">
+                    {new Date(bookingDate || getPakistanDateString()).toLocaleDateString('en-PK', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </div>
+                  <Input
+                    type="date"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="text-center"
+                  />
+                </div>
               </div>
+
+              {/* Time Selection */}
               <div>
-                <Label htmlFor="start-time">Start Time</Label>
-                <Input
-                  type="time"
-                  id="start-time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
+                <Label className="text-base font-medium mb-3 block">Select Time Slots</Label>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="start-time" className="text-sm text-gray-600 mb-1 block">Start Time</Label>
+                    <Input
+                      type="time"
+                      id="start-time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      className="text-center"
+                    />
+                  </div>
+                  
+                  {/* Duration Selection with Orange Button Style */}
+                  <div>
+                    <Label className="text-sm text-gray-600 mb-2 block">Duration (Optional)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={duration === "0.5" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDuration("0.5")}
+                        className={duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        30 min
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={duration === "1" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDuration("1")}
+                        className={duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        1 hour
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={duration === "1.5" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDuration("1.5")}
+                        className={duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        1.5 hrs
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={duration === "2" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDuration("2")}
+                        className={duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        2 hrs
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* End Time Display */}
+                  {startTime && duration && (
+                    <div>
+                      <Label className="text-sm text-gray-600 mb-1 block">End Time</Label>
+                      <div className="p-2 bg-gray-100 rounded text-center text-sm">
+                        {(() => {
+                          const [hours, minutes] = startTime.split(':').map(Number);
+                          const startMinutes = hours * 60 + minutes;
+                          const endMinutes = startMinutes + parseFloat(duration) * 60;
+                          const endHours = Math.floor(endMinutes / 60) % 24;
+                          const endMins = endMinutes % 60;
+                          return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="duration">Duration</Label>
-              <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0.5">30 minutes</SelectItem>
-                  <SelectItem value="1">1 hour</SelectItem>
-                  <SelectItem value="1.5">1.5 hours</SelectItem>
-                  <SelectItem value="2">2 hours</SelectItem>
-                  <SelectItem value="3">3 hours</SelectItem>
-                  <SelectItem value="4">4 hours</SelectItem>
-                  <SelectItem value="8">Full day (8 hours)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
 
             {/* Billing Options */}
             {canChargeToOrg && (
@@ -608,12 +672,16 @@ export default function RoomsPage() {
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="font-medium">{bookingToCancel.room?.name}</p>
                 <p className="text-sm text-gray-600">
-                  {new Date(bookingToCancel.start_time).toLocaleDateString()} • {' '}
+                  {new Date(bookingToCancel.start_time).toLocaleDateString('en-GB', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric' 
+                  })} • {' '}
                   {new Date(bookingToCancel.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
                   {new Date(bookingToCancel.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
                 <p className="text-sm text-green-600 mt-1">
-                  {bookingToCancel.credits_used} credits will be refunded
+                  {bookingToCancel.credits_used} credit{bookingToCancel.credits_used === 1 ? '' : 's'} will be refunded
                 </p>
               </div>
             )}
@@ -677,11 +745,18 @@ export default function RoomsPage() {
                   <div>
                     <h4 className="font-medium">{booking.room?.name}</h4>
                     <p className="text-sm text-gray-600">
-                      {new Date(booking.start_time).toLocaleDateString()} • {' '}
+                      {new Date(booking.start_time).toLocaleDateString('en-GB', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric' 
+                      })} • {' '}
                       {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
                       {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
-                    <p className="text-sm text-gray-500">{booking.credits_used} credits</p>
+                    <p className="text-sm text-gray-500">{booking.credits_used} credit{booking.credits_used === 1 ? '' : 's'}</p>
+                    {booking.notes && (
+                      <p className="text-sm text-gray-600 mt-1 italic">Notes: {booking.notes}</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="bg-green-50 text-green-700">
