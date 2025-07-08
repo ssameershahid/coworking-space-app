@@ -641,16 +641,7 @@ export default function RoomsPage() {
                   </Select>
                 </div>
                 
-                {/* Room Info */}
-                {selectedRoom && (
-                  <div className="bg-gray-50 p-3 rounded-lg mt-4">
-                    <h4 className="font-medium text-sm">{selectedRoom.name}</h4>
-                    <div className="text-xs text-gray-600 mt-1 space-y-1">
-                      <div>Capacity: {selectedRoom.capacity} people</div>
-                      <div>Rate: 1 credit/hour</div>
-                    </div>
-                  </div>
-                )}
+                
               </div>
             </div>
           </div>
