@@ -220,6 +220,7 @@ Changelog:
   * Standardized CalmKaaj logo usage in footer - replaced text with actual logo image
   * Cleaned up community page heading by removing inline logo and using text only
   * Enhanced user experience with intuitive date selection interface
+  * Updated authentication page to use CalmKaaj logo instead of text for consistent branding
 ```
 
 ## User Preferences
