@@ -1,10 +1,10 @@
-import { useLocation } from '@/contexts/LocationContext';
+import { useLocationContext } from '@/contexts/LocationContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { MapPin } from 'lucide-react';
 
 export function LocationToggle() {
-  const { selectedLocation, setSelectedLocation, isAdmin } = useLocation();
+  const { selectedLocation, setSelectedLocation, isAdmin } = useLocationContext();
   
   if (!isAdmin) {
     return null;

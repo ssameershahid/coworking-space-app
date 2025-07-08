@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { MenuGrid } from "@/components/menu-grid";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useLocation } from "@/contexts/LocationContext";
+import { useLocationContext } from "@/contexts/LocationContext";
 import calmkaajLogo from "@assets/calmkaaj-logo.png";
 
 interface User {
@@ -57,7 +57,7 @@ export default function CreateOrderOnBehalf() {
   const [sortBy, setSortBy] = useState("name");
   const [showCart, setShowCart] = useState(false);
   const { toast } = useToast();
-  const { selectedLocation } = useLocation();
+  const { selectedLocation } = useLocationContext();
   const queryClient = useQueryClient();
 
   // Fetch users
