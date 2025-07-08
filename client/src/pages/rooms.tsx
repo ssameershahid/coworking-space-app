@@ -466,24 +466,14 @@ export default function RoomsPage() {
             <div className="space-y-4">
               {/* Date Selection */}
               <div>
-                <Label className="text-base font-medium mb-3 block">Select a Date</Label>
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <div className="text-center text-sm font-medium text-gray-700 mb-3">
-                    {new Date(bookingDate || getPakistanDateString()).toLocaleDateString('en-PK', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}
-                  </div>
-                  <Input
-                    type="date"
-                    value={bookingDate}
-                    onChange={(e) => setBookingDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="text-center"
-                  />
-                </div>
+                <Label className="text-base font-medium mb-1 block">Select a Date</Label>
+                <Input
+                  type="date"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="text-center"
+                />
               </div>
 
               {/* Time Selection */}
