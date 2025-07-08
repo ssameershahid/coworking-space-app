@@ -15,16 +15,16 @@ export default function Footer() {
               Your ideal workspace solution combining productivity, comfort, and a vibrant community environment.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <a href="https://www.instagram.com/calm_kaaj/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <a href="https://www.facebook.com/calmkaaj.org" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <a href="https://www.linkedin.com/company/calmkaajorg/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <a href="https://open.spotify.com/user/31db4uqj6bkwonltubo7e5j7bsk4?si=dwgmoGs4SVGyyXNZKv7rDA" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
                 <SiSpotify className="h-5 w-5" />
               </a>
             </div>
@@ -58,16 +58,16 @@ export default function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
             <ul className="space-y-3 text-sm text-gray-600">
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">Home</a>
+                <a href="https://www.calmkaaj.org/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Home</a>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">Services</a>
+                <a href="https://www.calmkaaj.org/our-services/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Services</a>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">About</a>
+                <a href="https://www.calmkaaj.org/about-us/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">About</a>
               </li>
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">Contact</a>
+                <a href="https://www.calmkaaj.org/contact/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Contact</a>
               </li>
             </ul>
           </div>
@@ -79,13 +79,17 @@ export default function Footer() {
               <div className="flex items-start space-x-2">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p>Blue Area, Islamabad</p>
+                  <a href="https://www.calmkaaj.org/calmkaaj-blue-area/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">
+                    Blue Area, Islamabad
+                  </a>
                 </div>
               </div>
               <div className="flex items-start space-x-2">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p>I-10/3, Islamabad</p>
+                  <a href="https://www.calmkaaj.org/calmkaaj-i-10/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">
+                    I-10/3, Islamabad
+                  </a>
                 </div>
               </div>
             </div>
