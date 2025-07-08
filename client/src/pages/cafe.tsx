@@ -36,6 +36,7 @@ import {
   Package
 } from "lucide-react";
 import { MenuItem as MenuItemType, CafeOrder } from "@/lib/types";
+import calmkaajLogo from "@assets/calmkaaj-logo.png";
 
 export default function CafePage() {
   const { user } = useAuth();
@@ -366,17 +367,27 @@ export default function CafePage() {
         </Card>
       )}
 
-      {/* Floating Cart Button */}
+      {/* Floating Cart Button with CalmKaaj Logo */}
       {totalItems > 0 && (
         <Drawer open={showCart} onOpenChange={setShowCart}>
           <DrawerTrigger asChild>
-            <Button 
-              className="fixed bottom-6 right-6 h-14 px-6 shadow-lg z-50"
-              size="lg"
-            >
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              Cart ({totalItems}) • Rs. {totalAmount.toFixed(2)}
-            </Button>
+            <div className="fixed bottom-20 right-4 z-40">
+              <div className="relative">
+                <div className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-200">
+                  <img 
+                    src={calmkaajLogo} 
+                    alt="CalmKaaj Cart"
+                    className="w-12 h-12 rounded-full cursor-pointer hover:scale-110 transition-transform duration-200"
+                  />
+                </div>
+                <div className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
+                  {totalItems}
+                </div>
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap shadow-md">
+                  Rs. {totalAmount.toFixed(2)}
+                </div>
+              </div>
+            </div>
           </DrawerTrigger>
           <DrawerContent className="max-h-[80vh]">
             <DrawerHeader>
