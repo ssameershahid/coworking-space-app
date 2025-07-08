@@ -288,68 +288,7 @@ export default function RoomsPage() {
         </CardContent>
       </Card>
 
-      {/* Current Bookings */}
-      {myBookings.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              Your Upcoming Bookings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {myBookings.filter(booking => {
-                if (booking.status !== 'confirmed') return false;
-                
-                // Show bookings that are in the future OR within 15 minutes of start time using Pakistan time
-                const now = getPakistanTime();
-                const startTime = new Date(booking.start_time);
-                const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000);
-                
-                return now < fifteenMinutesAfterStart; // Show until 15 minutes after start
-              }).slice(0, 3).map((booking) => (
-                <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{booking.room?.name}</h4>
-                    <p className="text-sm text-gray-600">
-                      {new Date(booking.start_time).toLocaleDateString()} • {' '}
-                      {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
-                      {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                    <p className="text-sm text-gray-500">{booking.credits_used} credits</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Confirmed
-                    </Badge>
-                    {canCancelBooking(booking) ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCancelBooking(booking)}
-                        disabled={cancelBookingMutation.isPending}
-                      >
-                        Cancel
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled
-                        title="Cannot cancel more than 15 minutes after start time"
-                      >
-                        Too Late
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Date Selector */}
       <Card>
@@ -401,17 +340,11 @@ export default function RoomsPage() {
         {filteredRooms.map((room) => (
           <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="aspect-video bg-gray-100 relative">
-              {room.image_url ? (
-                <img 
-                  src={room.image_url} 
-                  alt={room.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <Users className="h-12 w-12" />
-                </div>
-              )}
+              <img 
+                src={room.image_url || "/default-conference-room.png"} 
+                alt={room.name}
+                className="w-full h-full object-cover"
+              />
             </div>
             
             <CardContent className="p-6">
@@ -672,6 +605,69 @@ export default function RoomsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Current Bookings - Moved to bottom */}
+      {myBookings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              Your Upcoming Bookings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {myBookings.filter(booking => {
+                if (booking.status !== 'confirmed') return false;
+                
+                // Show bookings that are in the future OR within 15 minutes of start time using Pakistan time
+                const now = getPakistanTime();
+                const startTime = new Date(booking.start_time);
+                const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000);
+                
+                return now < fifteenMinutesAfterStart; // Show until 15 minutes after start
+              }).slice(0, 3).map((booking) => (
+                <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-medium">{booking.room?.name}</h4>
+                    <p className="text-sm text-gray-600">
+                      {new Date(booking.start_time).toLocaleDateString()} • {' '}
+                      {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
+                      {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <p className="text-sm text-gray-500">{booking.credits_used} credits</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Confirmed
+                    </Badge>
+                    {canCancelBooking(booking) ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCancelBooking(booking)}
+                        disabled={cancelBookingMutation.isPending}
+                      >
+                        Cancel
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled
+                        title="Cannot cancel more than 15 minutes after start time"
+                      >
+                        Too Late
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
