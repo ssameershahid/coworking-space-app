@@ -171,7 +171,7 @@ export default function RoomsPage() {
     const startTime = new Date(booking.start_time);
     const timeDifference = startTime.getTime() - now.getTime();
     const minutesDifference = timeDifference / (1000 * 60);
-    return minutesDifference > -15; // Allow cancellation up to 15 minutes after start
+    return minutesDifference > 5; // Allow cancellation up to 5 minutes before start
   };
 
   // Filter and sort rooms
@@ -215,7 +215,7 @@ export default function RoomsPage() {
     }
 
     const startDateTime = new Date(`${bookingDate}T${startTime}`);
-    const endDateTime = new Date(startDateTime.getTime() + parseInt(duration) * 60 * 60 * 1000);
+    const endDateTime = new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000);
     
     // Check if booking is in the past using Pakistan time
     if (isPastTimePakistan(startDateTime.toISOString())) {
@@ -462,71 +462,105 @@ export default function RoomsPage() {
           <div className="space-y-6">
             
 
-            {/* Date and Time Selection - Single Column */}
+            {/* Date and Time Selection - Compact 2-Row Layout */}
             <div className="space-y-4">
-              {/* Date Selection */}
-              <div>
-                <Label className="text-base font-medium mb-1 block">Select a Date</Label>
-                <Input
-                  type="date"
-                  value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="text-center"
-                />
-              </div>
-
-              {/* Time Selection */}
-              <div>
-                <Label htmlFor="start-time" className="text-base font-medium mb-1 block">Start Time</Label>
-                <Input
-                  type="time"
-                  id="start-time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="text-center"
-                />
+              {/* Date and Time in 2 columns */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-base font-medium mb-1 block">Select a Date</Label>
+                  <Input
+                    type="date"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="text-center"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="start-time" className="text-base font-medium mb-1 block">Start Time</Label>
+                  <select
+                    id="start-time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  >
+                    <option value="">Select time</option>
+                    {Array.from({ length: 48 }, (_, i) => {
+                      const hours = Math.floor(i / 2);
+                      const minutes = (i % 2) * 30;
+                      const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                      const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        hour12: true 
+                      });
+                      return (
+                        <option key={time24} value={time24}>
+                          {time12}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
               </div>
               
-              {/* Duration Selection with Orange Button Style */}
+              {/* Duration Selection with Smaller Buttons */}
               <div>
-                <Label className="text-base font-medium mb-2 block">Duration (Optional)</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <Label className="text-base font-medium mb-2 block">Duration</Label>
+                <div className="grid grid-cols-3 gap-2">
                   <Button
                     type="button"
                     variant={duration === "0.5" ? "default" : "outline"}
-                    size="sm"
+                    size="xs"
                     onClick={() => setDuration("0.5")}
-                    className={duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    className={`text-xs py-1 ${duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     30 min
                   </Button>
                   <Button
                     type="button"
                     variant={duration === "1" ? "default" : "outline"}
-                    size="sm"
+                    size="xs"
                     onClick={() => setDuration("1")}
-                    className={duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    className={`text-xs py-1 ${duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     1 hour
                   </Button>
                   <Button
                     type="button"
                     variant={duration === "1.5" ? "default" : "outline"}
-                    size="sm"
+                    size="xs"
                     onClick={() => setDuration("1.5")}
-                    className={duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    className={`text-xs py-1 ${duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     1.5 hrs
                   </Button>
                   <Button
                     type="button"
                     variant={duration === "2" ? "default" : "outline"}
-                    size="sm"
+                    size="xs"
                     onClick={() => setDuration("2")}
-                    className={duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    className={`text-xs py-1 ${duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
                   >
                     2 hrs
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={duration === "3" ? "default" : "outline"}
+                    size="xs"
+                    onClick={() => setDuration("3")}
+                    className={`text-xs py-1 ${duration === "3" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                  >
+                    3 hrs
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={duration === "4" ? "default" : "outline"}
+                    size="xs"
+                    onClick={() => setDuration("4")}
+                    className={`text-xs py-1 ${duration === "4" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
+                  >
+                    4 hrs
                   </Button>
                 </div>
               </div>

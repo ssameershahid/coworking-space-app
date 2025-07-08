@@ -36,14 +36,14 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
 
   const calculateCreditsNeeded = () => {
     if (!room) return 0;
-    return parseInt(bookingData.duration) * room.credit_cost_per_hour;
+    return parseFloat(bookingData.duration) * room.credit_cost_per_hour;
   };
 
   const calculateEndTime = () => {
     if (!bookingData.date || !bookingData.start_time) return "";
     
     const startDateTime = new Date(`${bookingData.date}T${bookingData.start_time}`);
-    const endDateTime = new Date(startDateTime.getTime() + (parseInt(bookingData.duration) * 60 * 60 * 1000));
+    const endDateTime = new Date(startDateTime.getTime() + (parseFloat(bookingData.duration) * 60 * 60 * 1000));
     
     return endDateTime.toISOString();
   };
