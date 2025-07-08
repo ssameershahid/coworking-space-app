@@ -546,25 +546,7 @@ export default function RoomsPage() {
                   </div>
                 )}
                 
-                {/* Credits Info - Prominent Display */}
-                {selectedRoom && duration && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-green-800">Credits Required:</span>
-                      <span className="text-lg font-bold text-green-900">{calculateCredits()}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-green-700">Available Credits:</span>
-                      <span className="font-semibold text-green-800">{availableCredits}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-green-700">After Booking:</span>
-                      <span className={`font-semibold ${availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-800"}`}>
-                        {availableCredits - calculateCredits()}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                
                 
                 {/* Start Time */}
                 <div>
