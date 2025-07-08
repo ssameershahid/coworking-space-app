@@ -636,13 +636,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(schema.users)
       .where(
-        and(
-          or(
-            eq(schema.users.role, "member_individual"),
-            eq(schema.users.role, "member_organization"),
-            eq(schema.users.role, "member_organization_admin")
-          ),
-          filterSite ? eq(schema.users.site, filterSite) : undefined
+        or(
+          eq(schema.users.role, "member_individual"),
+          eq(schema.users.role, "member_organization"),
+          eq(schema.users.role, "member_organization_admin")
         )
       )
       .orderBy(schema.users.first_name, schema.users.last_name);

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Minus, ShoppingCart, User } from "lucide-react";
+import { Plus, Minus, ShoppingCart, User, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -46,6 +46,7 @@ export default function CreateOrderOnBehalf() {
   const [notes, setNotes] = useState("");
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -171,23 +172,51 @@ export default function CreateOrderOnBehalf() {
           {/* User Selection */}
           <div className="space-y-2">
             <Label>Select User</Label>
-            <Select value={selectedUserId} onValueChange={handleUserSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a user..." />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map(user => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{user.first_name} {user.last_name}</span>
-                      <Badge variant="secondary" className="ml-2">
-                        {user.role.replace('member_', '').replace('_', ' ')}
-                      </Badge>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search users by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            {searchTerm && (
+              <div className="border rounded-md bg-white shadow-md max-h-48 overflow-y-auto">
+                {users
+                  .filter(user => 
+                    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map(user => (
+                    <div 
+                      key={user.id} 
+                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setSelectedUserId(user.id.toString());
+                        setSearchTerm(`${user.first_name} ${user.last_name}`);
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">{user.first_name} {user.last_name}</span>
+                          <p className="text-sm text-gray-600">{user.email}</p>
+                        </div>
+                        <Badge variant="secondary" className="ml-2">
+                          {user.role.replace('member_', '').replace('_', ' ')}
+                        </Badge>
+                      </div>
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  ))}
+                {users.filter(user => 
+                  `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  user.email.toLowerCase().includes(searchTerm.toLowerCase())
+                ).length === 0 && (
+                  <div className="p-3 text-gray-500 text-center">No users found</div>
+                )}
+              </div>
+            )}
           </div>
 
           {selectedUser && (
@@ -259,7 +288,7 @@ export default function CreateOrderOnBehalf() {
                   <div>
                     <h3 className="font-semibold">{item.name}</h3>
                     <p className="text-sm text-gray-600">{item.description}</p>
-                    <p className="text-lg font-bold text-green-600">Rs. {item.price}</p>
+                    <p className="text-lg font-bold text-green-700">Rs. {item.price}</p>
                   </div>
                   {item.is_daily_special && (
                     <Badge variant="destructive">Special</Badge>
@@ -267,8 +296,7 @@ export default function CreateOrderOnBehalf() {
                 </div>
                 <Button 
                   onClick={() => addToCart(item)} 
-                  className="w-full"
-                  disabled={!selectedUser}
+                  className="w-full bg-green-700 hover:bg-green-800 text-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add to Cart
@@ -327,7 +355,7 @@ export default function CreateOrderOnBehalf() {
                 </div>
                 <Button 
                   onClick={handleSubmit} 
-                  className="w-full"
+                  className="w-full bg-green-700 hover:bg-green-800 text-white"
                   disabled={createOrderMutation.isPending}
                 >
                   {createOrderMutation.isPending ? "Creating Order..." : "Create Order"}
