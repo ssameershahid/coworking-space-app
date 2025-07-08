@@ -86,10 +86,7 @@ export default function Footer() {
                 <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
                 <span>+91 12345 67890</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                <span>hello@calmkaaj.com</span>
-              </div>
+              
               
             </div>
           </div>
