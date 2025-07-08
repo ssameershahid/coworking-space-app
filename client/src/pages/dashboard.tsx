@@ -28,6 +28,8 @@ import {
   Users,
   TrendingUp,
   FileText,
+  ChevronLeft,
+  ChevronRight,
   Receipt,
   DollarSign
 } from "lucide-react";
@@ -38,6 +40,10 @@ export default function Dashboard() {
   // Removed dismissedAnnouncements state - moved to Community page
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [roomBookingsPage, setRoomBookingsPage] = useState(1);
+  const roomBookingsPerPage = 5;
+  const [cafeOrdersPage, setCafeOrdersPage] = useState(1);
+  const cafeOrdersPerPage = 5;
 
   const downloadCafePDF = async () => {
     try {
@@ -368,8 +374,35 @@ export default function Dashboard() {
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-semibold">Café Orders</h4>
-                {recentOrders.map((order) => (
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Café Orders</h4>
+                  {recentOrders.length > cafeOrdersPerPage && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCafeOrdersPage(prev => Math.max(1, prev - 1))}
+                        disabled={cafeOrdersPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm text-gray-500">
+                        {cafeOrdersPage} of {Math.ceil(recentOrders.length / cafeOrdersPerPage)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCafeOrdersPage(prev => Math.min(Math.ceil(recentOrders.length / cafeOrdersPerPage), prev + 1))}
+                        disabled={cafeOrdersPage >= Math.ceil(recentOrders.length / cafeOrdersPerPage)}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {recentOrders
+                  .slice((cafeOrdersPage - 1) * cafeOrdersPerPage, cafeOrdersPage * cafeOrdersPerPage)
+                  .map((order) => (
                   <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <Coffee className="h-5 w-5 text-orange-600" />
@@ -435,8 +468,35 @@ export default function Dashboard() {
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-semibold">Room Bookings</h4>
-                {recentBookings.map((booking) => (
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Room Bookings</h4>
+                  {recentBookings.length > roomBookingsPerPage && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRoomBookingsPage(prev => Math.max(1, prev - 1))}
+                        disabled={roomBookingsPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm text-gray-500">
+                        {roomBookingsPage} of {Math.ceil(recentBookings.length / roomBookingsPerPage)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRoomBookingsPage(prev => Math.min(Math.ceil(recentBookings.length / roomBookingsPerPage), prev + 1))}
+                        disabled={roomBookingsPage >= Math.ceil(recentBookings.length / roomBookingsPerPage)}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {recentBookings
+                  .slice((roomBookingsPage - 1) * roomBookingsPerPage, roomBookingsPage * roomBookingsPerPage)
+                  .map((booking) => (
                   <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <Calendar className="h-5 w-5 text-blue-600" />

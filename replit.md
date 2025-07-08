@@ -277,6 +277,13 @@ Changelog:
   * Implemented hover animations with scale effects for better user interaction
   * Added item count badge and total amount display with green accent colors
   * Cart button now uses authentic CalmKaaj branding while maintaining functionality
+- July 09, 2025. COMPLETED Transaction History pagination for improved user experience:
+  * Added pagination to Room Bookings section showing 5 items per page
+  * Added pagination to Café Orders section showing 5 items per page
+  * Implemented navigation controls with previous/next buttons and page indicators
+  * Pagination only appears when there are more items than page limit
+  * Users can now navigate through long transaction histories efficiently
+  * Consistent pagination design across both cafe orders and room bookings sections
 ```
 
 ## User Preferences

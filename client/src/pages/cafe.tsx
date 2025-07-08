@@ -389,8 +389,8 @@ export default function CafePage() {
               </div>
             </div>
           </DrawerTrigger>
-          <DrawerContent className="max-h-[80vh]">
-            <DrawerHeader>
+          <DrawerContent className="max-h-[90vh] flex flex-col">
+            <DrawerHeader className="flex-shrink-0">
               <DrawerTitle className="flex items-center justify-between">
                 <span>Your Order</span>
                 <Button variant="ghost" size="sm" onClick={() => clearCart()}>
@@ -400,9 +400,9 @@ export default function CafePage() {
               </DrawerTitle>
             </DrawerHeader>
             
-            <div className="px-4 pb-6 space-y-4">
+            <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-4">
               {/* Cart Items */}
-              <div className="max-h-60 overflow-y-auto space-y-3">
+              <div className="max-h-48 overflow-y-auto space-y-3">
                 {cart.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1">
@@ -518,7 +518,10 @@ export default function CafePage() {
                 </div>
               </div>
 
-              {/* Place Order Button */}
+            </div>
+
+            {/* Fixed Footer with Place Order Button */}
+            <div className="flex-shrink-0 px-4 py-4 border-t bg-white">
               <Button 
                 className="w-full h-12 text-lg"
                 onClick={handlePlaceOrder}
