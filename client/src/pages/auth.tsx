@@ -1,26 +1,19 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building } from "lucide-react";
+import { Mail, Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    first_name: "",
-    last_name: "",
-    phone: "",
-    role: "member_individual",
-    site: "blue_area",
-  });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
-  const { login, register } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,15 +21,10 @@ export default function AuthPage() {
     setIsLoading(true);
 
     try {
-      if (isLogin) {
-        await login(formData.email, formData.password);
-      } else {
-        await register(formData);
-      }
-      
+      await login(email, password);
       toast({
         title: "Success",
-        description: isLogin ? "Logged in successfully" : "Account created successfully",
+        description: "Logged in successfully",
       });
     } catch (error: any) {
       toast({
@@ -49,165 +37,173 @@ export default function AuthPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Password Reset",
+      description: "If an account with this email exists, you will receive password reset instructions.",
+    });
+    setShowForgotPassword(false);
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center bg-primary text-white rounded-t-lg">
-          <div className="flex justify-center mb-4">
-            <img 
-              src="/logo-main.png" 
-              alt="CalmKaaj" 
-              className="h-16 w-auto"
-            />
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo and Title */}
+          <div className="text-center">
+            <div className="flex justify-center items-center mb-4">
+              <span className="text-3xl font-bold text-gray-800">CalmKaaj</span>
+              <span className="text-orange-500 text-4xl ml-1">◆</span>
+            </div>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Reset your password</h1>
+            <p className="text-gray-600 text-sm">Enter your email to receive reset instructions</p>
           </div>
-          <p className="text-primary-foreground/80">Your Coworking Space Hub</p>
-        </CardHeader>
-        
-        <CardContent className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* Reset Password Form */}
+          <form onSubmit={handleForgotPassword} className="space-y-6">
             <div>
               <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="your@email.com"
-                className="w-full"
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="hello@example.com"
+                  className="pl-10 w-full"
+                />
+              </div>
             </div>
-            
-            <div>
-              <Label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full"
-              />
-            </div>
-            
-            {!isLogin && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-2">
-                      First Name
-                    </Label>
-                    <Input
-                      id="first_name"
-                      name="first_name"
-                      required
-                      value={formData.first_name}
-                      onChange={handleChange}
-                      placeholder="John"
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name
-                    </Label>
-                    <Input
-                      id="last_name"
-                      name="last_name"
-                      required
-                      value={formData.last_name}
-                      onChange={handleChange}
-                      placeholder="Doe"
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone
-                  </Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="+92 300 1234567"
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                    Role
-                  </Label>
-                  <select
-                    id="role"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="member_individual">Individual Member</option>
-                    <option value="member_organization">Organization Member</option>
-                    <option value="cafe_manager">Cafe Manager</option>
-                    <option value="enterprise_administrator">Enterprise Administrator</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="site" className="block text-sm font-medium text-gray-700 mb-2">
-                    Site
-                  </Label>
-                  <select
-                    id="site"
-                    name="site"
-                    value={formData.site}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="blue_area">Blue Area</option>
-                    <option value="i_10">I-10</option>
-                  </select>
-                </div>
-              </>
-            )}
-            
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-primary hover:bg-blue-700 text-white font-medium"
+
+            <Button 
+              type="submit" 
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2.5 text-sm font-medium rounded-lg"
             >
-              {isLoading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+              Send Reset Instructions
             </Button>
           </form>
-          
-          <div className="mt-6 text-center">
+
+          {/* Back to Sign In */}
+          <div className="text-center">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-primary hover:underline"
+              onClick={() => setShowForgotPassword(false)}
+              className="text-sm text-orange-600 hover:text-orange-700 font-medium"
             >
-              {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+              Back to Sign In
             </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md space-y-8">
+        {/* Logo and Title */}
+        <div className="text-center">
+          <div className="flex justify-center items-center mb-4">
+            <span className="text-3xl font-bold text-gray-800">CalmKaaj</span>
+            <span className="text-orange-500 text-4xl ml-1">◆</span>
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome to CalmKaaj</h1>
+          <p className="text-gray-600 text-sm">Sign in to access your account</p>
+        </div>
+
+        {/* Blue Info Box */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800 text-sm">
+            Please log in to continue to your requested page.
+          </p>
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="hello@example.com"
+                className="pl-10 w-full"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="pl-10 pr-10 w-full"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2.5 text-sm font-medium rounded-lg"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Signing in...
+              </div>
+            ) : (
+              "Sign In"
+            )}
+          </Button>
+        </form>
+
+        {/* Forgot Password Link */}
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => setShowForgotPassword(true)}
+            className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+          >
+            Forgot Password?
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
