@@ -186,6 +186,13 @@ Changelog:
   * Updated navigation header, community directory, and admin panels to show uploaded profile images
   * Added multer-based image upload API endpoint with proper file handling and storage
   * Enhanced user experience with image preview, multiple upload options (file/URL), and proper cleanup
+- July 08, 2025. COMPLETED Global rebranding with green color scheme and logo integration:
+  * Replaced blue color scheme with green throughout entire application (CSS variables, components, themes)
+  * Updated primary colors in both light and dark modes for consistent green branding
+  * Replaced all CalmKaaj wordmarks with actual logo images across login, navigation, and dashboard pages
+  * Updated PWA manifest and theme colors for mobile app consistency
+  * Fixed all UI components: profile cards, room booking interfaces, admin panels, and status badges
+  * Maintained orange accent colors while transforming blue elements to green for better brand consistency
 ```
 
 ## User Preferences

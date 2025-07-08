@@ -168,16 +168,16 @@ export default function Dashboard() {
         </Link>
 
         <Link href="/rooms">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-blue-800">
+              <CardTitle className="flex items-center gap-2 text-green-800">
                 <Calendar className="h-5 w-5" />
                 Book Meeting Room
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-blue-700 text-sm mb-3">Private spaces for meetings</p>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700">
+              <p className="text-green-700 text-sm mb-3">Private spaces for meetings</p>
+              <Button className="w-full bg-green-600 hover:bg-green-700">
                 Book Now
               </Button>
             </CardContent>
