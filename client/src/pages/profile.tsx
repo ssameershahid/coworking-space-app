@@ -163,7 +163,7 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Personal Information */}
         <Card className="lg:col-span-2">
-          <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-t-lg">
+          <CardHeader className="bg-orange-50 rounded-t-lg">
             <CardTitle className="flex items-center justify-between text-xl">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-orange-600" />
@@ -497,7 +497,7 @@ export default function ProfilePage() {
 
         {/* Account Summary */}
         <Card>
-          <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-t-lg">
+          <CardHeader className="bg-orange-50 rounded-t-lg">
             <CardTitle className="flex items-center gap-2 text-xl">
               <MapPin className="h-5 w-5 text-orange-600" />
               Account Summary
