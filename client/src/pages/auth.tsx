@@ -118,7 +118,7 @@ export default function AuthPage() {
         <div className="text-center">
           <div className="flex justify-center items-center mb-4">
             <span className="text-3xl font-bold text-gray-800">CalmKaaj</span>
-            <span className="text-orange-500 text-4xl ml-1">◆</span>
+
           </div>
           <h1 className="text-xl font-bold text-gray-900 mb-2">Welcome to CalmKaaj</h1>
           <p className="text-gray-600 text-sm">Sign in to access your account</p>

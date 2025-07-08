@@ -149,7 +149,11 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
               <div className="flex justify-between">
                 <span className="text-sm">Date:</span>
                 <span className="text-sm font-medium">
-                  {new Date(bookingData.date).toLocaleDateString()}
+                  {new Date(bookingData.date).toLocaleDateString('en-GB', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric' 
+                  })}
                 </span>
               </div>
               <div className="flex justify-between">

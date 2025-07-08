@@ -206,6 +206,13 @@ Changelog:
   * Updated community directory to only show email contact button when user opts in
   * Members can now control whether their email appears in community directory
   * Enhanced user privacy while maintaining optional contact functionality
+- July 08, 2025. COMPLETED Room booking UI improvements and Pakistan localization:
+  * Updated meeting room credits to hardcoded calculation: 1 hour = 1 credit, 30 min = 0.5 credits
+  * Implemented Pakistan date format (DD/MM/YYYY) throughout booking system using en-GB locale
+  * Unified date and time input styling with consistent dropdown selectors and white backgrounds
+  * Enhanced duration buttons with 30% increased height and 10% larger font size for better usability
+  * Removed orange diamond from auth page and blue info box for cleaner login interface
+  * All booking interfaces now follow Pakistan time zone and date standards
 ```
 
 ## User Preferences
