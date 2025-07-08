@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Minus, ShoppingCart, User, Search, Coffee, Star } from "lucide-react";
+import { Plus, Minus, ShoppingCart, User, Search, Coffee, Star, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { MenuGrid } from "@/components/menu-grid";
 
 interface User {
   id: number;
@@ -47,6 +48,10 @@ export default function CreateOrderOnBehalf() {
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState("name");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -58,6 +63,11 @@ export default function CreateOrderOnBehalf() {
   // Fetch menu items
   const { data: menuItems = [], isLoading: menuLoading } = useQuery<MenuItem[]>({
     queryKey: ['/api/menu/items'],
+  });
+
+  // Fetch categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ["/api/menu/categories"],
   });
 
   // Create order mutation
@@ -95,6 +105,28 @@ export default function CreateOrderOnBehalf() {
     setSelectedUser(user || null);
   };
 
+  // Filter and sort menu items
+  const filteredItems = menuItems.filter(item => {
+    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const isAvailable = item.is_available;
+    return matchesCategory && matchesSearch && isAvailable;
+  });
+
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    switch (sortBy) {
+      case "name":
+        return a.name.localeCompare(b.name);
+      case "price":
+        return parseFloat(a.price) - parseFloat(b.price);
+      case "category":
+        return a.category.localeCompare(b.category);
+      default:
+        return 0;
+    }
+  });
+
   const addToCart = (menuItem: MenuItem) => {
     const existingItem = cart.find(item => item.menu_item_id === menuItem.id);
     if (existingItem) {
@@ -122,6 +154,27 @@ export default function CreateOrderOnBehalf() {
           : item
       ));
     }
+  };
+
+  // Convert cart to format expected by MenuGrid
+  const menuGridCart = cart.map(item => ({
+    id: item.menu_item_id,
+    name: item.menu_item.name,
+    price: item.menu_item.price,
+    quantity: item.quantity,
+    image_url: item.menu_item.image_url
+  }));
+
+  const handleAddToCart = (menuItem: MenuItem) => {
+    addToCart(menuItem);
+  };
+
+  const handleUpdateQuantity = (id: number, quantity: number) => {
+    updateQuantity(id, quantity);
+  };
+
+  const handleRemoveFromCart = (id: number) => {
+    removeFromCart(id);
   };
 
   const calculateTotal = () => {
@@ -279,92 +332,72 @@ export default function CreateOrderOnBehalf() {
       {/* Menu Items */}
       <Card>
         <CardHeader>
-          <CardTitle>Menu Items</CardTitle>
-          <CardDescription>Select items for the order</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Menu Items</CardTitle>
+              <CardDescription>Select items for the order</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
-            {menuItems.filter(item => item.is_available).map(item => (
-              <Card key={item.id} className="group hover:shadow-lg transition-shadow duration-200">
-                <div className="aspect-[4/3] sm:aspect-[4/3] overflow-hidden rounded-t-lg bg-gray-100">
-                  {item.image_url ? (
-                    <img 
-                      src={item.image_url} 
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Coffee className="h-8 w-8 sm:h-12 sm:w-12" />
-                    </div>
-                  )}
-                </div>
-                
-                <CardContent className="p-3 sm:p-4">
-                  <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{item.name}</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">{item.description}</p>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm sm:text-lg font-bold text-green-600">Rs. {item.price}</span>
-                    
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      {cart.find(cartItem => cartItem.id === item.id) ? (
-                        <div className="flex items-center space-x-1 sm:space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                            onClick={() => {
-                              const cartItem = cart.find(cartItem => cartItem.id === item.id);
-                              if (cartItem && cartItem.quantity > 1) {
-                                updateQuantity(item.id, cartItem.quantity - 1);
-                              } else {
-                                removeFromCart(item.id);
-                              }
-                            }}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="font-medium text-sm min-w-[1.5rem] text-center">
-                            {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                            onClick={() => {
-                              const cartItem = cart.find(cartItem => cartItem.id === item.id);
-                              if (cartItem) {
-                                updateQuantity(item.id, cartItem.quantity + 1);
-                              }
-                            }}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          className="bg-green-700 hover:bg-green-800 text-white h-7 px-3 sm:h-8 sm:px-4 text-xs sm:text-sm"
-                          onClick={() => addToCart(item)}
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {item.is_daily_special && (
-                    <Badge variant="destructive" className="mt-2 text-xs">
-                      <Star className="h-3 w-3 mr-1" />
-                      Today's Special
-                    </Badge>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {showFilters && (
+            <div className="grid gap-4 md:grid-cols-3 mb-6 p-4 bg-gray-50 rounded-lg">
+              <div>
+                <Label htmlFor="search">Search</Label>
+                <Input
+                  id="search"
+                  placeholder="Search menu items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category: any) => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="sort">Sort by</Label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="price">Price</SelectItem>
+                    <SelectItem value="category">Category</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          
+          <MenuGrid
+            items={sortedItems}
+            cart={menuGridCart}
+            onAddToCart={handleAddToCart}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveFromCart={handleRemoveFromCart}
+          />
         </CardContent>
       </Card>
 
