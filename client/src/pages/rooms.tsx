@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -190,8 +191,8 @@ export default function RoomsPage() {
 
   const calculateCredits = () => {
     if (!selectedRoom || !duration) return 0;
-    // Proportional credit calculation: 1 hour = 1 credit, 30 min = 0.5 credit, etc.
-    return selectedRoom.credit_cost_per_hour * parseFloat(duration);
+    // Fixed logic: 1 hour = 1 credit, 30 min = 0.5 credit, etc.
+    return parseFloat(duration);
   };
 
   const handleBookRoom = () => {
@@ -454,225 +455,264 @@ export default function RoomsPage() {
       </div>
       {/* Booking Modal */}
       <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl">
           <DialogHeader>
             <DialogTitle>Book {selectedRoom?.name}</DialogTitle>
           </DialogHeader>
           
-          <div className="grid grid-cols-2 gap-8">
-            {/* Left Column - Date Selection */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Left Column - Calendar Date Selection */}
             <div>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base font-medium">Select a Date</Label>
-                  <div className="mt-2">
-                    <div className="text-center text-sm font-medium text-gray-700 mb-2">
-                      {new Date(bookingDate || getPakistanDateString()).toLocaleDateString('en-PK', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Select a Date</Label>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-center mb-4">
+                    <h3 className="font-medium text-lg">
+                      {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 text-center text-sm">
+                    <div className="font-medium text-gray-500">Su</div>
+                    <div className="font-medium text-gray-500">Mo</div>
+                    <div className="font-medium text-gray-500">Tu</div>
+                    <div className="font-medium text-gray-500">We</div>
+                    <div className="font-medium text-gray-500">Th</div>
+                    <div className="font-medium text-gray-500">Fr</div>
+                    <div className="font-medium text-gray-500">Sa</div>
+                    
+                    {(() => {
+                      const today = new Date();
+                      const year = today.getFullYear();
+                      const month = today.getMonth();
+                      const firstDay = new Date(year, month, 1).getDay();
+                      const daysInMonth = new Date(year, month + 1, 0).getDate();
+                      const selectedDateObj = bookingDate ? new Date(bookingDate) : null;
+                      
+                      const days = [];
+                      // Empty cells for days before month starts
+                      for (let i = 0; i < firstDay; i++) {
+                        days.push(<div key={`empty-${i}`} className="p-2"></div>);
+                      }
+                      // Days of the month
+                      for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(year, month, day);
+                        const dateStr = date.toISOString().split('T')[0];
+                        const isSelected = selectedDateObj && dateStr === bookingDate;
+                        const isPast = date < new Date(today.toDateString());
+                        const isToday = date.toDateString() === today.toDateString();
+                        
+                        days.push(
+                          <button
+                            key={day}
+                            onClick={() => !isPast && setBookingDate(dateStr)}
+                            disabled={isPast}
+                            className={cn(
+                              "p-2 rounded-md text-sm transition-colors",
+                              isPast && "text-gray-300 cursor-not-allowed",
+                              !isPast && !isSelected && "hover:bg-gray-100 cursor-pointer",
+                              isSelected && "bg-orange-500 text-white font-medium",
+                              isToday && !isSelected && "bg-gray-200 font-medium"
+                            )}
+                          >
+                            {day}
+                          </button>
+                        );
+                      }
+                      return days;
+                    })()}
+                  </div>
+                  {bookingDate && (
+                    <div className="mt-3 text-center text-sm text-gray-600">
+                      Selected: {new Date(bookingDate).toLocaleDateString('en-PK', { 
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
                       })}
                     </div>
-                    <Input
-                      type="date"
-                      value={bookingDate}
-                      onChange={(e) => setBookingDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="text-center"
-                    />
+                  )}
+                </div>
+                
+                {/* Legend */}
+                <div className="flex items-center gap-4 text-xs text-gray-600 mt-2">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                    <span>Existing bookings</span>
                   </div>
                 </div>
-
-                {/* Room Info */}
-                {selectedRoom && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <h4 className="font-medium mb-1">{selectedRoom.name}</h4>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <div>Capacity: {selectedRoom.capacity} people</div>
-                      <div>{selectedRoom.credit_cost_per_hour} credits/hour</div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
             {/* Right Column - Time Selection */}
             <div>
-              <div className="space-y-4">
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Select Time Slots</Label>
+                <div className="text-sm text-gray-600">
+                  {bookingDate && new Date(bookingDate).toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </div>
+                
+                {/* Start Time */}
                 <div>
-                  <Label className="text-base font-medium">Select Time Slots</Label>
-                  <div className="mt-2 space-y-3">
-                    {/* Start Time */}
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-1 block">Start Time</Label>
-                      <Select value={startTime} onValueChange={setStartTime}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select start time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({length: 24}, (_, i) => {
-                            const hour = i.toString().padStart(2, '0');
-                            const time12 = new Date(`2000-01-01T${hour}:00:00`).toLocaleTimeString([], { 
-                              hour: 'numeric', 
-                              minute: undefined,
-                              hour12: true 
-                            });
-                            return (
-                              <SelectItem key={hour} value={`${hour}:00`}>
-                                {time12}
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {/* Duration Selection */}
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-2 block">Duration (Required)</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          type="button"
-                          variant={duration === "0.5" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setDuration("0.5")}
-                          className={duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                        >
-                          30 min
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={duration === "1" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setDuration("1")}
-                          className={duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                        >
-                          1 hour
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={duration === "1.5" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setDuration("1.5")}
-                          className={duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                        >
-                          1.5 hrs
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={duration === "2" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setDuration("2")}
-                          className={duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                        >
-                          2 hrs
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {/* End Time Display */}
-                    {startTime && duration && (
-                      <div>
-                        <Label className="text-sm text-gray-600 mb-1 block">End Time</Label>
-                        <div className="p-2 bg-gray-100 rounded text-center text-sm">
-                          {(() => {
-                            const [hours, minutes] = startTime.split(':').map(Number);
-                            const startMinutes = hours * 60 + minutes;
-                            const endMinutes = startMinutes + parseFloat(duration) * 60;
-                            const endHours = Math.floor(endMinutes / 60) % 24;
-                            const endMins = endMinutes % 60;
-                            const endTime12 = new Date(`2000-01-01T${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}:00`).toLocaleTimeString([], { 
-                              hour: 'numeric', 
-                              minute: endMins > 0 ? '2-digit' : undefined,
-                              hour12: true 
-                            });
-                            return endTime12;
-                          })()}
-                        </div>
-                      </div>
-                    )}
+                  <Label className="text-sm text-gray-600 mb-1 block">Start Time</Label>
+                  <Select value={startTime} onValueChange={setStartTime}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select start time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({length: 24}, (_, i) => {
+                        const hour = i.toString().padStart(2, '0');
+                        const time12 = new Date(`2000-01-01T${hour}:00:00`).toLocaleTimeString([], { 
+                          hour: 'numeric', 
+                          minute: undefined,
+                          hour12: true 
+                        });
+                        return (
+                          <SelectItem key={hour} value={`${hour}:00`}>
+                            {time12}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Duration Selection */}
+                <div>
+                  <Label className="text-sm text-gray-600 mb-2 block">Duration (Optional)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant={duration === "0.5" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDuration("0.5")}
+                      className={duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      30 min
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={duration === "1" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDuration("1")}
+                      className={duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      1 hour
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={duration === "1.5" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDuration("1.5")}
+                      className={duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      1.5 hrs
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={duration === "2" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDuration("2")}
+                      className={duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      2 hrs
+                    </Button>
                   </div>
                 </div>
+                
+                {/* End Time Display */}
+                <div>
+                  <Label className="text-sm text-gray-600 mb-1 block">End Time</Label>
+                  <Select value={startTime && duration ? (() => {
+                    const [hours, minutes] = startTime.split(':').map(Number);
+                    const startMinutes = hours * 60 + minutes;
+                    const endMinutes = startMinutes + parseFloat(duration) * 60;
+                    const endHours = Math.floor(endMinutes / 60) % 24;
+                    const endMins = endMinutes % 60;
+                    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+                  })() : ""} disabled>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select duration first" />
+                    </SelectTrigger>
+                  </Select>
+                </div>
+                
+                {/* Room Info */}
+                {selectedRoom && (
+                  <div className="bg-gray-50 p-3 rounded-lg mt-4">
+                    <h4 className="font-medium text-sm">{selectedRoom.name}</h4>
+                    <div className="text-xs text-gray-600 mt-1 space-y-1">
+                      <div>Capacity: {selectedRoom.capacity} people</div>
+                      <div>Rate: 1 credit/hour</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Bottom Section - Notes, Billing, Credits */}
-          <div className="space-y-4 border-t pt-4">
-            {/* Notes */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="booking-notes">Meeting Notes (Optional)</Label>
+          {/* Bottom Section - Compact */}
+          <div className="border-t pt-3 space-y-3">
+            {/* Notes and Billing Row */}
+            <div className="flex gap-4">
+              {/* Notes */}
+              <div className="flex-1">
+                <Label htmlFor="booking-notes" className="text-sm">Meeting Notes (Optional)</Label>
                 <Textarea
                   id="booking-notes"
-                  placeholder="Meeting agenda, special requirements, etc..."
+                  placeholder="Meeting agenda, requirements..."
                   value={bookingNotes}
                   onChange={(e) => setBookingNotes(e.target.value)}
-                  rows={2}
-                  className="text-sm"
+                  rows={1}
+                  className="text-sm resize-none"
                 />
               </div>
 
               {/* Billing Options */}
               {canChargeToOrg && (
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Billing Options</Label>
-                  <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")}>
+                <div className="w-48">
+                  <Label className="text-sm font-medium mb-1 block">Billing</Label>
+                  <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")} className="space-y-1">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="personal" id="personal-room" />
-                      <Label htmlFor="personal-room" className="flex items-center gap-2 text-sm">
-                        <CreditCard className="h-3 w-3" />
-                        Use My Credits
-                      </Label>
+                      <Label htmlFor="personal-room" className="text-xs">My Credits</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="organization" id="organization-room" />
-                      <Label htmlFor="organization-room" className="flex items-center gap-2 text-sm">
-                        <Building className="h-3 w-3" />
-                        Charge to Company
-                      </Label>
+                      <Label htmlFor="organization-room" className="text-xs">Company</Label>
                     </div>
                   </RadioGroup>
                 </div>
               )}
             </div>
 
-            {/* Credit Check and Book Button */}
-            <div className="flex items-center gap-4">
-              {selectedRoom && duration && (
-                <div className="bg-green-50 p-3 rounded-lg flex-1">
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-gray-700">Credits Required:</span>
-                      <div className="font-semibold">{calculateCredits()}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Available:</span>
-                      <div className="font-semibold">{availableCredits}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Remaining:</span>
-                      <div className={`font-semibold ${availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}`}>
-                        {availableCredits - calculateCredits()}
-                      </div>
-                    </div>
-                  </div>
-                  {availableCredits - calculateCredits() < 0 && (
-                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
-                        Insufficient credits. You need {calculateCredits() - availableCredits} more credits.
-                      </div>
-                    </div>
-                  )}
+            {/* Credit Summary and Book Button */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6 text-sm">
+                <div>
+                  <span className="text-gray-600">Credits Required:</span>
+                  <span className="font-semibold ml-2">{selectedRoom && duration ? calculateCredits() : 0}</span>
                 </div>
-              )}
+                <div>
+                  <span className="text-gray-600">Available:</span>
+                  <span className="font-semibold ml-2">{availableCredits}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Remaining:</span>
+                  <span className={`font-semibold ml-2 ${selectedRoom && duration && availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}`}>
+                    {selectedRoom && duration ? availableCredits - calculateCredits() : availableCredits}
+                  </span>
+                </div>
+              </div>
 
               <Button 
-                className="px-8"
+                className="px-6"
                 onClick={handleBookRoom}
-                disabled={bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
+                disabled={!selectedRoom || !duration || bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
               >
                 {bookRoomMutation.isPending ? (
                   <div className="flex items-center gap-2">
@@ -680,10 +720,19 @@ export default function RoomsPage() {
                     Booking...
                   </div>
                 ) : (
-                  `Confirm Booking`
+                  `Confirm Booking • ${selectedRoom && duration ? calculateCredits() : 0} Credits`
                 )}
               </Button>
             </div>
+            
+            {selectedRoom && duration && availableCredits - calculateCredits() < 0 && (
+              <Alert className="py-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  Insufficient credits. You need {calculateCredits() - availableCredits} more credits.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </DialogContent>
       </Dialog>
