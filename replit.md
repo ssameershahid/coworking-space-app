@@ -284,6 +284,26 @@ Changelog:
   * Pagination only appears when there are more items than page limit
   * Users can now navigate through long transaction histories efficiently
   * Consistent pagination design across both cafe orders and room bookings sections
+- July 09, 2025. COMPLETED Checkout screen layout optimization:
+  * Fixed checkout drawer cutting off on desktop and mobile by increasing height to 90vh
+  * Restructured layout with proper flex design and scrollable content area
+  * Moved Place Order button to fixed footer outside scrollable area for consistent visibility
+  * Improved spacing and visual hierarchy for better user experience
+  * All checkout content now properly visible without being cut off
+- July 09, 2025. COMPLETED Mobile-optimized footer redesign:
+  * Redesigned footer with compact mobile-first layout using smart grid system
+  * Reduced vertical padding from py-12 to py-6 for mobile efficiency
+  * Implemented 2-column grid on mobile, 4-column on desktop for better space utilization
+  * Decreased font sizes and spacing for more compact design
+  * Ensured Arteryal credit line is always visible on mobile devices
+  * Created world-class responsive footer that adapts beautifully to all screen sizes
+- July 09, 2025. COMPLETED Vibrant announcements section redesign for better user engagement:
+  * Added colorful gradient backgrounds (green, orange, blue) to announcement cards
+  * Implemented progressive color scheme with most recent announcements getting green theme
+  * Added hover animations with subtle lift effects and shadow transitions
+  * Enhanced section header with green gradient background and prominent styling
+  * Used CalmKaaj's brand colors for better visual hierarchy and attention-grabbing design
+  * Added rounded badges for "CalmKaaj Team" labels with matching color schemes
 ```
 
 ## User Preferences

@@ -81,22 +81,29 @@ export default function Community() {
 
       {/* What's New at CalmKaaj Section */}
       <div className="mb-12">
-        <div className="flex items-center mb-6">
-          <Calendar className="h-5 w-5 text-primary mr-2" />
-          <h2 className="text-2xl font-semibold text-gray-900">What's New at CalmKaaj</h2>
+        <div className="flex items-center mb-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border-l-4 border-l-green-500">
+          <Calendar className="h-6 w-6 text-green-600 mr-3" />
+          <h2 className="text-2xl font-bold text-green-900">What's New at CalmKaaj</h2>
         </div>
 
         <div className="space-y-6">
           {announcements.length === 0 ? (
-            <Card>
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-l-green-500">
               <CardContent className="p-8 text-center">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No announcements available</p>
+                <Calendar className="h-12 w-12 text-green-400 mx-auto mb-4" />
+                <p className="text-green-600 font-medium">No announcements available</p>
+                <p className="text-green-500 text-sm mt-2">Check back soon for updates!</p>
               </CardContent>
             </Card>
           ) : (
-            announcements.map((announcement) => (
-              <Card key={announcement.id} className="overflow-hidden">
+            announcements.map((announcement, index) => (
+              <Card key={announcement.id} className={`overflow-hidden border-l-4 ${
+                index === 0 
+                  ? 'border-l-green-500 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg' 
+                  : index === 1 
+                  ? 'border-l-orange-500 bg-gradient-to-r from-orange-50 to-amber-50 shadow-md' 
+                  : 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-sky-50 shadow-sm'
+              } hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
                 <CardContent className="p-0">
                   <div className="flex">
                     {announcement.image_url && (
@@ -114,17 +121,43 @@ export default function Community() {
                     )}
                     <div className="flex-1 p-6">
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        <h3 className={`text-lg font-bold mb-2 ${
+                          index === 0 
+                            ? 'text-green-900' 
+                            : index === 1 
+                            ? 'text-orange-900' 
+                            : 'text-blue-900'
+                        }`}>
                           {announcement.title}
                         </h3>
-                        <div className="text-right text-sm text-gray-500 flex-shrink-0 ml-4">
-                          <div className="font-medium text-gray-700">CalmKaaj Team</div>
+                        <div className="text-right text-sm flex-shrink-0 ml-4">
+                          <div className={`font-semibold px-3 py-1 rounded-full text-xs ${
+                            index === 0 
+                              ? 'bg-green-100 text-green-800' 
+                              : index === 1 
+                              ? 'bg-orange-100 text-orange-800' 
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            CalmKaaj Team
+                          </div>
                         </div>
                       </div>
-                      <p className="text-gray-600 mb-4 leading-relaxed">
+                      <p className={`mb-4 leading-relaxed font-medium ${
+                        index === 0 
+                          ? 'text-green-800' 
+                          : index === 1 
+                          ? 'text-orange-800' 
+                          : 'text-blue-800'
+                      }`}>
                         {announcement.body}
                       </p>
-                      <div className="flex items-center text-sm text-gray-500 space-x-4">
+                      <div className={`flex items-center text-sm space-x-4 ${
+                        index === 0 
+                          ? 'text-green-600' 
+                          : index === 1 
+                          ? 'text-orange-600' 
+                          : 'text-blue-600'
+                      }`}>
                         <span className="flex items-center">
                           <Calendar className="h-4 w-4 mr-1" />
                           Posted {formatDate(announcement.created_at)}
