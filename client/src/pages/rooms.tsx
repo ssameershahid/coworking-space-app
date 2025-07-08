@@ -376,7 +376,7 @@ export default function RoomsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRooms.map((room) => (
           <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="aspect-video bg-gray-100 relative">
+            <div className="h-20 bg-gray-100 relative">
               {room.image_url && room.image_url !== "/conference-room.svg" ? (
                 <img 
                   src={room.image_url} 
@@ -384,19 +384,16 @@ export default function RoomsPage() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full relative" style={{background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)'}}>
-                  <div className="absolute inset-0 flex flex-col justify-center px-6">
-                    <div className="text-white font-bold text-2xl lg:text-3xl leading-tight">
-                      Conference
+                <div className="w-full h-full relative" style={{background: 'linear-gradient(135deg, #e67e22 0%, #d68910 100%)'}}>
+                  <div className="absolute inset-0 flex items-center justify-between px-4">
+                    <div className="text-white font-semibold text-sm">
+                      Conference Room {room.name.split(' ')[2] || room.name.charAt(room.name.length - 1)}
                     </div>
-                    <div className="text-white font-bold text-2xl lg:text-3xl leading-tight">
-                      Room {room.name.split(' ')[2] || room.name.charAt(room.name.length - 1)}
-                    </div>
-                  </div>
-                  {/* Decorative geometric pattern */}
-                  <div className="absolute top-4 right-4">
-                    <div className="w-12 h-12 transform rotate-45 bg-white opacity-10"></div>
-                    <div className="w-8 h-8 transform rotate-45 bg-white opacity-8 absolute top-2 left-2"></div>
+                    <img 
+                      src="/attached_assets/image_1751974776787.png" 
+                      alt="CalmKaaj Logo" 
+                      className="w-8 h-8 object-contain"
+                    />
                   </div>
                 </div>
               )}
