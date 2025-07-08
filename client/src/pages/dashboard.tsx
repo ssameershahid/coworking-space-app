@@ -338,26 +338,30 @@ export default function Dashboard() {
             </TabsList>
             
             <TabsContent value="cafe" className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-end mb-6">
-                <div className="flex-1">
-                  <Label htmlFor="cafe-start-date">Start Date</Label>
-                  <Input
-                    type="date"
-                    id="cafe-start-date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
+              <div className="space-y-4 mb-6">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <Label htmlFor="cafe-start-date" className="text-sm font-medium">Start Date</Label>
+                    <Input
+                      type="date"
+                      id="cafe-start-date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="cafe-end-date" className="text-sm font-medium">End Date</Label>
+                    <Input
+                      type="date"
+                      id="cafe-end-date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <Label htmlFor="cafe-end-date">End Date</Label>
-                  <Input
-                    type="date"
-                    id="cafe-end-date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-                <Button onClick={() => downloadCafePDF()}>
+                <Button onClick={() => downloadCafePDF()} className="w-full sm:w-auto">
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF Report
                 </Button>
@@ -401,26 +405,30 @@ export default function Dashboard() {
             </TabsContent>
             
             <TabsContent value="rooms" className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-end mb-6">
-                <div className="flex-1">
-                  <Label htmlFor="room-start-date">Start Date</Label>
-                  <Input
-                    type="date"
-                    id="room-start-date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
+              <div className="space-y-4 mb-6">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <Label htmlFor="room-start-date" className="text-sm font-medium">Start Date</Label>
+                    <Input
+                      type="date"
+                      id="room-start-date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="room-end-date" className="text-sm font-medium">End Date</Label>
+                    <Input
+                      type="date"
+                      id="room-end-date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <Label htmlFor="room-end-date">End Date</Label>
-                  <Input
-                    type="date"
-                    id="room-end-date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-                <Button onClick={() => downloadRoomPDF()}>
+                <Button onClick={() => downloadRoomPDF()} className="w-full sm:w-auto">
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF Report
                 </Button>

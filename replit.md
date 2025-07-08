@@ -240,6 +240,12 @@ Changelog:
   * Made location links clickable to specific Blue Area and I-10/3 CalmKaaj pages
   * Added proper target="_blank" and rel="noopener noreferrer" attributes for security
   * Footer now serves as complete navigation hub to CalmKaaj's web presence
+- July 09, 2025. COMPLETED Mobile layout optimization for Transaction History & Bills:
+  * Fixed mobile spacing issues in Start Date and End Date inputs
+  * Changed from vertical stacking to side-by-side grid layout on mobile
+  * Reduced gaps and improved visual hierarchy for compact design
+  * Made Download PDF button full-width on mobile for better usability
+  * Transaction History section now looks clean and seamless on mobile devices
 - July 09, 2025. COMPLETED Comprehensive USD to PKR conversion - FINAL FIX:
   * Fixed hardcoded "$" symbols in cafe.tsx menu item display (line 260)
   * Fixed "$" symbols in organization.tsx recent café orders (Badge component)
