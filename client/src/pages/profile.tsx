@@ -163,10 +163,10 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Personal Information */}
         <Card className="lg:col-span-2">
-          <CardHeader className="bg-orange-50 rounded-t-lg">
+          <CardHeader className="bg-orange-100 rounded-t-lg">
             <CardTitle className="flex items-center justify-between text-xl">
               <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-orange-600" />
+                <User className="h-5 w-5 text-orange-700" />
                 Personal Information
               </div>
               {!isEditing && (
@@ -497,9 +497,9 @@ export default function ProfilePage() {
 
         {/* Account Summary */}
         <Card>
-          <CardHeader className="bg-orange-50 rounded-t-lg">
+          <CardHeader className="bg-orange-100 rounded-t-lg">
             <CardTitle className="flex items-center gap-2 text-xl">
-              <MapPin className="h-5 w-5 text-orange-600" />
+              <MapPin className="h-5 w-5 text-orange-700" />
               Account Summary
             </CardTitle>
           </CardHeader>
