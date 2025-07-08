@@ -200,6 +200,12 @@ Changelog:
   * Added comprehensive empty state for bookings section with clear call-to-action for first-time users
   * Enhanced user experience with skeleton UI that explains functionality when no bookings exist
   * Optimized card sizing and visual hierarchy for better product design consistency
+- July 08, 2025. COMPLETED Email privacy controls for community directory:
+  * Added email_visible field to user schema with default false (private by default)
+  * Implemented email visibility toggle in profile page under privacy settings
+  * Updated community directory to only show email contact button when user opts in
+  * Members can now control whether their email appears in community directory
+  * Enhanced user privacy while maintaining optional contact functionality
 ```
 
 ## User Preferences

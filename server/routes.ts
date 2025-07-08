@@ -1064,6 +1064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           company: schema.users.company,
           organization_id: schema.users.organization_id,
           community_visible: schema.users.community_visible,
+          email_visible: schema.users.email_visible,
         })
         .from(schema.users)
         .where(and(
@@ -1190,7 +1191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Allow users to update their own profile information
-      const allowedFields = ['first_name', 'last_name', 'phone', 'bio', 'linkedin_url', 'profile_image', 'job_title', 'company', 'community_visible'];
+      const allowedFields = ['first_name', 'last_name', 'phone', 'bio', 'linkedin_url', 'profile_image', 'job_title', 'company', 'community_visible', 'email_visible'];
       const filteredUpdates = Object.keys(updates)
         .filter(key => allowedFields.includes(key))
         .reduce((obj, key) => {

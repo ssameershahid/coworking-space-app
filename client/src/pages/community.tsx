@@ -228,15 +228,17 @@ export default function Community() {
                     
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-xs h-8 px-3"
-                        onClick={() => window.open(`mailto:${user.email}`, '_blank')}
-                      >
-                        <Mail className="h-3 w-3 mr-1" />
-                        Email
-                      </Button>
+                      {user.email_visible && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-8 px-3"
+                          onClick={() => window.open(`mailto:${user.email}`, '_blank')}
+                        >
+                          <Mail className="h-3 w-3 mr-1" />
+                          Email
+                        </Button>
+                      )}
                       {user.linkedin_url && (
                         <Button 
                           size="sm" 

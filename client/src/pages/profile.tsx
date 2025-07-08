@@ -29,6 +29,7 @@ export default function ProfilePage() {
     job_title: user?.job_title || "",
     company: user?.company || "",
     community_visible: user?.community_visible !== false,
+    email_visible: user?.email_visible || false,
   });
 
   const updateProfileMutation = useMutation({
@@ -143,6 +144,7 @@ export default function ProfilePage() {
       job_title: user?.job_title || "",
       company: user?.company || "",
       community_visible: user?.community_visible !== false,
+      email_visible: user?.email_visible || false,
     });
     setProfileImageFile(null);
     setProfileImagePreview("");
@@ -333,28 +335,57 @@ export default function ProfilePage() {
                   />
                 </div>
                 
-                {/* Community Visibility Toggle */}
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-3">
-                    {formData.community_visible ? (
-                      <Eye className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
-                    )}
-                    <div>
-                      <Label htmlFor="community_visible" className="text-sm font-medium text-gray-900">
-                        Show in Community Directory
-                      </Label>
-                      <p className="text-sm text-gray-600">
-                        Other members can see your profile in the community section
-                      </p>
+                {/* Privacy Settings */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-900">Privacy Settings</h4>
+                  
+                  {/* Community Visibility Toggle */}
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center gap-3">
+                      {formData.community_visible ? (
+                        <Eye className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      )}
+                      <div>
+                        <Label htmlFor="community_visible" className="text-sm font-medium text-gray-900">
+                          Show in Community Directory
+                        </Label>
+                        <p className="text-sm text-gray-600">
+                          Other members can see your profile in the community section
+                        </p>
+                      </div>
                     </div>
+                    <Switch
+                      id="community_visible"
+                      checked={formData.community_visible}
+                      onCheckedChange={handleSwitchChange('community_visible')}
+                    />
                   </div>
-                  <Switch
-                    id="community_visible"
-                    checked={formData.community_visible}
-                    onCheckedChange={handleSwitchChange('community_visible')}
-                  />
+
+                  {/* Email Visibility Toggle */}
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-3">
+                      {formData.email_visible ? (
+                        <Eye className="h-5 w-5 text-blue-600" />
+                      ) : (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      )}
+                      <div>
+                        <Label htmlFor="email_visible" className="text-sm font-medium text-gray-900">
+                          Show Email in Directory
+                        </Label>
+                        <p className="text-sm text-gray-600">
+                          Allow other members to see your email address for contact
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="email_visible"
+                      checked={formData.email_visible}
+                      onCheckedChange={handleSwitchChange('email_visible')}
+                    />
+                  </div>
                 </div>
                 <div className="flex space-x-2">
                   <Button
