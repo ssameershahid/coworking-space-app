@@ -674,7 +674,7 @@ export default function RoomsPage() {
 
             {/* Book Button */}
             <Button 
-              className="w-full"
+              className="w-full h-12 text-lg"
               onClick={handleBookRoom}
               disabled={bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
             >

@@ -13,6 +13,7 @@ import { storage, db } from "./storage";
 import * as schema from "@shared/schema";
 import { eq, desc, sql, asc, and, or } from "drizzle-orm";
 import { emailService } from "./email-service";
+import webpush from "web-push";
 
 // Session configuration
 const sessionConfig = {
@@ -24,6 +25,16 @@ const sessionConfig = {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 };
+
+// Configure web-push for notifications
+webpush.setVapidDetails(
+  'mailto:admin@calmkaaj.com',
+  process.env.VAPID_PUBLIC_KEY || 'BHPhxDf_FuRSXw0Kzm_mJ5TDcBWe2Bmv8HtFQ_xyd2u0_wtgnb6XaykVM5oOQTnSbWW6mRI-NpdfEYtEuUgo-wM',
+  process.env.VAPID_PRIVATE_KEY || 'ox0Lm9vjWcxrhNk04JXf6k8Sr16SSfircZs6qzSxQkw'
+);
+
+// Store push subscriptions in memory (in production, use database)
+const pushSubscriptions = new Map<number, any>();
 
 // Passport configuration
 passport.use(

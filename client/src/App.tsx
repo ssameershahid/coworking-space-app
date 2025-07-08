@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./contexts/auth-context";
 import { CartProvider } from "./contexts/cart-context";
+import { InstallPrompt } from "./components/pwa/install-prompt";
+import { NotificationSetup } from "./components/pwa/notification-setup";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
@@ -110,6 +112,10 @@ function App() {
             </ProtectedRoute>
           </CartProvider>
         </AuthProvider>
+        
+        {/* PWA Components */}
+        <InstallPrompt />
+        <NotificationSetup />
       </TooltipProvider>
     </QueryClientProvider>
   );
