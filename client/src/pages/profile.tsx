@@ -306,21 +306,7 @@ export default function ProfilePage() {
                       </div>
                     )}
                     
-                    {/* URL Input as Alternative */}
-                    <div>
-                      <Label htmlFor="profile_image_url" className="text-sm text-gray-600">
-                        Or provide image URL
-                      </Label>
-                      <Input
-                        id="profile_image_url"
-                        name="profile_image"
-                        type="url"
-                        value={formData.profile_image}
-                        onChange={handleChange}
-                        placeholder="https://example.com/your-photo.jpg"
-                        className="mt-1"
-                      />
-                    </div>
+                    
                   </div>
                 </div>
                 <div>
