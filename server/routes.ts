@@ -441,6 +441,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PDF Generation endpoint - Must come before :id route
+  app.get("/api/cafe/orders/pdf", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const startDate = req.query.start_date as string;
+      const endDate = req.query.end_date as string;
+      
+      // Get orders for the user only - remove invalid parameters
+      const orders = await storage.getCafeOrders(userId);
+      
+      let filteredOrders = orders;
+      if (startDate || endDate) {
+        filteredOrders = orders.filter((order: any) => {
+          const orderDate = new Date(order.created_at);
+          const start = startDate ? new Date(startDate) : null;
+          const end = endDate ? new Date(endDate) : null;
+          
+          if (start && orderDate < start) return false;
+          if (end && orderDate > end) return false;
+          return true;
+        });
+      }
+      
+      // Generate simple PDF content
+      const pdfContent = generateCafePDFContent(filteredOrders, req.user as any, startDate, endDate);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="cafe-orders-${startDate || 'all'}-${endDate || 'all'}.pdf"`);
+      res.send(Buffer.from(pdfContent));
+    } catch (error) {
+      console.error("Error generating café PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
+  });
+
   app.get("/api/cafe/orders/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -1462,40 +1497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF Generation endpoints
-  app.get("/api/cafe/orders/pdf", requireAuth, async (req, res) => {
-    try {
-      const userId = (req.user as any).id;
-      const startDate = req.query.start_date as string;
-      const endDate = req.query.end_date as string;
-      
-      // Get orders for the user only - remove invalid parameters
-      const orders = await storage.getCafeOrders(userId);
-      
-      let filteredOrders = orders;
-      if (startDate || endDate) {
-        filteredOrders = orders.filter((order: any) => {
-          const orderDate = new Date(order.created_at);
-          const start = startDate ? new Date(startDate) : null;
-          const end = endDate ? new Date(endDate) : null;
-          
-          if (start && orderDate < start) return false;
-          if (end && orderDate > end) return false;
-          return true;
-        });
-      }
-      
-      // Generate simple PDF content
-      const pdfContent = generateCafePDFContent(filteredOrders, req.user as any, startDate, endDate);
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="cafe-orders-${startDate || 'all'}-${endDate || 'all'}.pdf"`);
-      res.send(Buffer.from(pdfContent));
-    } catch (error) {
-      console.error("Error generating café PDF:", error);
-      res.status(500).json({ message: "Failed to generate PDF" });
-    }
-  });
+
 
   app.get("/api/bookings/pdf", requireAuth, async (req, res) => {
     try {
@@ -1536,7 +1538,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 // Helper functions for PDF generation
 function generateCafePDFContent(orders: any[], user: any, startDate?: string, endDate?: string): string {
-  // This is a simplified PDF generation - in production, you'd use a proper PDF library
+  const currentDate = new Date().toLocaleDateString('en-GB');
+  const totalAmount = orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
+  
+  // Enhanced PDF generation with better formatting and table structure
   const header = `%PDF-1.4
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
@@ -1545,61 +1550,97 @@ endobj
 << /Type /Pages /Kids [3 0 R] /Count 1 >>
 endobj
 3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
 endobj
 4 0 obj
-<< /Length 500 >>
+<< /Length 1000 >>
 stream
 BT
-/F1 12 Tf
+/F2 18 Tf
 50 750 Td
-(CalmKaaj - Cafe Orders Report) Tj
-0 -20 Td
-(User: ${user.first_name} ${user.last_name}) Tj
-0 -20 Td
-(Date Range: ${startDate || 'All'} - ${endDate || 'All'}) Tj
+(CalmKaaj) Tj
+0 -30 Td
+/F1 14 Tf
+(Cafe Orders Report) Tj
 0 -40 Td
+/F1 10 Tf
+(Generated on: ${currentDate}) Tj
+0 -15 Td
+(Customer: ${user.first_name} ${user.last_name}) Tj
+0 -15 Td
+(Email: ${user.email}) Tj
+0 -15 Td
+(Date Range: ${startDate || 'All Time'} - ${endDate || 'All Time'}) Tj
+0 -30 Td
+(Summary:) Tj
+0 -15 Td
 (Total Orders: ${orders.length}) Tj
+0 -15 Td
+(Total Amount: Rs. ${totalAmount.toFixed(2)}) Tj
+0 -30 Td
+(Order Details:) Tj
 0 -20 Td
-(Total Amount: PKR ${orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0).toFixed(2)}) Tj
+(Order ID    Date        Status      Amount) Tj
+0 -15 Td
+(________________________________________________) Tj
 `;
 
-  let yPosition = 640;
   let orderDetails = '';
   
   orders.forEach((order, index) => {
-    orderDetails += `0 -20 Td
-(Order #${order.id} - ${new Date(order.created_at).toLocaleDateString()} - PKR ${parseFloat(order.total_amount).toFixed(2)}) Tj
+    const orderDate = new Date(order.created_at).toLocaleDateString('en-GB');
+    const paddedId = order.id.toString().padEnd(8, ' ');
+    const paddedDate = orderDate.padEnd(12, ' ');
+    const paddedStatus = order.status.padEnd(10, ' ');
+    const amount = `Rs. ${parseFloat(order.total_amount).toFixed(2)}`;
+    
+    orderDetails += `0 -15 Td
+(${paddedId} ${paddedDate} ${paddedStatus} ${amount}) Tj
 `;
-    yPosition -= 20;
   });
 
   const footer = `${orderDetails}
+0 -20 Td
+(________________________________________________) Tj
+0 -15 Td
+(Total: Rs. ${totalAmount.toFixed(2)}) Tj
+0 -30 Td
+/F1 8 Tf
+(This is a computer generated document from CalmKaaj) Tj
+0 -12 Td
+(Coworking Space Management System) Tj
 ET
 endstream
 endobj
 5 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
 xref
-0 6
+0 7
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
 0000000245 00000 n 
-0000000600 00000 n 
+0000001400 00000 n 
+0000001460 00000 n 
 trailer
-<< /Size 6 /Root 1 0 R >>
+<< /Size 7 /Root 1 0 R >>
 startxref
-675
+1525
 %%EOF`;
 
   return header + footer;
 }
 
 function generateRoomPDFContent(bookings: any[], user: any, startDate?: string, endDate?: string): string {
-  // This is a simplified PDF generation - in production, you'd use a proper PDF library
+  const currentDate = new Date().toLocaleDateString('en-GB');
+  const totalCredits = bookings.reduce((sum, booking) => sum + booking.credits_used, 0);
+  
+  // Enhanced PDF generation with better formatting and table structure
   const header = `%PDF-1.4
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
@@ -1608,54 +1649,91 @@ endobj
 << /Type /Pages /Kids [3 0 R] /Count 1 >>
 endobj
 3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
 endobj
 4 0 obj
-<< /Length 500 >>
+<< /Length 1000 >>
 stream
 BT
-/F1 12 Tf
+/F2 18 Tf
 50 750 Td
-(CalmKaaj - Room Bookings Report) Tj
-0 -20 Td
-(User: ${user.first_name} ${user.last_name}) Tj
-0 -20 Td
-(Date Range: ${startDate || 'All'} - ${endDate || 'All'}) Tj
+(CalmKaaj) Tj
+0 -30 Td
+/F1 14 Tf
+(Meeting Room Bookings Report) Tj
 0 -40 Td
+/F1 10 Tf
+(Generated on: ${currentDate}) Tj
+0 -15 Td
+(Customer: ${user.first_name} ${user.last_name}) Tj
+0 -15 Td
+(Email: ${user.email}) Tj
+0 -15 Td
+(Date Range: ${startDate || 'All Time'} - ${endDate || 'All Time'}) Tj
+0 -30 Td
+(Summary:) Tj
+0 -15 Td
 (Total Bookings: ${bookings.length}) Tj
+0 -15 Td
+(Total Credits Used: ${totalCredits}) Tj
+0 -30 Td
+(Booking Details:) Tj
 0 -20 Td
-(Total Credits: ${bookings.reduce((sum, booking) => sum + booking.credits_used, 0)}) Tj
+(Room Name        Date        Time        Credits) Tj
+0 -15 Td
+(________________________________________________) Tj
 `;
 
-  let yPosition = 640;
   let bookingDetails = '';
   
   bookings.forEach((booking, index) => {
-    bookingDetails += `0 -20 Td
-(${booking.room?.name} - ${new Date(booking.start_time).toLocaleDateString()} - ${booking.credits_used} credits) Tj
+    const bookingDate = new Date(booking.start_time).toLocaleDateString('en-GB');
+    const bookingTime = new Date(booking.start_time).toLocaleTimeString('en-GB', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    const paddedRoom = (booking.room?.name || 'Unknown').padEnd(15, ' ');
+    const paddedDate = bookingDate.padEnd(12, ' ');
+    const paddedTime = bookingTime.padEnd(10, ' ');
+    const credits = `${booking.credits_used} credits`;
+    
+    bookingDetails += `0 -15 Td
+(${paddedRoom} ${paddedDate} ${paddedTime} ${credits}) Tj
 `;
-    yPosition -= 20;
   });
 
   const footer = `${bookingDetails}
+0 -20 Td
+(________________________________________________) Tj
+0 -15 Td
+(Total Credits Used: ${totalCredits}) Tj
+0 -30 Td
+/F1 8 Tf
+(This is a computer generated document from CalmKaaj) Tj
+0 -12 Td
+(Coworking Space Management System) Tj
 ET
 endstream
 endobj
 5 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
 xref
-0 6
+0 7
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
 0000000245 00000 n 
-0000000600 00000 n 
+0000001400 00000 n 
+0000001460 00000 n 
 trailer
-<< /Size 6 /Root 1 0 R >>
+<< /Size 7 /Root 1 0 R >>
 startxref
-675
+1525
 %%EOF`;
 
   return header + footer;
