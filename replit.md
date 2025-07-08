@@ -290,13 +290,12 @@ Changelog:
   * Moved Place Order button to fixed footer outside scrollable area for consistent visibility
   * Improved spacing and visual hierarchy for better user experience
   * All checkout content now properly visible without being cut off
-- July 09, 2025. COMPLETED Mobile-optimized footer redesign:
-  * Redesigned footer with compact mobile-first layout using smart grid system
-  * Reduced vertical padding from py-12 to py-6 for mobile efficiency
-  * Implemented 2-column grid on mobile, 4-column on desktop for better space utilization
-  * Decreased font sizes and spacing for more compact design
-  * Ensured Arteryal credit line is always visible on mobile devices
-  * Created world-class responsive footer that adapts beautifully to all screen sizes
+- July 09, 2025. COMPLETED Desktop checkout dialog optimization:
+  * Changed checkout from full-width drawer to compact centered dialog (max-width: 28rem)
+  * Implemented modal-style checkout similar to meeting room booking for consistent UX
+  * Improved desktop layout to be more compact and visually appealing
+  * Maintained mobile-friendly design while enhancing desktop experience
+  * Checkout now matches the crisp, clean design of room booking confirmations
 - July 09, 2025. COMPLETED Vibrant announcements section redesign for better user engagement:
   * Added colorful gradient backgrounds (green, orange, blue) to announcement cards
   * Implemented progressive color scheme with most recent announcements getting green theme

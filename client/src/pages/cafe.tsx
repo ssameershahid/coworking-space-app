@@ -5,7 +5,7 @@ import { useCart } from "@/hooks/use-cart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -369,8 +370,8 @@ export default function CafePage() {
 
       {/* Floating Cart Button with CalmKaaj Logo */}
       {totalItems > 0 && (
-        <Drawer open={showCart} onOpenChange={setShowCart}>
-          <DrawerTrigger asChild>
+        <Dialog open={showCart} onOpenChange={setShowCart}>
+          <DialogTrigger asChild>
             <div className="fixed bottom-20 right-4 z-40">
               <div className="relative">
                 <div className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-200">
@@ -388,17 +389,17 @@ export default function CafePage() {
                 </div>
               </div>
             </div>
-          </DrawerTrigger>
-          <DrawerContent className="max-h-[90vh] flex flex-col">
-            <DrawerHeader className="flex-shrink-0">
-              <DrawerTitle className="flex items-center justify-between">
+          </DialogTrigger>
+          <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle className="flex items-center justify-between">
                 <span>Your Order</span>
                 <Button variant="ghost" size="sm" onClick={() => clearCart()}>
                   <Trash2 className="h-4 w-4 mr-1" />
                   Clear
                 </Button>
-              </DrawerTitle>
-            </DrawerHeader>
+              </DialogTitle>
+            </DialogHeader>
             
             <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-4">
               {/* Cart Items */}
@@ -537,8 +538,8 @@ export default function CafePage() {
                 )}
               </Button>
             </div>
-          </DrawerContent>
-        </Drawer>
+          </DialogContent>
+        </Dialog>
       )}
 
 
