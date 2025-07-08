@@ -340,11 +340,29 @@ export default function RoomsPage() {
         {filteredRooms.map((room) => (
           <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="aspect-video bg-gray-100 relative">
-              <img 
-                src={room.image_url || "/conference-room.svg"} 
-                alt={room.name}
-                className="w-full h-full object-cover"
-              />
+              {room.image_url && room.image_url !== "/conference-room.svg" ? (
+                <img 
+                  src={room.image_url} 
+                  alt={room.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full relative" style={{background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)'}}>
+                  <div className="absolute inset-0 flex flex-col justify-center px-6">
+                    <div className="text-white font-bold text-2xl lg:text-3xl leading-tight">
+                      Conference
+                    </div>
+                    <div className="text-white font-bold text-2xl lg:text-3xl leading-tight">
+                      Room {room.name.split(' ')[2] || room.name.charAt(room.name.length - 1)}
+                    </div>
+                  </div>
+                  {/* Decorative geometric pattern */}
+                  <div className="absolute top-4 right-4">
+                    <div className="w-12 h-12 transform rotate-45 bg-white opacity-10"></div>
+                    <div className="w-8 h-8 transform rotate-45 bg-white opacity-8 absolute top-2 left-2"></div>
+                  </div>
+                </div>
+              )}
             </div>
             
             <CardContent className="p-6">
@@ -607,25 +625,33 @@ export default function RoomsPage() {
       </Dialog>
 
       {/* Current Bookings - Moved to bottom */}
-      {myBookings.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              Your Upcoming Bookings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarIcon className="h-5 w-5" />
+            Your Upcoming Bookings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {myBookings.filter(booking => {
+            if (booking.status !== 'confirmed') return false;
+            
+            // Show bookings that are in the future OR within 15 minutes of start time using Pakistan time
+            const now = getPakistanTime();
+            const startTime = new Date(booking.start_time);
+            const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000);
+            
+            return now < fifteenMinutesAfterStart; // Show until 15 minutes after start
+          }).length > 0 ? (
             <div className="space-y-4">
               {myBookings.filter(booking => {
                 if (booking.status !== 'confirmed') return false;
                 
-                // Show bookings that are in the future OR within 15 minutes of start time using Pakistan time
                 const now = getPakistanTime();
                 const startTime = new Date(booking.start_time);
                 const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000);
                 
-                return now < fifteenMinutesAfterStart; // Show until 15 minutes after start
+                return now < fifteenMinutesAfterStart;
               }).slice(0, 3).map((booking) => (
                 <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
@@ -665,9 +691,33 @@ export default function RoomsPage() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            // Empty state
+            <div className="text-center py-12 px-4">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                <CalendarIcon className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No upcoming bookings</h3>
+              <p className="text-gray-600 mb-4 max-w-sm mx-auto">
+                Your confirmed meeting room reservations will appear here. Book a room above to get started.
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const firstRoom = filteredRooms[0];
+                  if (firstRoom) {
+                    setSelectedRoom(firstRoom);
+                    setShowBookingModal(true);
+                  }
+                }}
+                className="text-sm"
+              >
+                Book Your First Room
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
