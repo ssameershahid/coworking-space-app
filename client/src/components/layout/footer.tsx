@@ -100,11 +100,7 @@ export default function Footer() {
                 <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
                 <span>hello@calmkaaj.com</span>
               </div>
-              <div className="mt-4">
-                <p className="font-medium text-gray-700 mb-1">Hours</p>
-                <p>Mon-Fri: 8am - 8pm</p>
-                <p>Weekend: 9am - 4pm</p>
-              </div>
+              
             </div>
           </div>
         </div>
