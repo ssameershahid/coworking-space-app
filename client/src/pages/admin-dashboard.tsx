@@ -306,6 +306,24 @@ export default function AdminDashboard() {
   
   // Initialize with default state
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  
+  // Debug: Check if component is loading
+  console.log('AdminDashboard loading, user:', user);
+  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+  
+  if (user.role !== 'calmkaaj_admin') {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600">You don't have admin privileges.</p>
+        </div>
+      </div>
+    );
+  }
   const [newUserDialog, setNewUserDialog] = useState(false);
   const [newOrgDialog, setNewOrgDialog] = useState(false);
   const [newRoomDialog, setNewRoomDialog] = useState(false);
