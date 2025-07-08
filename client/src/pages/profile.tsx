@@ -163,10 +163,10 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Personal Information */}
         <Card className="lg:col-span-2">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
             <CardTitle className="flex items-center justify-between text-xl">
               <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-blue-600" />
+                <User className="h-5 w-5 text-green-600" />
                 Personal Information
               </div>
               {!isEditing && (
@@ -350,10 +350,10 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Email Visibility Toggle */}
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
                     <div className="flex items-center gap-3">
                       {formData.email_visible ? (
-                        <Eye className="h-5 w-5 text-blue-600" />
+                        <Eye className="h-5 w-5 text-orange-600" />
                       ) : (
                         <EyeOff className="h-5 w-5 text-gray-400" />
                       )}
@@ -398,7 +398,7 @@ export default function ProfilePage() {
                       <img 
                         src={user.profile_image} 
                         alt="Profile" 
-                        className="w-24 h-24 rounded-full object-cover border-4 border-blue-100" 
+                        className="w-24 h-24 rounded-full object-cover border-4 border-green-100" 
                       />
                     ) : (
                       <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
@@ -454,7 +454,7 @@ export default function ProfilePage() {
                       href={user.linkedin_url} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-blue-600 hover:underline font-medium flex items-center gap-1 mt-1"
+                      className="text-green-600 hover:underline font-medium flex items-center gap-1 mt-1"
                     >
                       <Globe className="h-4 w-4" />
                       View LinkedIn Profile
@@ -513,9 +513,9 @@ export default function ProfilePage() {
               </p>
             </div>
             
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
-              <Label className="text-sm font-medium text-blue-700">Available Credits</Label>
-              <p className="text-2xl font-bold text-blue-900">
+            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
+              <Label className="text-sm font-medium text-green-700">Available Credits</Label>
+              <p className="text-2xl font-bold text-green-900">
                 {user.credits - user.used_credits}
               </p>
             </div>
