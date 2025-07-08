@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -191,8 +190,8 @@ export default function RoomsPage() {
 
   const calculateCredits = () => {
     if (!selectedRoom || !duration) return 0;
-    // Fixed logic: 1 hour = 1 credit, 30 min = 0.5 credit, etc.
-    return parseFloat(duration);
+    // Proportional credit calculation: 1 hour = 1 credit, 30 min = 0.5 credit, etc.
+    return selectedRoom.credit_cost_per_hour * parseFloat(duration);
   };
 
   const handleBookRoom = () => {
@@ -455,238 +454,189 @@ export default function RoomsPage() {
       </div>
       {/* Booking Modal */}
       <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Book {selectedRoom?.name}</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            {/* Date Selection */}
-            <div>
-              <Label className="text-base font-medium mb-3 block">Select a Date</Label>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="text-center mb-4">
-                    <h3 className="font-medium text-lg">
-                      {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-7 gap-1 text-center text-sm">
-                    <div className="font-medium text-gray-500">Su</div>
-                    <div className="font-medium text-gray-500">Mo</div>
-                    <div className="font-medium text-gray-500">Tu</div>
-                    <div className="font-medium text-gray-500">We</div>
-                    <div className="font-medium text-gray-500">Th</div>
-                    <div className="font-medium text-gray-500">Fr</div>
-                    <div className="font-medium text-gray-500">Sa</div>
-                    
-                    {(() => {
-                      const today = new Date();
-                      const year = today.getFullYear();
-                      const month = today.getMonth();
-                      const firstDay = new Date(year, month, 1).getDay();
-                      const daysInMonth = new Date(year, month + 1, 0).getDate();
-                      const selectedDateObj = bookingDate ? new Date(bookingDate) : null;
-                      
-                      const days = [];
-                      // Empty cells for days before month starts
-                      for (let i = 0; i < firstDay; i++) {
-                        days.push(<div key={`empty-${i}`} className="p-2"></div>);
-                      }
-                      // Days of the month
-                      for (let day = 1; day <= daysInMonth; day++) {
-                        const date = new Date(year, month, day);
-                        const dateStr = date.toISOString().split('T')[0];
-                        const isSelected = selectedDateObj && dateStr === bookingDate;
-                        const isPast = date < new Date(today.toDateString());
-                        const isToday = date.toDateString() === today.toDateString();
-                        
-                        days.push(
-                          <button
-                            key={day}
-                            onClick={() => !isPast && setBookingDate(dateStr)}
-                            disabled={isPast}
-                            className={cn(
-                              "p-2 rounded-md text-sm transition-colors",
-                              isPast && "text-gray-300 cursor-not-allowed",
-                              !isPast && !isSelected && "hover:bg-gray-100 cursor-pointer",
-                              isSelected && "bg-orange-500 text-white font-medium",
-                              isToday && !isSelected && "bg-gray-200 font-medium"
-                            )}
-                          >
-                            {day}
-                          </button>
-                        );
-                      }
-                      return days;
-                    })()}
-                  </div>
-                  
+          <div className="space-y-6">
+            {/* Room Info */}
+            {selectedRoom && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">{selectedRoom.name}</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div>Capacity: {selectedRoom.capacity} people</div>
+                  <div>{selectedRoom.credit_cost_per_hour} credits/hour</div>
                 </div>
-                
-                {/* Legend */}
-                <div className="flex items-center gap-4 text-xs text-gray-600 mt-2">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                    <span>Existing bookings</span>
-                  </div>
-                </div>
-            </div>
+              </div>
+            )}
 
-            {/* Time Selection */}
-            <div className="space-y-3">
-              <Label className="text-base font-medium">Select Time Slots</Label>
-                {bookingDate && (
-                  <div className="text-sm text-gray-600">
-                    {new Date(bookingDate).toLocaleDateString('en-US', { 
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric'
+            {/* Modern Date and Time Selection */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Date Selection */}
+              <div>
+                <Label className="text-base font-medium mb-3 block">Select a Date</Label>
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="text-center text-sm font-medium text-gray-700 mb-3">
+                    {new Date(bookingDate || getPakistanDateString()).toLocaleDateString('en-PK', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
                     })}
                   </div>
-                )}
-                
-                
-                
-                {/* Start Time */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-1 block">Start Time</Label>
-                  <Select value={startTime} onValueChange={setStartTime}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select start time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({length: 24}, (_, i) => {
-                        const hour = i.toString().padStart(2, '0');
-                        const time12 = new Date(`2000-01-01T${hour}:00:00`).toLocaleTimeString([], { 
-                          hour: 'numeric', 
-                          minute: undefined,
-                          hour12: true 
-                        });
-                        return (
-                          <SelectItem key={hour} value={`${hour}:00`}>
-                            {time12}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    type="date"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="text-center"
+                  />
                 </div>
-                
-                {/* Duration Selection */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">Duration (Optional)</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      type="button"
-                      variant={duration === "0.5" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setDuration("0.5")}
-                      className={duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    >
-                      30 min
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={duration === "1" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setDuration("1")}
-                      className={duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    >
-                      1 hour
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={duration === "1.5" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setDuration("1.5")}
-                      className={duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    >
-                      1.5 hrs
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={duration === "2" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setDuration("2")}
-                      className={duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    >
-                      2 hrs
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* End Time Display */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-1 block">End Time</Label>
-                  <div className="p-2 bg-gray-50 border rounded-md text-sm">
-                    {startTime && duration ? (() => {
-                      const [hours, minutes] = startTime.split(':').map(Number);
-                      const startMinutes = hours * 60 + minutes;
-                      const endMinutes = startMinutes + parseFloat(duration) * 60;
-                      const endHours = Math.floor(endMinutes / 60) % 24;
-                      const endMins = endMinutes % 60;
-                      const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-                      return new Date(`2000-01-01T${endTime}:00`).toLocaleTimeString([], { 
-                        hour: 'numeric', 
-                        minute: '2-digit',
-                        hour12: true 
-                      });
-                    })() : "Select start time and duration"}
-                  </div>
-                </div>
-            </div>
-          </div>
+              </div>
 
-          {/* Bottom Section */}
-          <div className="border-t pt-4 space-y-4">
-            {/* Meeting Notes - Smaller */}
-            <div>
-              <Label htmlFor="booking-notes" className="text-sm">Meeting Notes (Optional)</Label>
-              <Textarea
-                id="booking-notes"
-                placeholder="Meeting agenda, requirements..."
-                value={bookingNotes}
-                onChange={(e) => setBookingNotes(e.target.value)}
-                rows={2}
-                className="text-sm resize-none mt-1"
-              />
+              {/* Time Selection */}
+              <div>
+                <Label className="text-base font-medium mb-3 block">Select Time Slots</Label>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="start-time" className="text-sm text-gray-600 mb-1 block">Start Time</Label>
+                    <Input
+                      type="time"
+                      id="start-time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      className="text-center"
+                    />
+                  </div>
+                  
+                  {/* Duration Selection with Orange Button Style */}
+                  <div>
+                    <Label className="text-sm text-gray-600 mb-2 block">Duration (Optional)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={duration === "0.5" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDuration("0.5")}
+                        className={duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        30 min
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={duration === "1" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDuration("1")}
+                        className={duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        1 hour
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={duration === "1.5" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDuration("1.5")}
+                        className={duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        1.5 hrs
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={duration === "2" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDuration("2")}
+                        className={duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                      >
+                        2 hrs
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* End Time Display */}
+                  {startTime && duration && (
+                    <div>
+                      <Label className="text-sm text-gray-600 mb-1 block">End Time</Label>
+                      <div className="p-2 bg-gray-100 rounded text-center text-sm">
+                        {(() => {
+                          const [hours, minutes] = startTime.split(':').map(Number);
+                          const startMinutes = hours * 60 + minutes;
+                          const endMinutes = startMinutes + parseFloat(duration) * 60;
+                          const endHours = Math.floor(endMinutes / 60) % 24;
+                          const endMins = endMinutes % 60;
+                          return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
+
+
 
             {/* Billing Options */}
             {canChargeToOrg && (
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Billing</Label>
-                <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")} className="space-y-2">
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Billing Options</Label>
+                <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")}>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="personal" id="personal-room" />
-                    <Label htmlFor="personal-room" className="text-sm">My Credits</Label>
+                    <Label htmlFor="personal-room" className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      Use My Credits (Personal)
+                    </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="organization" id="organization-room" />
-                    <Label htmlFor="organization-room" className="text-sm">Company</Label>
+                    <Label htmlFor="organization-room" className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Charge to My Company
+                    </Label>
                   </div>
                 </RadioGroup>
               </div>
             )}
 
-            {/* Credits Info - Prominent Display at Bottom */}
+            {/* Notes */}
+            <div>
+              <Label htmlFor="booking-notes">Meeting Notes (Optional)</Label>
+              <Textarea
+                id="booking-notes"
+                placeholder="Meeting agenda, special requirements, etc..."
+                value={bookingNotes}
+                onChange={(e) => setBookingNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {/* Credit Check */}
             {selectedRoom && duration && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-green-800">Credits Required:</span>
-                  <span className="text-lg font-bold text-green-900">{calculateCredits()}</span>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span>Credits Required:</span>
+                  <span className="font-semibold">{calculateCredits()}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-green-700">Available Credits:</span>
-                  <span className="font-semibold text-green-800">{availableCredits}</span>
+                <div className="flex justify-between items-center mb-2">
+                  <span>Available Credits:</span>
+                  <span className="font-semibold">{availableCredits}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-green-700">After Booking:</span>
-                  <span className={`font-semibold ${availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-800"}`}>
+                <Separator className="my-2" />
+                <div className="flex justify-between items-center font-bold">
+                  <span>Remaining After Booking:</span>
+                  <span className={availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}>
                     {availableCredits - calculateCredits()}
                   </span>
                 </div>
+                
+                {availableCredits - calculateCredits() < 0 && (
+                  <Alert className="mt-3">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Insufficient credits. You need {calculateCredits() - availableCredits} more credits.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
             )}
 
@@ -694,7 +644,7 @@ export default function RoomsPage() {
             <Button 
               className="w-full"
               onClick={handleBookRoom}
-              disabled={!selectedRoom || !duration || bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
+              disabled={bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
             >
               {bookRoomMutation.isPending ? (
                 <div className="flex items-center gap-2">
@@ -702,18 +652,9 @@ export default function RoomsPage() {
                   Booking...
                 </div>
               ) : (
-                `Confirm Booking • ${selectedRoom && duration ? calculateCredits() : 0} Credits`
+                `Confirm Booking • ${calculateCredits()} Credits`
               )}
             </Button>
-            
-            {selectedRoom && duration && availableCredits - calculateCredits() < 0 && (
-              <Alert className="py-2">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  Insufficient credits. You need {calculateCredits() - availableCredits} more credits.
-                </AlertDescription>
-              </Alert>
-            )}
           </div>
         </DialogContent>
       </Dialog>

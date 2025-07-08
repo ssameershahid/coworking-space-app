@@ -206,14 +206,6 @@ Changelog:
   * Updated community directory to only show email contact button when user opts in
   * Members can now control whether their email appears in community directory
   * Enhanced user privacy while maintaining optional contact functionality
-- July 08, 2025. COMPLETED Meeting room booking modal redesign with calendar view and fixed credit logic:
-  * Fixed credit calculation to use direct proportional logic: 1 hour = 1 credit, 0.5 hour = 0.5 credit
-  * Redesigned booking modal with compact side-by-side layout (max-w-5xl) to prevent scrolling
-  * Added interactive calendar view for date selection with Pakistani date format throughout
-  * Implemented whole-hour-only time selection dropdown (1 AM, 2 AM, etc.) for cleaner interface
-  * Created ultra-compact bottom section with notes, billing, and credits in single row
-  * Enhanced visual hierarchy with smaller text sizes and tighter spacing
-  * Modal now fits perfectly on screen without vertical scrolling
 ```
 
 ## User Preferences
