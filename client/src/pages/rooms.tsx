@@ -376,7 +376,7 @@ export default function RoomsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRooms.map((room) => (
           <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-20 bg-gray-100 relative">
+            <div className="h-16 bg-gray-100 relative">
               {room.image_url && room.image_url !== "/conference-room.svg" ? (
                 <img 
                   src={room.image_url} 
@@ -386,14 +386,10 @@ export default function RoomsPage() {
               ) : (
                 <div className="w-full h-full relative" style={{background: 'linear-gradient(135deg, #e67e22 0%, #d68910 100%)'}}>
                   <div className="absolute inset-0 flex items-center justify-between px-4">
-                    <div className="text-white font-semibold text-sm">
+                    <div className="text-white font-bold text-base">
                       Conference Room {room.name.split(' ')[2] || room.name.charAt(room.name.length - 1)}
                     </div>
-                    <img 
-                      src="/attached_assets/image_1751974776787.png" 
-                      alt="CalmKaaj Logo" 
-                      className="w-8 h-8 object-contain"
-                    />
+                    <div className="w-6 h-6 bg-white bg-opacity-20 rounded transform rotate-45"></div>
                   </div>
                 </div>
               )}
@@ -446,9 +442,8 @@ export default function RoomsPage() {
 
               <div className="pt-3 border-t">
                 <Button 
-                  variant="outline"
                   size="sm"
-                  className="w-full"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
                   onClick={() => {
                     setSelectedRoom(room);
                     setShowBookingModal(true);

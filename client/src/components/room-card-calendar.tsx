@@ -165,21 +165,7 @@ export function RoomCardCalendar({
         ))}
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-3 text-xs text-gray-600">
-        <div className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          <span>1 hour slots</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 bg-green-50 border border-green-300 rounded"></div>
-          <span>Available</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 bg-gray-100 rounded"></div>
-          <span>Booked</span>
-        </div>
-      </div>
+
     </div>
   );
 }
