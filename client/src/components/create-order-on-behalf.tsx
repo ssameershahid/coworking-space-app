@@ -502,39 +502,106 @@ export default function CreateOrderOnBehalf() {
               </DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto space-y-4">
-              {cart.map(item => (
-                <div key={item.menu_item_id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{item.menu_item.name}</h4>
-                    <p className="text-sm text-gray-600">Rs. {item.menu_item.price} each</p>
+              {/* Order Items */}
+              <div className="space-y-2">
+                {cart.map(item => (
+                  <div key={item.menu_item_id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-sm">{item.menu_item.name}</h4>
+                      <p className="text-xs text-gray-600">Rs. {item.menu_item.price} each</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="font-semibold min-w-[1.5rem] text-center text-sm">{item.quantity}</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        className="h-6 w-6 p-0 ml-1"
+                        onClick={() => removeFromCart(item.menu_item_id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="font-semibold min-w-[2rem] text-center">{item.quantity}</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => removeFromCart(item.menu_item_id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                ))}
+              </div>
+
+              {/* User Selection */}
+              <div className="border-t pt-4">
+                <Label htmlFor="user-select" className="text-sm font-medium">Select User</Label>
+                <Select value={selectedUserId} onValueChange={handleUserSelect}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Choose a user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map(user => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        {user.first_name} {user.last_name} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Billing Type */}
+              {selectedUser && (
+                <div>
+                  <Label className="text-sm font-medium">Billing Type</Label>
+                  <Select value={billedTo} onValueChange={(value: "personal" | "organization") => setBilledTo(value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Personal</SelectItem>
+                      {selectedUser.organization_id && (
+                        <SelectItem value="organization">Organization</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
-              ))}
+              )}
+
+              {/* Delivery Location */}
+              <div>
+                <Label htmlFor="delivery-location" className="text-sm font-medium">Delivery Location</Label>
+                <Input
+                  id="delivery-location"
+                  placeholder="e.g., Desk 15, Conference Room A"
+                  value={deliveryLocation}
+                  onChange={(e) => setDeliveryLocation(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Notes */}
+              <div>
+                <Label htmlFor="notes" className="text-sm font-medium">Notes (Optional)</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Any special instructions..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="mt-1"
+                  rows={2}
+                />
+              </div>
             </div>
+            
             <div className="flex-shrink-0 border-t pt-4 mt-4">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-lg font-semibold">Total: Rs. {totalAmount.toFixed(2)}</span>
@@ -542,7 +609,7 @@ export default function CreateOrderOnBehalf() {
               <Button 
                 onClick={handleSubmit} 
                 className="w-full h-12 text-lg bg-green-700 hover:bg-green-800 text-white"
-                disabled={createOrderMutation.isPending}
+                disabled={createOrderMutation.isPending || !selectedUserId || !deliveryLocation}
               >
                 {createOrderMutation.isPending ? "Creating Order..." : "Create Order"}
               </Button>
