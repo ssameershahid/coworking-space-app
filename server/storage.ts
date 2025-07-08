@@ -218,6 +218,10 @@ export class DatabaseStorage implements IStorage {
     return updatedItem;
   }
 
+  async deleteMenuItem(id: number): Promise<void> {
+    await db.delete(schema.menu_items).where(eq(schema.menu_items.id, id));
+  }
+
   async createCafeOrder(order: schema.InsertCafeOrder): Promise<schema.CafeOrder> {
     const [newOrder] = await db.insert(schema.cafe_orders).values(order).returning();
     return newOrder;

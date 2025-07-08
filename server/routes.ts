@@ -290,7 +290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin endpoint to get all menu items (including inactive ones)
-  app.get("/api/admin/menu/items", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.get("/api/admin/menu/items", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
     try {
       const { site } = req.query;
       const items = await storage.getAllMenuItems(site as string);
@@ -327,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/menu/items", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
+  app.post("/api/menu/items", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
     try {
       const result = schema.insertMenuItemSchema.safeParse(req.body);
       if (!result.success) {
@@ -342,7 +342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/menu/items/:id", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin"]), async (req, res) => {
+  app.patch("/api/menu/items/:id", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
@@ -352,6 +352,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating menu item:", error);
       res.status(500).json({ message: "Failed to update menu item" });
+    }
+  });
+
+  app.delete("/api/menu/items/:id", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteMenuItem(id);
+      res.json({ message: "Menu item deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting menu item:", error);
+      res.status(500).json({ message: "Failed to delete menu item" });
     }
   });
 
