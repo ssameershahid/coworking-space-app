@@ -62,7 +62,7 @@ export default function CafePage() {
   });
 
   const { data: menuItems = [] } = useQuery<MenuItemType[]>({
-    queryKey: ["/api/menu/items", user?.site],
+    queryKey: ["/api/menu/items"],
     enabled: !!user,
   });
 

@@ -270,6 +270,16 @@ Changelog:
   * Enhanced table display with proper column alignment and visual separators
   * Added footer with system identification and professional context
   * Both cafe orders and room bookings now have matching professional PDF reports
+- July 09, 2025. COMPLETED Location-based menu system for Blue Area and I-10 locations:
+  * Added site field to menu_categories table with Blue Area and I-10 support
+  * Updated backend storage methods to filter menu categories and items by user's site
+  * Modified API endpoints to automatically use authenticated user's site instead of query parameters
+  * Added location-specific menu categories: Blue Area (Beverages, Snacks, Meals, Desserts) and I-10 (Coffee & Tea, Light Bites, Lunch Items, Sweets)
+  * Created distinct menu items for each location with different pricing and options
+  * Updated cafe users endpoint to filter users by site for order-on-behalf functionality
+  * Cafe managers can now only see users and menus from their assigned location
+  * Members automatically see menu items specific to their site location
+  * Both locations maintain separate menu management while sharing the same application structure
 - July 09, 2025. COMPLETED Cart button redesign with CalmKaaj logo integration:
   * Replaced traditional cart button with circular CalmKaaj logo design
   * Fixed z-index interference with navigation menu by adjusting positioning (bottom-20 instead of bottom-6)

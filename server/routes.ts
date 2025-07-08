@@ -270,7 +270,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Menu routes
   app.get("/api/menu/categories", requireAuth, async (req, res) => {
     try {
-      const categories = await storage.getMenuCategories();
+      const user = req.user as any;
+      const categories = await storage.getMenuCategories(user?.site);
       res.json(categories);
     } catch (error) {
       console.error("Error fetching menu categories:", error);
@@ -280,8 +281,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/menu/items", requireAuth, async (req, res) => {
     try {
-      const { site } = req.query;
-      const items = await storage.getMenuItems(site as string);
+      const user = req.user as any;
+      const items = await storage.getMenuItems(user?.site);
       res.json(items);
     } catch (error) {
       console.error("Error fetching menu items:", error);
@@ -292,8 +293,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin endpoint to get all menu items (including inactive ones)
   app.get("/api/admin/menu/items", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
     try {
-      const { site } = req.query;
-      const items = await storage.getAllMenuItems(site as string);
+      const user = req.user as any;
+      const items = await storage.getAllMenuItems(user?.site);
       res.json(items);
     } catch (error) {
       console.error("Error fetching all menu items:", error);
@@ -647,10 +648,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(schema.users)
       .where(
-        or(
-          eq(schema.users.role, "member_individual"),
-          eq(schema.users.role, "member_organization"),
-          eq(schema.users.role, "member_organization_admin")
+        and(
+          or(
+            eq(schema.users.role, "member_individual"),
+            eq(schema.users.role, "member_organization"),
+            eq(schema.users.role, "member_organization_admin")
+          ),
+          eq(schema.users.site, filterSite as any)
         )
       )
       .orderBy(schema.users.first_name, schema.users.last_name);

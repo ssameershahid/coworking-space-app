@@ -46,7 +46,7 @@ export function MenuManagement() {
   });
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
-    queryKey: ['/api/admin/menu/items', user?.site],
+    queryKey: ['/api/admin/menu/items'],
     enabled: !!user,
   });
 
