@@ -9,7 +9,6 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center">
               <span className="text-2xl font-bold text-gray-800">CalmKaaj</span>
-              <span className="text-orange-500 text-3xl ml-1">◆</span>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
               Your ideal workspace solution combining productivity, comfort, and a vibrant community environment.
