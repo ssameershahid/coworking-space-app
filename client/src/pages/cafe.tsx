@@ -403,7 +403,7 @@ export default function CafePage() {
             
             <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-4">
               {/* Cart Items */}
-              <div className="max-h-48 overflow-y-auto space-y-3">
+              <div className="space-y-3">
                 {cart.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1">
