@@ -302,8 +302,10 @@ const CommunitySection = () => {
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { selectedLocation } = useLocation();
   const queryClient = useQueryClient();
+  
+  // Initialize with default state
+  const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [newUserDialog, setNewUserDialog] = useState(false);
   const [newOrgDialog, setNewOrgDialog] = useState(false);
   const [newRoomDialog, setNewRoomDialog] = useState(false);
@@ -412,7 +414,7 @@ export default function AdminDashboard() {
       const response = await fetch(url);
       return response.json();
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && user.role === 'calmkaaj_admin' && selectedLocation
   });
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
@@ -422,7 +424,7 @@ export default function AdminDashboard() {
       const response = await fetch(url);
       return response.json();
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && user.role === 'calmkaaj_admin' && selectedLocation
   });
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
@@ -432,7 +434,7 @@ export default function AdminDashboard() {
       const response = await fetch(url);
       return response.json();
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && user.role === 'calmkaaj_admin' && selectedLocation
   });
 
   const { data: announcements = [] } = useQuery<Announcement[]>({
@@ -2476,7 +2478,16 @@ export default function AdminDashboard() {
             <p className="text-gray-600">Complete system oversight and analytics</p>
           </div>
           <div className="flex items-center gap-4">
-            <LocationToggle />
+            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sites</SelectItem>
+                <SelectItem value="blue_area">Blue Area</SelectItem>
+                <SelectItem value="i_10">I-10</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
