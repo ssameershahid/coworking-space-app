@@ -538,14 +538,36 @@ export default function RoomsPage() {
             <div>
               <div className="space-y-3">
                 <Label className="text-base font-medium">Select Time Slots</Label>
-                <div className="text-sm text-gray-600">
-                  {bookingDate && new Date(bookingDate).toLocaleDateString('en-US', { 
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
-                </div>
+                {bookingDate && (
+                  <div className="text-sm text-gray-600">
+                    {new Date(bookingDate).toLocaleDateString('en-US', { 
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </div>
+                )}
+                
+                {/* Credits Info - Prominent Display */}
+                {selectedRoom && duration && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-green-800">Credits Required:</span>
+                      <span className="text-lg font-bold text-green-900">{calculateCredits()}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-green-700">Available Credits:</span>
+                      <span className="font-semibold text-green-800">{availableCredits}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-green-700">After Booking:</span>
+                      <span className={`font-semibold ${availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-800"}`}>
+                        {availableCredits - calculateCredits()}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Start Time */}
                 <div>
@@ -618,18 +640,21 @@ export default function RoomsPage() {
                 {/* End Time Display */}
                 <div>
                   <Label className="text-sm text-gray-600 mb-1 block">End Time</Label>
-                  <Select value={startTime && duration ? (() => {
-                    const [hours, minutes] = startTime.split(':').map(Number);
-                    const startMinutes = hours * 60 + minutes;
-                    const endMinutes = startMinutes + parseFloat(duration) * 60;
-                    const endHours = Math.floor(endMinutes / 60) % 24;
-                    const endMins = endMinutes % 60;
-                    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-                  })() : ""} disabled>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select duration first" />
-                    </SelectTrigger>
-                  </Select>
+                  <div className="p-2 bg-gray-50 border rounded-md text-sm">
+                    {startTime && duration ? (() => {
+                      const [hours, minutes] = startTime.split(':').map(Number);
+                      const startMinutes = hours * 60 + minutes;
+                      const endMinutes = startMinutes + parseFloat(duration) * 60;
+                      const endHours = Math.floor(endMinutes / 60) % 24;
+                      const endMins = endMinutes % 60;
+                      const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+                      return new Date(`2000-01-01T${endTime}:00`).toLocaleTimeString([], { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        hour12: true 
+                      });
+                    })() : "Select start time and duration"}
+                  </div>
                 </div>
                 
                 
@@ -672,27 +697,10 @@ export default function RoomsPage() {
               )}
             </div>
 
-            {/* Credit Summary and Book Button */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6 text-sm">
-                <div>
-                  <span className="text-gray-600">Credits Required:</span>
-                  <span className="font-semibold ml-2">{selectedRoom && duration ? calculateCredits() : 0}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Available:</span>
-                  <span className="font-semibold ml-2">{availableCredits}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Remaining:</span>
-                  <span className={`font-semibold ml-2 ${selectedRoom && duration && availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}`}>
-                    {selectedRoom && duration ? availableCredits - calculateCredits() : availableCredits}
-                  </span>
-                </div>
-              </div>
-
+            {/* Book Button */}
+            <div className="flex justify-center">
               <Button 
-                className="px-6"
+                className="px-8 py-2"
                 onClick={handleBookRoom}
                 disabled={!selectedRoom || !duration || bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
               >
