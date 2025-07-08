@@ -495,57 +495,64 @@ export default function CreateOrderOnBehalf() {
           <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center justify-between">
-                <span>Order Summary</span>
+                <span>Your Order</span>
                 <Button variant="ghost" size="sm" onClick={clearCart}>
                   <Trash2 className="h-4 w-4" />
+                  <span className="ml-1">Clear</span>
                 </Button>
               </DialogTitle>
             </DialogHeader>
-            <div className="flex-1 overflow-y-auto space-y-4">
+            
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
               {/* Order Items */}
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {cart.map(item => (
-                  <div key={item.menu_item_id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={item.menu_item_id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
-                      <h4 className="font-semibold text-sm">{item.menu_item.name}</h4>
-                      <p className="text-xs text-gray-600">Rs. {item.menu_item.price} each</p>
+                      <h4 className="font-semibold">{item.menu_item.name}</h4>
+                      <p className="text-sm text-gray-600">Rs. {item.menu_item.price}</p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="font-semibold min-w-[1.5rem] text-center text-sm">{item.quantity}</span>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        className="h-6 w-6 p-0 ml-1"
-                        onClick={() => removeFromCart(item.menu_item_id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="font-semibold min-w-[2rem] text-center">{item.quantity}</span>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold">Rs. {(parseFloat(item.menu_item.price) * item.quantity).toFixed(2)}</div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          onClick={() => removeFromCart(item.menu_item_id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* User Selection */}
-              <div className="border-t pt-4">
-                <Label htmlFor="user-select" className="text-sm font-medium">Select User</Label>
+              {/* Select User */}
+              <div>
+                <Label className="text-sm font-medium block mb-2">Select User</Label>
                 <Select value={selectedUserId} onValueChange={handleUserSelect}>
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger>
                     <SelectValue placeholder="Choose a user" />
                   </SelectTrigger>
                   <SelectContent>
@@ -558,60 +565,45 @@ export default function CreateOrderOnBehalf() {
                 </Select>
               </div>
 
-              {/* Billing Type */}
-              {selectedUser && (
-                <div>
-                  <Label className="text-sm font-medium">Billing Type</Label>
-                  <Select value={billedTo} onValueChange={(value: "personal" | "organization") => setBilledTo(value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="personal">Personal</SelectItem>
-                      {selectedUser.organization_id && (
-                        <SelectItem value="organization">Organization</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
               {/* Delivery Location */}
               <div>
-                <Label htmlFor="delivery-location" className="text-sm font-medium">Delivery Location</Label>
+                <Label htmlFor="delivery-location" className="text-sm font-medium block mb-2">Delivery Location</Label>
                 <Input
                   id="delivery-location"
                   placeholder="e.g., Desk 15, Conference Room A"
                   value={deliveryLocation}
                   onChange={(e) => setDeliveryLocation(e.target.value)}
-                  className="mt-1"
                 />
               </div>
 
-              {/* Notes */}
+              {/* Special Instructions */}
               <div>
-                <Label htmlFor="notes" className="text-sm font-medium">Notes (Optional)</Label>
+                <Label htmlFor="notes" className="text-sm font-medium block mb-2">Special Instructions (Optional)</Label>
                 <Textarea
                   id="notes"
-                  placeholder="Any special instructions..."
+                  placeholder="Any special requests or dietary requirements..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="mt-1"
-                  rows={2}
+                  rows={3}
                 />
               </div>
             </div>
             
-            <div className="flex-shrink-0 border-t pt-4 mt-4">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-semibold">Total: Rs. {totalAmount.toFixed(2)}</span>
-              </div>
+            {/* Fixed Footer with Place Order Button */}
+            <div className="flex-shrink-0 px-4 py-4 border-t bg-white">
               <Button 
-                onClick={handleSubmit} 
-                className="w-full h-12 text-lg bg-green-700 hover:bg-green-800 text-white"
+                className="w-full h-12 text-lg"
+                onClick={handleSubmit}
                 disabled={createOrderMutation.isPending || !selectedUserId || !deliveryLocation}
               >
-                {createOrderMutation.isPending ? "Creating Order..." : "Create Order"}
+                {createOrderMutation.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Creating Order...
+                  </div>
+                ) : (
+                  `Place Order • Rs. ${totalAmount.toFixed(2)}`
+                )}
               </Button>
             </div>
           </DialogContent>
