@@ -20,6 +20,7 @@ import CreateOrderPage from "@/pages/create-order";
 import BillingTransactionsPage from "@/pages/billing-transactions";
 import Navigation from "@/components/layout/navigation";
 import MobileNav from "@/components/layout/mobile-nav";
+import Footer from "@/components/layout/footer";
 import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -35,12 +36,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <ImpersonationBanner />
       <Navigation />
-      <main className="pb-16 md:pb-0">
+      <main className="flex-1 pb-16 md:pb-0">
         {children}
       </main>
+      <Footer />
       <MobileNav />
     </div>
   );
