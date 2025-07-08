@@ -283,32 +283,86 @@ export default function CreateOrderOnBehalf() {
           <CardDescription>Select items for the order</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
             {menuItems.filter(item => item.is_available).map(item => (
-              <div key={item.id} className="border rounded-lg p-6 bg-white shadow-sm min-h-[200px] flex flex-col">
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                    {item.is_daily_special && (
-                      <Badge variant="destructive">Special</Badge>
-                    )}
+              <Card key={item.id} className="group hover:shadow-lg transition-shadow duration-200">
+                <div className="aspect-[4/3] sm:aspect-[4/3] overflow-hidden rounded-t-lg bg-gray-100">
+                  {item.image_url ? (
+                    <img 
+                      src={item.image_url} 
+                      alt={item.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <Coffee className="h-8 w-8 sm:h-12 sm:w-12" />
+                    </div>
+                  )}
+                </div>
+                
+                <CardContent className="p-3 sm:p-4">
+                  <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{item.name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">{item.description}</p>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm sm:text-lg font-bold text-green-600">Rs. {item.price}</span>
+                    
+                    <div className="flex items-center space-x-1 sm:space-x-2">
+                      {cart.find(cartItem => cartItem.id === item.id) ? (
+                        <div className="flex items-center space-x-1 sm:space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                            onClick={() => {
+                              const cartItem = cart.find(cartItem => cartItem.id === item.id);
+                              if (cartItem && cartItem.quantity > 1) {
+                                updateQuantity(item.id, cartItem.quantity - 1);
+                              } else {
+                                removeFromCart(item.id);
+                              }
+                            }}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="font-medium text-sm min-w-[1.5rem] text-center">
+                            {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                            onClick={() => {
+                              const cartItem = cart.find(cartItem => cartItem.id === item.id);
+                              if (cartItem) {
+                                updateQuantity(item.id, cartItem.quantity + 1);
+                              }
+                            }}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="bg-green-700 hover:bg-green-800 text-white h-7 px-3 sm:h-8 sm:px-4 text-xs sm:text-sm"
+                          onClick={() => addToCart(item)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                  <p className="text-lg font-bold text-green-700">Rs. {item.price}</p>
-                </div>
-                <div className="pt-4 mt-auto">
-                  <button 
-                    onClick={() => {
-                      console.log('Button clicked for item:', item.name);
-                      addToCart(item);
-                    }} 
-                    className="w-full bg-green-700 hover:bg-green-800 text-white h-10 rounded-md font-medium transition-colors"
-                  >
-                    <Plus className="h-4 w-4 mr-2 inline" />
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
+                  
+                  {item.is_daily_special && (
+                    <Badge variant="destructive" className="mt-2 text-xs">
+                      <Star className="h-3 w-3 mr-1" />
+                      Today's Special
+                    </Badge>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
         </CardContent>
