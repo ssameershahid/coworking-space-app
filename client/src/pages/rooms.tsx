@@ -455,16 +455,15 @@ export default function RoomsPage() {
       </div>
       {/* Booking Modal */}
       <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
-        <DialogContent className="max-w-5xl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Book {selectedRoom?.name}</DialogTitle>
           </DialogHeader>
           
-          <div className="grid grid-cols-2 gap-6">
-            {/* Left Column - Calendar Date Selection */}
+          <div className="space-y-4">
+            {/* Date Selection */}
             <div>
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Select a Date</Label>
+              <Label className="text-base font-medium mb-3 block">Select a Date</Label>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="text-center mb-4">
                     <h3 className="font-medium text-lg">
@@ -531,13 +530,11 @@ export default function RoomsPage() {
                     <span>Existing bookings</span>
                   </div>
                 </div>
-              </div>
             </div>
 
-            {/* Right Column - Time Selection */}
-            <div>
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Select Time Slots</Label>
+            {/* Time Selection */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Select Time Slots</Label>
                 {bookingDate && (
                   <div className="text-sm text-gray-600">
                     {new Date(bookingDate).toLocaleDateString('en-US', { 
@@ -656,64 +653,76 @@ export default function RoomsPage() {
                     })() : "Select start time and duration"}
                   </div>
                 </div>
-                
-                
-              </div>
             </div>
           </div>
 
-          {/* Bottom Section - Compact */}
-          <div className="border-t pt-3 space-y-3">
-            {/* Notes and Billing Row */}
-            <div className="flex gap-4">
-              {/* Notes */}
-              <div className="flex-1">
-                <Label htmlFor="booking-notes" className="text-sm">Meeting Notes (Optional)</Label>
-                <Textarea
-                  id="booking-notes"
-                  placeholder="Meeting agenda, requirements..."
-                  value={bookingNotes}
-                  onChange={(e) => setBookingNotes(e.target.value)}
-                  rows={1}
-                  className="text-sm resize-none"
-                />
-              </div>
-
-              {/* Billing Options */}
-              {canChargeToOrg && (
-                <div className="w-48">
-                  <Label className="text-sm font-medium mb-1 block">Billing</Label>
-                  <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")} className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="personal" id="personal-room" />
-                      <Label htmlFor="personal-room" className="text-xs">My Credits</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="organization" id="organization-room" />
-                      <Label htmlFor="organization-room" className="text-xs">Company</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              )}
+          {/* Bottom Section */}
+          <div className="border-t pt-4 space-y-4">
+            {/* Meeting Notes - Smaller */}
+            <div>
+              <Label htmlFor="booking-notes" className="text-sm">Meeting Notes (Optional)</Label>
+              <Textarea
+                id="booking-notes"
+                placeholder="Meeting agenda, requirements..."
+                value={bookingNotes}
+                onChange={(e) => setBookingNotes(e.target.value)}
+                rows={2}
+                className="text-sm resize-none mt-1"
+              />
             </div>
+
+            {/* Billing Options */}
+            {canChargeToOrg && (
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Billing</Label>
+                <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")} className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="personal" id="personal-room" />
+                    <Label htmlFor="personal-room" className="text-sm">My Credits</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="organization" id="organization-room" />
+                    <Label htmlFor="organization-room" className="text-sm">Company</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
+
+            {/* Credits Info - Prominent Display at Bottom */}
+            {selectedRoom && duration && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-green-800">Credits Required:</span>
+                  <span className="text-lg font-bold text-green-900">{calculateCredits()}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-green-700">Available Credits:</span>
+                  <span className="font-semibold text-green-800">{availableCredits}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-green-700">After Booking:</span>
+                  <span className={`font-semibold ${availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-800"}`}>
+                    {availableCredits - calculateCredits()}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Book Button */}
-            <div className="flex justify-center">
-              <Button 
-                className="px-8 py-2"
-                onClick={handleBookRoom}
-                disabled={!selectedRoom || !duration || bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
-              >
-                {bookRoomMutation.isPending ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Booking...
-                  </div>
-                ) : (
-                  `Confirm Booking • ${selectedRoom && duration ? calculateCredits() : 0} Credits`
-                )}
-              </Button>
-            </div>
+            <Button 
+              className="w-full"
+              onClick={handleBookRoom}
+              disabled={!selectedRoom || !duration || bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
+            >
+              {bookRoomMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Booking...
+                </div>
+              ) : (
+                `Confirm Booking • ${selectedRoom && duration ? calculateCredits() : 0} Credits`
+              )}
+            </Button>
             
             {selectedRoom && duration && availableCredits - calculateCredits() < 0 && (
               <Alert className="py-2">
