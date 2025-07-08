@@ -1561,7 +1561,7 @@ BT
 0 -40 Td
 (Total Orders: ${orders.length}) Tj
 0 -20 Td
-(Total Amount: $${orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0).toFixed(2)}) Tj
+(Total Amount: PKR ${orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0).toFixed(2)}) Tj
 `;
 
   let yPosition = 640;
@@ -1569,7 +1569,7 @@ BT
   
   orders.forEach((order, index) => {
     orderDetails += `0 -20 Td
-(Order #${order.id} - ${new Date(order.created_at).toLocaleDateString()} - $${parseFloat(order.total_amount).toFixed(2)}) Tj
+(Order #${order.id} - ${new Date(order.created_at).toLocaleDateString()} - PKR ${parseFloat(order.total_amount).toFixed(2)}) Tj
 `;
     yPosition -= 20;
   });

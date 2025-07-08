@@ -221,6 +221,14 @@ Changelog:
   * Cleaned up community page heading by removing inline logo and using text only
   * Enhanced user experience with intuitive date selection interface
   * Updated authentication page to use CalmKaaj logo instead of text for consistent branding
+- July 08, 2025. COMPLETED Global currency conversion to PKR and comprehensive footer updates:
+  * Converted all pricing display from USD to PKR (Pakistani Rupees) throughout the entire application
+  * Updated PDF invoice generation to show "PKR" instead of "$" symbol for cafe orders
+  * Fixed organization dashboard and invoice components to display "Rs." prefix for all monetary values
+  * Enhanced footer with complete navigation restructure: Dashboard link, Website link, I-10/3 location
+  * Updated social media icons to Instagram, Facebook, LinkedIn, and Spotify with proper spacing
+  * Added Arteryal development credit line: "App developed with 🧡 by Arteryal" in footer
+  * Maintained existing "Rs." formatting in cafe menu system (already correct for Pakistani market)
 ```
 
 ## User Preferences

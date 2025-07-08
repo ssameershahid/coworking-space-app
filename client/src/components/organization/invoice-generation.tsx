@@ -180,7 +180,7 @@ export default function InvoiceGeneration() {
                   <span className="text-sm">Café Orders</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium">${totalCafeAmount.toFixed(2)}</div>
+                  <div className="text-sm font-medium">Rs. {totalCafeAmount.toFixed(2)}</div>
                   <div className="text-xs text-gray-500">{filteredOrders.length} orders</div>
                 </div>
               </div>
@@ -203,7 +203,7 @@ export default function InvoiceGeneration() {
                     <span className="text-sm font-semibold">Total</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold">${totalCafeAmount.toFixed(2)} + {totalRoomAmount} credits</div>
+                    <div className="text-sm font-bold">Rs. {totalCafeAmount.toFixed(2)} + {totalRoomAmount} credits</div>
                   </div>
                 </div>
               </div>
