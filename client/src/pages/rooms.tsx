@@ -460,16 +460,7 @@ export default function RoomsPage() {
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Room Info */}
-            {selectedRoom && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">{selectedRoom.name}</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                  <div>Capacity: {selectedRoom.capacity} people</div>
-                  <div>{selectedRoom.credit_cost_per_hour} credits/hour</div>
-                </div>
-              </div>
-            )}
+            
 
             {/* Modern Date and Time Selection */}
             <div className="grid grid-cols-2 gap-6">
