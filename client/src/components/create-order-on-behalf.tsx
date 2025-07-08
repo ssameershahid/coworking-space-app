@@ -285,8 +285,8 @@ export default function CreateOrderOnBehalf() {
         <CardContent>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {menuItems.filter(item => item.is_available).map(item => (
-              <div key={item.id} className="border rounded-lg p-4 bg-white shadow-sm">
-                <div className="mb-4">
+              <div key={item.id} className="border rounded-lg p-6 bg-white shadow-sm min-h-[200px] flex flex-col">
+                <div className="flex-1">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold text-gray-900">{item.name}</h3>
                     {item.is_daily_special && (
@@ -296,17 +296,17 @@ export default function CreateOrderOnBehalf() {
                   <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                   <p className="text-lg font-bold text-green-700">Rs. {item.price}</p>
                 </div>
-                <div className="mt-4">
-                  <Button 
+                <div className="pt-4 mt-auto">
+                  <button 
                     onClick={() => {
                       console.log('Button clicked for item:', item.name);
                       addToCart(item);
                     }} 
-                    className="w-full bg-green-700 hover:bg-green-800 text-white h-10"
+                    className="w-full bg-green-700 hover:bg-green-800 text-white h-10 rounded-md font-medium transition-colors"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 mr-2 inline" />
                     Add to Cart
-                  </Button>
+                  </button>
                 </div>
               </div>
             ))}
