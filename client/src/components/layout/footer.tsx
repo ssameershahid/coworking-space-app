@@ -1,4 +1,5 @@
-import { Instagram, Twitter, Facebook, MapPin, Phone, Mail } from "lucide-react";
+import { Instagram, Twitter, Facebook, MapPin, Phone, Mail, Linkedin } from "lucide-react";
+import { SiSpotify } from "react-icons/si";
 
 export default function Footer() {
   return (
@@ -13,15 +14,18 @@ export default function Footer() {
             <p className="text-sm text-gray-600 leading-relaxed">
               Your ideal workspace solution combining productivity, comfort, and a vibrant community environment.
             </p>
-            <div className="flex space-x-3">
+            <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
               <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
-                <Twitter className="h-5 w-5" />
+                <Facebook className="h-5 w-5" />
               </a>
               <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
-                <Facebook className="h-5 w-5" />
+                <Linkedin className="h-5 w-5" />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-orange-500 transition-colors">
+                <SiSpotify className="h-5 w-5" />
               </a>
             </div>
           </div>
@@ -31,6 +35,9 @@ export default function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <ul className="space-y-3 text-sm text-gray-600">
               <li>
+                <a href="/dashboard" className="hover:text-orange-500 transition-colors">Dashboard</a>
+              </li>
+              <li>
                 <a href="/cafe" className="hover:text-orange-500 transition-colors">Cafe Ordering</a>
               </li>
               <li>
@@ -38,9 +45,8 @@ export default function Footer() {
                   Meeting Rooms
                 </a>
               </li>
-              
               <li>
-                <a href="#" className="hover:text-orange-500 transition-colors">
+                <a href="/community" className="hover:text-orange-500 transition-colors">
                   Community
                 </a>
               </li>
@@ -60,6 +66,9 @@ export default function Footer() {
               <li>
                 <a href="#" className="hover:text-orange-500 transition-colors">Contact</a>
               </li>
+              <li>
+                <a href="#" className="hover:text-orange-500 transition-colors">Website</a>
+              </li>
             </ul>
           </div>
 
@@ -70,12 +79,15 @@ export default function Footer() {
               <div className="flex items-start space-x-2">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p>Blue Area</p>
+                  <p>Blue Area, Islamabad</p>
                 </div>
               </div>
-              
-              
-              
+              <div className="flex items-start space-x-2">
+                <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p>I-10/3, Islamabad</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -83,6 +95,7 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <p>© 2025 CalmKaaj. All rights reserved.</p>
+          <p>App designed and developed by Arteryal with 🧡</p>
         </div>
       </div>
     </footer>
