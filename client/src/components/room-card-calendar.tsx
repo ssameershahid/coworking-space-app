@@ -15,13 +15,15 @@ interface RoomCardCalendarProps {
   selectedDate: string;
   onTimeSlotSelect: (room: any, time: string) => void;
   selectedTimeSlot?: string;
+  isNightShift?: boolean;
 }
 
 export function RoomCardCalendar({ 
   room, 
   selectedDate, 
   onTimeSlotSelect, 
-  selectedTimeSlot 
+  selectedTimeSlot,
+  isNightShift = false
 }: RoomCardCalendarProps) {
   // Fetch room bookings for the selected date with stale time for real-time updates
   const { data: bookings = [], refetch } = useQuery({
@@ -37,42 +39,98 @@ export function RoomCardCalendar({
     
     const slots: TimeSlot[] = [];
     
-    for (let hour = 8; hour <= 19; hour++) { // 8 AM to 7 PM (12 slots)
-      const timeString = `${hour.toString().padStart(2, '0')}:00`;
-      const slotStart = new Date(`${selectedDate}T${timeString}`);
-      const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
-      
-      // Check if this slot conflicts with any existing booking
-      const hasConflict = bookings.some((booking: any) => {
-        const bookingStart = new Date(booking.start_time);
-        const bookingEnd = new Date(booking.end_time);
+    if (isNightShift) {
+      // Night shift: 8 PM to 7 AM (12 slots)
+      for (let hour = 20; hour <= 23; hour++) { // 8 PM to 11 PM
+        const timeString = `${hour.toString().padStart(2, '0')}:00`;
+        const slotStart = new Date(`${selectedDate}T${timeString}`);
+        const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
         
-        return (
-          booking.status === 'confirmed' &&
-          slotStart < bookingEnd &&
-          slotEnd > bookingStart
-        );
-      });
-
-      // Check if this slot is in the past using Pakistan time
-      const now = getPakistanTime();
-      const isPast = slotStart < now;
+        // Check if this slot conflicts with any existing booking
+        const hasConflict = bookings.some((booking: any) => {
+          const bookingStart = new Date(booking.start_time);
+          const bookingEnd = new Date(booking.end_time);
+          
+          return (
+            booking.status === 'confirmed' &&
+            slotStart < bookingEnd &&
+            slotEnd > bookingStart
+          );
+        });
+        
+        slots.push({
+          time: timeString,
+          available: !hasConflict,
+        });
+      }
       
-      slots.push({
-        time: timeString,
-        available: !hasConflict && !isPast
-      });
+      // Continue with 12 AM to 7 AM
+      for (let hour = 0; hour <= 7; hour++) { // 12 AM to 7 AM
+        const timeString = `${hour.toString().padStart(2, '0')}:00`;
+        const nextDay = new Date(selectedDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        const nextDateString = nextDay.toISOString().split('T')[0];
+        const slotStart = new Date(`${nextDateString}T${timeString}`);
+        const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
+        
+        // Check if this slot conflicts with any existing booking
+        const hasConflict = bookings.some((booking: any) => {
+          const bookingStart = new Date(booking.start_time);
+          const bookingEnd = new Date(booking.end_time);
+          
+          return (
+            booking.status === 'confirmed' &&
+            slotStart < bookingEnd &&
+            slotEnd > bookingStart
+          );
+        });
+        
+        slots.push({
+          time: timeString,
+          available: !hasConflict,
+        });
+      }
+    } else {
+      // Day shift: 8 AM to 7 PM (12 slots)
+      for (let hour = 8; hour <= 19; hour++) { // 8 AM to 7 PM
+        const timeString = `${hour.toString().padStart(2, '0')}:00`;
+        const slotStart = new Date(`${selectedDate}T${timeString}`);
+        const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
+        
+        // Check if this slot conflicts with any existing booking
+        const hasConflict = bookings.some((booking: any) => {
+          const bookingStart = new Date(booking.start_time);
+          const bookingEnd = new Date(booking.end_time);
+          
+          return (
+            booking.status === 'confirmed' &&
+            slotStart < bookingEnd &&
+            slotEnd > bookingStart
+          );
+        });
+
+        // Check if this slot is in the past using Pakistan time
+        const now = getPakistanTime();
+        const isPast = slotStart < now;
+        
+        slots.push({
+          time: timeString,
+          available: !hasConflict && !isPast
+        });
+      }
     }
     
     return slots;
-  }, [bookings, selectedDate]);
+  }, [bookings, selectedDate, isNightShift]);
 
   const formatTime = (time: string) => {
     const [hour] = time.split(':');
     const hourNum = parseInt(hour);
-    if (hourNum === 12) return '12:00';
-    if (hourNum > 12) return `${hourNum - 12}:00`;
-    return `${hourNum}:00`;
+    
+    if (hourNum === 0) return '12:00 AM';
+    if (hourNum < 12) return `${hourNum}:00 AM`;
+    if (hourNum === 12) return '12:00 PM';
+    return `${hourNum - 12}:00 PM`;
   };
 
   return (

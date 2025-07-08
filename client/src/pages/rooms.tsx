@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -36,7 +37,9 @@ import {
   Phone,
   Camera,
   Volume2,
-  Projector
+  Projector,
+  Sun,
+  Moon
 } from "lucide-react";
 import { MeetingRoom, MeetingBooking } from "@/lib/types";
 import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime } from "@/lib/pakistan-time";
@@ -72,6 +75,7 @@ export default function RoomsPage() {
   const [filterCapacity, setFilterCapacity] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [selectedDateView, setSelectedDateView] = useState(getPakistanDateString());
+  const [isNightShift, setIsNightShift] = useState(false);
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
     queryKey: ["/api/rooms", user?.site],
@@ -292,8 +296,17 @@ export default function RoomsPage() {
 
       {/* Date Selector */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-7 gap-3">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Calendar className="h-5 w-5" />
+            Select Your Booking Date
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Choose a date up to 1 week in advance to view available room times
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-7 gap-3 mb-6">
             {Array.from({ length: 7 }, (_, i) => {
               const date = formatPakistanDate(i);
               const dateString = formatPakistanDateString(i);
@@ -331,6 +344,30 @@ export default function RoomsPage() {
                 </Button>
               );
             })}
+          </div>
+          
+          {/* Day Grind/Night Hustle Toggle */}
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
+            <div className="flex items-center gap-3">
+              {isNightShift ? (
+                <Moon className="h-5 w-5 text-orange-600" />
+              ) : (
+                <Sun className="h-5 w-5 text-orange-600" />
+              )}
+              <div>
+                <Label htmlFor="shift-toggle" className="text-sm font-medium text-gray-900 cursor-pointer">
+                  {isNightShift ? 'Night Hustle' : 'Day Grind'} Shift
+                </Label>
+                <p className="text-sm text-gray-600">
+                  {isNightShift ? '8:00 PM - 7:00 AM' : '8:00 AM - 7:00 PM'} available times
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="shift-toggle"
+              checked={isNightShift}
+              onCheckedChange={setIsNightShift}
+            />
           </div>
         </CardContent>
       </Card>
@@ -407,6 +444,7 @@ export default function RoomsPage() {
                 selectedDate={selectedDateView}
                 onTimeSlotSelect={handleTimeSlotSelect}
                 selectedTimeSlot={selectedTimeSlot}
+                isNightShift={isNightShift}
               />
 
               <div className="pt-3 border-t">
