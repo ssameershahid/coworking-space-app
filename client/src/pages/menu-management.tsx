@@ -1,20 +1,212 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Edit2, Trash2, Menu } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { SimpleMenuEdit } from "@/components/simple-menu-edit";
 
 export default function MenuManagement() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [editingMenuItem, setEditingMenuItem] = useState<any>(null);
+  const [isUniversalEditOpen, setIsUniversalEditOpen] = useState(false);
+
+  // Fetch menu items
+  const { data: menuItems = [] } = useQuery({
+    queryKey: ['/api/admin/menu/items'],
+    enabled: !!user && user.role === 'cafe_manager'
+  });
+
+  // Create menu item mutation
+  const createMenuItem = useMutation({
+    mutationFn: async (menuItemData: any) => {
+      return apiRequest('POST', '/api/menu/items', menuItemData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
+      toast({ title: "Menu item created successfully!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to create menu item", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update menu item mutation
+  const updateMenuItem = useMutation({
+    mutationFn: async ({ itemId, updates }: { itemId: number; updates: any }) => {
+      return apiRequest('PATCH', `/api/menu/items/${itemId}`, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
+      toast({ title: "Menu item updated successfully!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update menu item", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete menu item mutation
+  const deleteMenuItem = useMutation({
+    mutationFn: async (itemId: number) => {
+      return apiRequest('DELETE', `/api/menu/items/${itemId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
+      toast({ title: "Menu item deleted successfully!" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete menu item", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleEditMenuItem = (item: any) => {
+    setEditingMenuItem(item);
+    setIsUniversalEditOpen(true);
+  };
+
+  const handleAddMenuItem = () => {
+    setEditingMenuItem(null);
+    setIsUniversalEditOpen(true);
+  };
+
+  const handleSaveFromUniversalEdit = (itemData: any) => {
+    if (itemData.id) {
+      // Update existing item
+      updateMenuItem.mutate({ itemId: itemData.id, updates: itemData });
+    } else {
+      // Create new item
+      createMenuItem.mutate(itemData);
+    }
+    setIsUniversalEditOpen(false);
+    setEditingMenuItem(null);
+  };
+
+  const handleDeleteMenuItem = (itemId: number) => {
+    if (confirm("Are you sure you want to delete this menu item?")) {
+      deleteMenuItem.mutate(itemId);
+    }
+  };
+
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Menu className="h-8 w-8" />
+            Menu Management
+          </h1>
+          <p className="text-gray-600 mt-2">Manage café menu items and pricing</p>
+        </div>
+        <Button onClick={handleAddMenuItem} className="bg-green-600 hover:bg-green-700">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Menu Item
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Menu className="h-6 w-6" />
-            Menu Management
-          </CardTitle>
+          <CardTitle>Menu Items</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Menu Management page is working!</p>
+          {menuItems.length === 0 ? (
+            <div className="text-center py-12">
+              <Menu className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No menu items found</p>
+              <p className="text-gray-400 text-sm mt-2">Get started by adding your first menu item</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Site</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {menuItems.map((item: any) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-gray-900">{item.name}</p>
+                          <p className="text-sm text-gray-500">{item.description}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>Rs. {item.price}</TableCell>
+                      <TableCell className="capitalize">{item.category || "Uncategorized"}</TableCell>
+                      <TableCell>
+                        {item.site === 'blue_area' ? 'Blue Area' : 'I-10'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Badge variant={item.is_available ? "default" : "secondary"}>
+                            {item.is_available ? "Available" : "Unavailable"}
+                          </Badge>
+                          {item.is_daily_special && (
+                            <Badge variant="destructive">Special</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditMenuItem(item)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteMenuItem(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Simple Edit Dialog */}
+      <SimpleMenuEdit
+        isOpen={isUniversalEditOpen}
+        onClose={() => {
+          setIsUniversalEditOpen(false);
+          setEditingMenuItem(null);
+        }}
+        item={editingMenuItem}
+        onSave={handleSaveFromUniversalEdit}
+      />
     </div>
   );
 }
