@@ -44,7 +44,7 @@ import {
   UserX
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { SimpleMenuEdit } from "@/components/simple-menu-edit";
+// import { SimpleMenuEdit } from "@/components/simple-menu-edit";
 import { format } from "date-fns";
 
 interface AdminStats {
@@ -314,7 +314,6 @@ export default function AdminDashboard() {
   const [newMenuItemDialog, setNewMenuItemDialog] = useState(false);
   const [editMenuItemDialog, setEditMenuItemDialog] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<any>(null);
-  const [isSimpleMenuEditOpen, setIsSimpleMenuEditOpen] = useState(false);
   const [editRoomDialog, setEditRoomDialog] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [editAnnouncementDialog, setEditAnnouncementDialog] = useState(false);
@@ -2366,6 +2365,101 @@ export default function AdminDashboard() {
     );
   };
 
+  const SimpleEditForm = ({ item, onClose }: { item: any; onClose: () => void }) => {
+    const [formData, setFormData] = useState({
+      name: item.name || '',
+      description: item.description || '',
+      price: item.price || '',
+      image_url: item.image_url || '',
+      is_available: item.is_available || true,
+      site: item.site || 'blue_area'
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        await updateMenuItem.mutateAsync({ itemId: item.id, updates: formData });
+        onClose();
+      } catch (error) {
+        console.error('Failed to update menu item:', error);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="edit_name">Item Name</Label>
+          <Input
+            id="edit_name"
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_description">Description</Label>
+          <Textarea
+            id="edit_description"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            className="resize-none"
+            rows={2}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_price">Price (Rs.)</Label>
+          <Input
+            id="edit_price"
+            type="number"
+            step="0.01"
+            value={formData.price}
+            onChange={(e) => setFormData({...formData, price: e.target.value})}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_image_url">Image URL</Label>
+          <Input
+            id="edit_image_url"
+            placeholder="https://example.com/image.jpg"
+            value={formData.image_url}
+            onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="edit_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="edit_is_available"
+            checked={formData.is_available}
+            onChange={(e) => setFormData({...formData, is_available: e.target.checked})}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="edit_is_available">Available for ordering</Label>
+        </div>
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={updateMenuItem.isPending} className="bg-green-600 hover:bg-green-700">
+            {updateMenuItem.isPending ? "Updating..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -3149,23 +3243,22 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Edit Menu Item Dialog */}
-      <SimpleMenuEdit 
-        isOpen={editMenuItemDialog}
-        onClose={() => {
-          setEditMenuItemDialog(false);
-          setSelectedMenuItem(null);
-        }}
-        item={selectedMenuItem}
-        onSave={async (updatedItem) => {
-          try {
-            await updateMenuItem.mutateAsync({ itemId: updatedItem.id, updates: updatedItem });
-            setEditMenuItemDialog(false);
-            setSelectedMenuItem(null);
-          } catch (error) {
-            console.error('Failed to update menu item:', error);
-          }
-        }}
-      />
+      <Dialog open={editMenuItemDialog} onOpenChange={setEditMenuItemDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Menu Item</DialogTitle>
+          </DialogHeader>
+          {selectedMenuItem && (
+            <SimpleEditForm 
+              item={selectedMenuItem} 
+              onClose={() => {
+                setEditMenuItemDialog(false);
+                setSelectedMenuItem(null);
+              }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Room Dialog */}
       <Dialog open={editRoomDialog} onOpenChange={setEditRoomDialog}>
