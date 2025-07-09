@@ -8,9 +8,9 @@ import { Plus, Edit2, Trash2, Menu } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { SimpleMenuEdit } from "@/components/simple-menu-edit";
+import { UniversalMenuItemEdit } from "@/components/universal-menu-item-edit";
 
-export default function MenuManagementPage() {
+export default function MenuManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -18,10 +18,15 @@ export default function MenuManagementPage() {
   const [editingMenuItem, setEditingMenuItem] = useState<any>(null);
   const [isUniversalEditOpen, setIsUniversalEditOpen] = useState(false);
 
+  // Determine API endpoint based on user role
+  const isAdmin = user?.role === 'calmkaaj_admin';
+  const isCafeManager = user?.role === 'cafe_manager';
+  const apiEndpoint = isAdmin ? '/api/admin/menu/items' : '/api/menu/items';
+
   // Fetch menu items
-  const { data: menuItems = [] } = useQuery({
-    queryKey: ['/api/admin/menu/items'],
-    enabled: !!user && user.role === 'cafe_manager'
+  const { data: menuItems = [], isLoading } = useQuery({
+    queryKey: [apiEndpoint],
+    enabled: !!user && (isAdmin || isCafeManager)
   });
 
   // Create menu item mutation
@@ -30,7 +35,7 @@ export default function MenuManagementPage() {
       return apiRequest('POST', '/api/menu/items', menuItemData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
+      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
       toast({ title: "Menu item created successfully!" });
     },
     onError: (error: any) => {
@@ -48,7 +53,7 @@ export default function MenuManagementPage() {
       return apiRequest('PATCH', `/api/menu/items/${itemId}`, updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
+      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
       toast({ title: "Menu item updated successfully!" });
     },
     onError: (error: any) => {
@@ -66,7 +71,7 @@ export default function MenuManagementPage() {
       return apiRequest('DELETE', `/api/menu/items/${itemId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
+      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
       toast({ title: "Menu item deleted successfully!" });
     },
     onError: (error: any) => {
@@ -106,6 +111,16 @@ export default function MenuManagementPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Loading menu items...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -114,7 +129,9 @@ export default function MenuManagementPage() {
             <Menu className="h-8 w-8" />
             Menu Management
           </h1>
-          <p className="text-gray-600 mt-2">Manage café menu items and pricing</p>
+          <p className="text-gray-600 mt-2">
+            {isAdmin ? "Manage all café menu items and pricing" : "Manage your café's menu items and pricing"}
+          </p>
         </div>
         <Button onClick={handleAddMenuItem} className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4 mr-2" />
@@ -197,8 +214,8 @@ export default function MenuManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Simple Edit Dialog */}
-      <SimpleMenuEdit
+      {/* Universal Edit Dialog */}
+      <UniversalMenuItemEdit
         isOpen={isUniversalEditOpen}
         onClose={() => {
           setIsUniversalEditOpen(false);
