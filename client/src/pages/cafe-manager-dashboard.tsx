@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { MenuManagement } from "@/components/menu-management";
+import { UniversalMenuItemEdit } from "@/components/universal-menu-item-edit";
 
 
 interface CafeOrder {
@@ -76,6 +77,7 @@ export default function CafeManagerDashboard() {
   // Menu management state
   const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false);
   const [editingMenuItem, setEditingMenuItem] = useState<any>(null);
+  const [isUniversalEditOpen, setIsUniversalEditOpen] = useState(false);
   const [menuFormData, setMenuFormData] = useState({
     name: "",
     description: "",
@@ -210,16 +212,19 @@ export default function CafeManagerDashboard() {
 
   const handleEditMenuItem = (item: any) => {
     setEditingMenuItem(item);
-    setMenuFormData({
-      name: item.name,
-      description: item.description || "",
-      price: item.price.toString(),
-      category: item.category || "beverages",
-      is_available: item.is_available,
-      is_daily_special: item.is_daily_special,
-      site: item.site,
-    });
-    setIsMenuDialogOpen(true);
+    setIsUniversalEditOpen(true);
+  };
+
+  const handleSaveFromUniversalEdit = (itemData: any) => {
+    if (itemData.id) {
+      // Update existing item
+      updateMenuItem.mutate({ itemId: itemData.id, updates: itemData });
+    } else {
+      // Create new item
+      createMenuItem.mutate(itemData);
+    }
+    setIsUniversalEditOpen(false);
+    setEditingMenuItem(null);
   };
 
   const handleDeleteMenuItem = (itemId: number) => {
@@ -715,6 +720,17 @@ export default function CafeManagerDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Universal Edit Dialog */}
+      <UniversalMenuItemEdit
+        isOpen={isUniversalEditOpen}
+        onClose={() => {
+          setIsUniversalEditOpen(false);
+          setEditingMenuItem(null);
+        }}
+        item={editingMenuItem}
+        onSave={handleSaveFromUniversalEdit}
+      />
     </div>
   );
 }

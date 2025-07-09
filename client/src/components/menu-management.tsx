@@ -14,6 +14,7 @@ import { Plus, Edit2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { UniversalMenuItemEdit } from "./universal-menu-item-edit";
 
 interface MenuItem {
   id: number;
@@ -34,6 +35,7 @@ export function MenuManagement() {
   
   const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false);
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [menuForm, setMenuForm] = useState({
     name: "",
     description: "",
@@ -134,17 +136,7 @@ export function MenuManagement() {
 
   const handleEditMenuItem = (item: MenuItem) => {
     setEditingMenuItem(item);
-    setMenuForm({
-      name: item.name,
-      description: item.description,
-      price: item.price,
-      category: item.category,
-      image_url: item.image_url || "",
-      is_available: item.is_available,
-      is_daily_special: item.is_daily_special,
-      site: item.site
-    });
-    setIsMenuDialogOpen(true);
+    setIsEditDialogOpen(true);
   };
 
   const handleUpdateMenuItem = () => {
@@ -155,6 +147,18 @@ export function MenuManagement() {
       price: parseFloat(menuForm.price).toFixed(2)
     };
     updateMenuItem.mutate({ itemId: editingMenuItem.id, updates });
+  };
+
+  const handleSaveFromUniversalEdit = (itemData: any) => {
+    if (itemData.id) {
+      // Update existing item
+      updateMenuItem.mutate({ itemId: itemData.id, updates: itemData });
+    } else {
+      // Create new item
+      createMenuItem.mutate(itemData);
+    }
+    setIsEditDialogOpen(false);
+    setEditingMenuItem(null);
   };
 
   const handleDeleteMenuItem = (itemId: number) => {
@@ -336,6 +340,17 @@ export function MenuManagement() {
           </TableBody>
         </Table>
       </CardContent>
+      
+      {/* Universal Edit Dialog */}
+      <UniversalMenuItemEdit
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditingMenuItem(null);
+        }}
+        item={editingMenuItem}
+        onSave={handleSaveFromUniversalEdit}
+      />
     </Card>
   );
 }

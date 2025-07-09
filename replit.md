@@ -280,6 +280,13 @@ Changelog:
   * Cafe managers can now only see users and menus from their assigned location
   * Members automatically see menu items specific to their site location
   * Both locations maintain separate menu management while sharing the same application structure
+- July 09, 2025. COMPLETED Universal menu item edit component for consistent admin and cafe manager UI:
+  * Created UniversalMenuItemEdit component with design identical to cafe manager view (screenshot 2)
+  * Added Image URL field to menu item editing for both admin and cafe manager roles
+  * Replaced inconsistent menu editing dialogs with single universal component
+  * Updated both admin menu management and cafe manager dashboard to use unified component
+  * Maintained modern UI design with proper form validation and consistent button styling
+  * Both admin and cafe manager now have identical menu editing experience with image support
 - July 09, 2025. COMPLETED Cart button redesign with CalmKaaj logo integration:
   * Replaced traditional cart button with circular CalmKaaj logo design
   * Fixed z-index interference with navigation menu by adjusting positioning (bottom-20 instead of bottom-6)
