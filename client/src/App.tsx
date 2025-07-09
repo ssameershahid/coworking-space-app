@@ -38,14 +38,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <AuthPage />;
   }
   
+  const showFooter = user.role !== 'cafe_manager';
+  
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <ImpersonationBanner />
       <Navigation />
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className={`flex-1 ${showFooter ? 'pb-16 md:pb-0' : 'pb-16 md:pb-8'}`}>
         {children}
       </main>
-      <Footer />
+      {showFooter && <Footer />}
       <MobileNav />
     </div>
   );
