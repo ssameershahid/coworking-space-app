@@ -20,7 +20,7 @@ import CafeManagerDashboard from "@/pages/cafe-manager-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import CreateOrderPage from "@/pages/create-order";
 import BillingTransactionsPage from "@/pages/billing-transactions";
-import MenuManagementPage from "@/pages/menu-management-page";
+import MenuManagementPage from "@/pages/menu-management";
 import Navigation from "@/components/layout/navigation";
 import MobileNav from "@/components/layout/mobile-nav";
 import Footer from "@/components/layout/footer";
@@ -38,16 +38,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <AuthPage />;
   }
   
-  const showFooter = user.role !== 'cafe_manager';
+  const isCafeManager = user.role === 'cafe_manager';
   
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <ImpersonationBanner />
       <Navigation />
-      <main className={`flex-1 ${showFooter ? 'pb-16 md:pb-0' : 'pb-16 md:pb-8'}`}>
+      <main className={`flex-1 ${isCafeManager ? 'pb-16 md:pb-4' : 'pb-16 md:pb-0'}`}>
         {children}
       </main>
-      {showFooter && <Footer />}
+      {!isCafeManager && <Footer />}
       <MobileNav />
     </div>
   );
