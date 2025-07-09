@@ -8,7 +8,7 @@ import { Plus, Edit2, Trash2, Menu } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { UniversalMenuItemEdit } from "@/components/universal-menu-item-edit";
+import { SimpleMenuEdit } from "@/components/simple-menu-edit";
 
 export default function MenuManagement() {
   const { user } = useAuth();
@@ -16,7 +16,7 @@ export default function MenuManagement() {
   const queryClient = useQueryClient();
   
   const [editingMenuItem, setEditingMenuItem] = useState<any>(null);
-  const [isUniversalEditOpen, setIsUniversalEditOpen] = useState(false);
+  const [isSimpleEditOpen, setIsSimpleEditOpen] = useState(false);
 
   // Determine API endpoint based on user role
   const isAdmin = user?.role === 'calmkaaj_admin';
@@ -85,15 +85,15 @@ export default function MenuManagement() {
 
   const handleEditMenuItem = (item: any) => {
     setEditingMenuItem(item);
-    setIsUniversalEditOpen(true);
+    setIsSimpleEditOpen(true);
   };
 
   const handleAddMenuItem = () => {
     setEditingMenuItem(null);
-    setIsUniversalEditOpen(true);
+    setIsSimpleEditOpen(true);
   };
 
-  const handleSaveFromUniversalEdit = (itemData: any) => {
+  const handleSaveFromSimpleEdit = (itemData: any) => {
     if (itemData.id) {
       // Update existing item
       updateMenuItem.mutate({ itemId: itemData.id, updates: itemData });
@@ -101,7 +101,7 @@ export default function MenuManagement() {
       // Create new item
       createMenuItem.mutate(itemData);
     }
-    setIsUniversalEditOpen(false);
+    setIsSimpleEditOpen(false);
     setEditingMenuItem(null);
   };
 
@@ -214,15 +214,15 @@ export default function MenuManagement() {
         </CardContent>
       </Card>
 
-      {/* Universal Edit Dialog */}
-      <UniversalMenuItemEdit
-        isOpen={isUniversalEditOpen}
+      {/* Simple Edit Dialog */}
+      <SimpleMenuEdit
+        isOpen={isSimpleEditOpen}
         onClose={() => {
-          setIsUniversalEditOpen(false);
+          setIsSimpleEditOpen(false);
           setEditingMenuItem(null);
         }}
         item={editingMenuItem}
-        onSave={handleSaveFromUniversalEdit}
+        onSave={handleSaveFromSimpleEdit}
       />
     </div>
   );
