@@ -248,16 +248,16 @@ export default function CafeManagerDashboard() {
       </div>
 
       <div className="space-y-6">
-          <div className="w-full">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Order Management
-          </h2>
-          <p className="text-gray-600 mt-1">Manage and track all café orders</p>
-        </div>
+        <div className="w-full">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Order Management
+            </h2>
+            <p className="text-gray-600 mt-1">Manage and track all café orders</p>
+          </div>
 
-        {/* Stats Overview */}
+          {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
@@ -397,6 +397,8 @@ export default function CafeManagerDashboard() {
             )}
           </CardContent>
         </Card>
+      </div>
+        </div>
       </div>
     </div>
   );
