@@ -15,8 +15,11 @@ export function ImpersonationBanner() {
   // Check impersonation status from the server
   const { data: impersonationStatus } = useQuery({
     queryKey: ['/api/admin/impersonation-status'],
-    enabled: !!user,
-    refetchInterval: 5000, // Check every 5 seconds
+    enabled: !!user && user.role === 'calmkaaj_admin',
+    refetchInterval: 30000, // Check every 30 seconds instead of 5
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 20000, // Consider data fresh for 20 seconds
   });
 
   const isImpersonating = (impersonationStatus as any)?.isImpersonating || false;

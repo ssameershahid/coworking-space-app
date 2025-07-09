@@ -37,12 +37,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return data.user;
         }
         return null;
-      } catch {
+      } catch (error) {
+        console.error("Auth check failed:", error);
         return null;
       }
     },
-    retry: false,
-    staleTime: Infinity,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/auth-context";
 import { CartProvider } from "./contexts/cart-context";
 import { InstallPrompt } from "./components/pwa/install-prompt";
 import { NotificationSetup } from "./components/pwa/notification-setup";
+import { ErrorBoundary } from "./components/error-boundary";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
@@ -106,8 +107,8 @@ function Router() {
 }
 
 function App() {
-  try {
-    return (
+  return (
+    <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AuthProvider>
@@ -124,17 +125,8 @@ function App() {
           <NotificationSetup />
         </TooltipProvider>
       </QueryClientProvider>
-    );
-  } catch (error) {
-    console.error("App error:", error);
-    return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        <h2>Application Error</h2>
-        <p>Please refresh the page and try again.</p>
-        <pre style={{ color: "red", fontSize: "12px" }}>{error?.toString()}</pre>
-      </div>
-    );
-  }
+    </ErrorBoundary>
+  );
 }
 
 export default App;
