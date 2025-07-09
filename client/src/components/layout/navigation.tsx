@@ -31,7 +31,8 @@ export default function Navigation() {
     { name: "Dashboard", href: "/", current: location === "/" },
     ...(isCafeManager ? [
       { name: "Create Order", href: "/create-order", current: location === "/create-order" },
-      { name: "Billing & Transactions", href: "/billing-transactions", current: location === "/billing-transactions" }
+      { name: "Billing & Transactions", href: "/billing-transactions", current: location === "/billing-transactions" },
+      { name: "Menu Management", href: "/menu-management", current: location === "/menu-management" }
     ] : []),
     ...(showCafeAndRooms ? [{ name: "Café", href: "/cafe", current: location === "/cafe" }] : []),
     ...(showCafeAndRooms ? [{ name: "Rooms", href: "/rooms", current: location === "/rooms" }] : []),

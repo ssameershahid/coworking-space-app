@@ -3,21 +3,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, CheckCircle, Truck, Package, User, DollarSign, Calendar, TrendingUp, ShoppingCart, Receipt, Plus, Edit2, Trash2, Menu } from "lucide-react";
+import { Clock, CheckCircle, Truck, Package, User, DollarSign, Calendar, TrendingUp, ShoppingCart, Receipt } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { MenuManagement } from "@/components/menu-management";
-import { UniversalMenuItemEdit } from "@/components/universal-menu-item-edit";
+
 
 
 interface CafeOrder {
@@ -74,19 +65,7 @@ export default function CafeManagerDashboard() {
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<CafeOrder | null>(null);
   
-  // Menu management state
-  const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false);
-  const [editingMenuItem, setEditingMenuItem] = useState<any>(null);
-  const [isUniversalEditOpen, setIsUniversalEditOpen] = useState(false);
-  const [menuFormData, setMenuFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "beverages",
-    is_available: true,
-    is_daily_special: false,
-    site: "blue_area",
-  });
+
 
   // Fetch all orders for the cafe manager
   const { data: orders = [], isLoading } = useQuery<CafeOrder[]>({
@@ -94,11 +73,7 @@ export default function CafeManagerDashboard() {
     enabled: !!user && user.role === 'cafe_manager'
   });
 
-  // Fetch menu items for menu management
-  const { data: menuItems = [] } = useQuery({
-    queryKey: ['/api/admin/menu/items'],
-    enabled: !!user && user.role === 'cafe_manager'
-  });
+
 
   // Update order status mutation
   const updateOrderStatus = useMutation({
@@ -127,111 +102,7 @@ export default function CafeManagerDashboard() {
     updateOrderStatus.mutate({ orderId, status: newStatus });
   };
 
-  // Menu management mutations
-  const createMenuItem = useMutation({
-    mutationFn: async (menuItemData: any) => {
-      return apiRequest('POST', '/api/menu/items', menuItemData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
-      setIsMenuDialogOpen(false);
-      resetMenuForm();
-      toast({ title: "Menu item created successfully!" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Failed to create menu item", 
-        description: error.message || "Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
 
-  const updateMenuItem = useMutation({
-    mutationFn: async ({ itemId, updates }: { itemId: number; updates: any }) => {
-      return apiRequest('PATCH', `/api/menu/items/${itemId}`, updates);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
-      setIsMenuDialogOpen(false);
-      resetMenuForm();
-      toast({ title: "Menu item updated successfully!" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Failed to update menu item", 
-        description: error.message || "Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const deleteMenuItem = useMutation({
-    mutationFn: async (itemId: number) => {
-      return apiRequest('DELETE', `/api/menu/items/${itemId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/items'] });
-      toast({ title: "Menu item deleted successfully!" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Failed to delete menu item", 
-        description: error.message || "Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const resetMenuForm = () => {
-    setMenuFormData({
-      name: "",
-      description: "",
-      price: "",
-      category: "beverages",
-      is_available: true,
-      is_daily_special: false,
-      site: "blue_area",
-    });
-    setEditingMenuItem(null);
-  };
-
-  const handleMenuSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const submitData = {
-      ...menuFormData,
-      price: parseFloat(menuFormData.price),
-    };
-
-    if (editingMenuItem) {
-      updateMenuItem.mutate({ itemId: editingMenuItem.id, updates: submitData });
-    } else {
-      createMenuItem.mutate(submitData);
-    }
-  };
-
-  const handleEditMenuItem = (item: any) => {
-    setEditingMenuItem(item);
-    setIsUniversalEditOpen(true);
-  };
-
-  const handleSaveFromUniversalEdit = (itemData: any) => {
-    if (itemData.id) {
-      // Update existing item
-      updateMenuItem.mutate({ itemId: itemData.id, updates: itemData });
-    } else {
-      // Create new item
-      createMenuItem.mutate(itemData);
-    }
-    setIsUniversalEditOpen(false);
-    setEditingMenuItem(null);
-  };
-
-  const handleDeleteMenuItem = (itemId: number) => {
-    if (confirm("Are you sure you want to delete this menu item?")) {
-      deleteMenuItem.mutate(itemId);
-    }
-  };
 
   // Filter all orders to show only today's orders
   const todaysOrders = orders.filter(order => 
@@ -376,13 +247,7 @@ export default function CafeManagerDashboard() {
         <p className="text-gray-600">Manage orders and monitor café operations</p>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="menu">Menu Management</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard" className="space-y-6">
+      <div className="space-y-6">
           <div className="w-full">
         <div className="mb-6">
           <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -533,204 +398,6 @@ export default function CafeManagerDashboard() {
           </CardContent>
         </Card>
       </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="menu" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Menu className="h-5 w-5" />
-                Menu Management
-              </h2>
-              <p className="text-gray-600 mt-1">Manage café menu items and pricing</p>
-            </div>
-            <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => { setEditingMenuItem(null); resetMenuForm(); }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Menu Item
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingMenuItem ? "Edit Menu Item" : "Add Menu Item"}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleMenuSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={menuFormData.name}
-                      onChange={(e) => setMenuFormData({ ...menuFormData, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={menuFormData.description}
-                      onChange={(e) => setMenuFormData({ ...menuFormData, description: e.target.value })}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="price">Price (Rs.)</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      step="0.01"
-                      value={menuFormData.price}
-                      onChange={(e) => setMenuFormData({ ...menuFormData, price: e.target.value })}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="category">Category</Label>
-                    <Select value={menuFormData.category} onValueChange={(value) => setMenuFormData({ ...menuFormData, category: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beverages">Beverages</SelectItem>
-                        <SelectItem value="snacks">Snacks</SelectItem>
-                        <SelectItem value="meals">Meals</SelectItem>
-                        <SelectItem value="desserts">Desserts</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="site">Site</Label>
-                    <Select value={menuFormData.site} onValueChange={(value) => setMenuFormData({ ...menuFormData, site: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="blue_area">Blue Area</SelectItem>
-                        <SelectItem value="i_10">I-10</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is_available"
-                      checked={menuFormData.is_available}
-                      onCheckedChange={(checked) => setMenuFormData({ ...menuFormData, is_available: checked })}
-                    />
-                    <Label htmlFor="is_available">Available</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is_daily_special"
-                      checked={menuFormData.is_daily_special}
-                      onCheckedChange={(checked) => setMenuFormData({ ...menuFormData, is_daily_special: checked })}
-                    />
-                    <Label htmlFor="is_daily_special">Daily Special</Label>
-                  </div>
-                  
-                  <div className="flex justify-end space-x-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsMenuDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createMenuItem.isPending || updateMenuItem.isPending}>
-                      {editingMenuItem ? "Update" : "Create"}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <Card>
-            <CardContent className="p-6">
-              {menuItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No menu items found</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Site</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {menuItems.map((item: any) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium text-gray-900">{item.name}</p>
-                              <p className="text-sm text-gray-500">{item.description}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>Rs. {item.price}</TableCell>
-                          <TableCell className="capitalize">{item.category || "Uncategorized"}</TableCell>
-                          <TableCell>
-                            {item.site === 'blue_area' ? 'Blue Area' : 'I-10'}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Badge variant={item.is_available ? "default" : "secondary"}>
-                                {item.is_available ? "Available" : "Unavailable"}
-                              </Badge>
-                              {item.is_daily_special && (
-                                <Badge variant="destructive">Special</Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditMenuItem(item)}
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDeleteMenuItem(item.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-      
-      {/* Universal Edit Dialog */}
-      <UniversalMenuItemEdit
-        isOpen={isUniversalEditOpen}
-        onClose={() => {
-          setIsUniversalEditOpen(false);
-          setEditingMenuItem(null);
-        }}
-        item={editingMenuItem}
-        onSave={handleSaveFromUniversalEdit}
-      />
     </div>
   );
 }

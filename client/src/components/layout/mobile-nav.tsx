@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Home, Coffee, Calendar, User, Building2, Users, ShoppingCart, Receipt } from "lucide-react";
+import { Home, Coffee, Calendar, User, Building2, Users, ShoppingCart, Receipt, Menu } from "lucide-react";
 
 export default function MobileNav() {
   const { user } = useAuth();
@@ -17,7 +17,8 @@ export default function MobileNav() {
     { name: "Home", href: "/", icon: Home, current: location === "/" },
     ...(isCafeManager ? [
       { name: "Create", href: "/create-order", icon: ShoppingCart, current: location === "/create-order" },
-      { name: "Billing", href: "/billing-transactions", icon: Receipt, current: location === "/billing-transactions" }
+      { name: "Billing", href: "/billing-transactions", icon: Receipt, current: location === "/billing-transactions" },
+      { name: "Menu", href: "/menu-management", icon: Menu, current: location === "/menu-management" }
     ] : []),
     ...(showCafeAndRooms ? [{ name: "Café", href: "/cafe", icon: Coffee, current: location === "/cafe" }] : []),
     ...(showCafeAndRooms ? [{ name: "Rooms", href: "/rooms", icon: Calendar, current: location === "/rooms" }] : []),

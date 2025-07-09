@@ -112,14 +112,14 @@ export function UniversalMenuItemEdit({ isOpen, onClose, item, onSave }: Univers
           </Button>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium">Name</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-green-500"
+              className="border-2 border-black rounded-lg focus:border-black focus:ring-0"
             />
           </div>
 
@@ -129,7 +129,7 @@ export function UniversalMenuItemEdit({ isOpen, onClose, item, onSave }: Univers
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              className="border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-green-500 min-h-[80px]"
+              className="border-2 border-black rounded-lg focus:border-black focus:ring-0 min-h-[80px]"
             />
           </div>
 
@@ -141,7 +141,7 @@ export function UniversalMenuItemEdit({ isOpen, onClose, item, onSave }: Univers
               step="0.01"
               value={formData.price}
               onChange={(e) => handleInputChange("price", e.target.value)}
-              className="border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-green-500"
+              className="border-2 border-black rounded-lg focus:border-black focus:ring-0"
             />
           </div>
 
@@ -153,14 +153,14 @@ export function UniversalMenuItemEdit({ isOpen, onClose, item, onSave }: Univers
               value={formData.image_url}
               onChange={(e) => handleInputChange("image_url", e.target.value)}
               placeholder="https://example.com/image.jpg"
-              className="border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-green-500"
+              className="border-2 border-black rounded-lg focus:border-black focus:ring-0"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="category" className="text-sm font-medium">Category</Label>
             <Select value={formData.category_id} onValueChange={(value) => handleInputChange("category_id", value)}>
-              <SelectTrigger className="border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-green-500">
+              <SelectTrigger className="border-2 border-black rounded-lg focus:border-black focus:ring-0">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -176,7 +176,7 @@ export function UniversalMenuItemEdit({ isOpen, onClose, item, onSave }: Univers
           <div className="space-y-2">
             <Label htmlFor="site" className="text-sm font-medium">Site</Label>
             <Select value={formData.site} onValueChange={(value) => handleInputChange("site", value)}>
-              <SelectTrigger className="border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-green-500">
+              <SelectTrigger className="border-2 border-black rounded-lg focus:border-black focus:ring-0">
                 <SelectValue placeholder="Select site" />
               </SelectTrigger>
               <SelectContent>
@@ -211,7 +211,7 @@ export function UniversalMenuItemEdit({ isOpen, onClose, item, onSave }: Univers
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex justify-end space-x-2 pt-6">
           <Button 
             variant="outline" 
             onClick={onClose}

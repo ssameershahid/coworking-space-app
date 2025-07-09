@@ -20,6 +20,7 @@ import CafeManagerDashboard from "@/pages/cafe-manager-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import CreateOrderPage from "@/pages/create-order";
 import BillingTransactionsPage from "@/pages/billing-transactions";
+import MenuManagementPage from "@/pages/menu-management-page";
 import Navigation from "@/components/layout/navigation";
 import MobileNav from "@/components/layout/mobile-nav";
 import Footer from "@/components/layout/footer";
@@ -64,6 +65,7 @@ function Router() {
         <Route path="/" component={CafeManagerDashboard} />
         <Route path="/create-order" component={CreateOrderPage} />
         <Route path="/billing-transactions" component={BillingTransactionsPage} />
+        <Route path="/menu-management" component={MenuManagementPage} />
         <Route path="/profile" component={ProfilePage} />
         <Route component={NotFound} />
       </Switch>
