@@ -3,10 +3,9 @@ import { SiSpotify } from "react-icons/si";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-100 border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 py-12">
+    <footer className="bg-gray-100 border-t border-gray-200 max-w-7xl mx-auto px-4 py-12">
         {/* Mobile Layout */}
-        <div className="md:hidden">
+      <div className="md:hidden">
           {/* Brand Section */}
           <div className="space-y-4 mb-8">
             <div className="flex items-center">
@@ -75,10 +74,10 @@ export default function Footer() {
               </ul>
             </div>
           </div>
-        </div>
+      </div>
 
-        {/* Desktop Layout */}
-        <div className="hidden md:grid grid-cols-4 gap-8">
+      {/* Desktop Layout */}
+      <div className="hidden md:grid grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center">
@@ -167,13 +166,12 @@ export default function Footer() {
               </div>
             </div>
           </div>
-        </div>
+      </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-          <p>© 2025 CalmKaaj. All rights reserved.</p>
-          <p>App developed with 🧡 by Arteryal</p>
-        </div>
+      <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+        <p>© 2025 CalmKaaj. All rights reserved.</p>
+        <p>App developed with 🧡 by Arteryal</p>
       </div>
     </footer>
   );
