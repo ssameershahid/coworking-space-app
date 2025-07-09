@@ -106,24 +106,35 @@ function Router() {
 }
 
 function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <CartProvider>
-            <Toaster />
-            <ProtectedRoute>
-              <Router />
-            </ProtectedRoute>
-          </CartProvider>
-        </AuthProvider>
-        
-        {/* PWA Components */}
-        <InstallPrompt />
-        <NotificationSetup />
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
+  try {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AuthProvider>
+            <CartProvider>
+              <Toaster />
+              <ProtectedRoute>
+                <Router />
+              </ProtectedRoute>
+            </CartProvider>
+          </AuthProvider>
+          
+          {/* PWA Components */}
+          <InstallPrompt />
+          <NotificationSetup />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  } catch (error) {
+    console.error("App error:", error);
+    return (
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        <h2>Application Error</h2>
+        <p>Please refresh the page and try again.</p>
+        <pre style={{ color: "red", fontSize: "12px" }}>{error?.toString()}</pre>
+      </div>
+    );
+  }
 }
 
 export default App;
