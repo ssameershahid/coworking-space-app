@@ -127,7 +127,7 @@ const CommunitySection = () => {
     queryKey: ["/api/community/members"],
   });
 
-  const filteredUsers = communityUsers.filter((user: any) => {
+  const filteredUsers = (communityUsers || []).filter((user: any) => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -376,7 +376,7 @@ export default function AdminDashboard() {
   const handleViewAsOrgAdmin = async (orgId: string) => {
     try {
       // Find the admin user for this organization
-      const orgAdmin = users.find(u => u.organization_id === orgId && u.role === 'member_organization_admin');
+      const orgAdmin = (users || []).find(u => u.organization_id === orgId && u.role === 'member_organization_admin');
       if (orgAdmin) {
         await handleViewAsUser(orgAdmin.id);
       } else {
@@ -478,14 +478,14 @@ export default function AdminDashboard() {
 
   // Calculate filtered stats based on selected site
   const filteredStats = {
-    totalUsers: selectedSite === "all" ? users.length : users.filter(u => u.site === selectedSite).length,
-    activeUsers: selectedSite === "all" ? users.filter(u => u.is_active).length : users.filter(u => u.is_active && u.site === selectedSite).length,
-    totalOrders: selectedSite === "all" ? allOrders.length : allOrders.filter(o => o.site === selectedSite).length,
-    totalBookings: selectedSite === "all" ? allBookings.length : allBookings.filter(b => b.site === selectedSite).length,
+    totalUsers: selectedSite === "all" ? (users || []).length : (users || []).filter(u => u.site === selectedSite).length,
+    activeUsers: selectedSite === "all" ? (users || []).filter(u => u.is_active).length : (users || []).filter(u => u.is_active && u.site === selectedSite).length,
+    totalOrders: selectedSite === "all" ? (allOrders || []).length : (allOrders || []).filter(o => o.site === selectedSite).length,
+    totalBookings: selectedSite === "all" ? (allBookings || []).length : (allBookings || []).filter(b => b.site === selectedSite).length,
     totalRevenue: selectedSite === "all" ? 
-      allOrders.reduce((sum, order) => sum + parseFloat(order.total_amount || '0'), 0) :
-      allOrders.filter(o => o.site === selectedSite).reduce((sum, order) => sum + parseFloat(order.total_amount || '0'), 0),
-    organizationCount: selectedSite === "all" ? organizations.length : organizations.filter(o => o.site === selectedSite).length,
+      (allOrders || []).reduce((sum, order) => sum + parseFloat(order.total_amount || '0'), 0) :
+      (allOrders || []).filter(o => o.site === selectedSite).reduce((sum, order) => sum + parseFloat(order.total_amount || '0'), 0),
+    organizationCount: selectedSite === "all" ? (organizations || []).length : (organizations || []).filter(o => o.site === selectedSite).length,
   };
 
   // Mutations for CRUD operations
@@ -3158,15 +3158,15 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{users.filter(u => u.role === 'member_individual').length}</div>
+                    <div className="text-2xl font-bold text-blue-600">{(users || []).filter(u => u.role === 'member_individual').length}</div>
                     <div className="text-sm text-gray-600">Individual Members</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{users.filter(u => u.role === 'member_organization_admin').length}</div>
+                    <div className="text-2xl font-bold text-green-600">{(users || []).filter(u => u.role === 'member_organization_admin').length}</div>
                     <div className="text-sm text-gray-600">Org Admins</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{users.filter(u => u.role === 'cafe_manager').length}</div>
+                    <div className="text-2xl font-bold text-purple-600">{(users || []).filter(u => u.role === 'cafe_manager').length}</div>
                     <div className="text-sm text-gray-600">Cafe Managers</div>
                   </div>
                 </div>
@@ -3182,11 +3182,11 @@ export default function AdminDashboard() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span>Blue Area</span>
-                      <Badge>{users.filter(u => u.site === 'blue_area').length} users</Badge>
+                      <Badge>{(users || []).filter(u => u.site === 'blue_area').length} users</Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>I-10</span>
-                      <Badge>{users.filter(u => u.site === 'i_10').length} users</Badge>
+                      <Badge>{(users || []).filter(u => u.site === 'i_10').length} users</Badge>
                     </div>
                   </div>
                 </CardContent>
@@ -3200,15 +3200,15 @@ export default function AdminDashboard() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Activity className="h-4 w-4 text-green-600" />
-                      <span>{allOrders.filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length} orders today</span>
+                      <span>{(allOrders || []).filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length} orders today</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-blue-600" />
-                      <span>{allBookings.filter(b => new Date(b.created_at).toDateString() === new Date().toDateString()).length} bookings today</span>
+                      <span>{(allBookings || []).filter(b => new Date(b.created_at).toDateString() === new Date().toDateString()).length} bookings today</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Users className="h-4 w-4 text-purple-600" />
-                      <span>{users.filter(u => new Date(u.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length} new users this week</span>
+                      <span>{(users || []).filter(u => new Date(u.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length} new users this week</span>
                     </div>
                   </div>
                 </CardContent>
