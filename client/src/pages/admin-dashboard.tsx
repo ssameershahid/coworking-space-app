@@ -860,7 +860,8 @@ export default function AdminDashboard() {
       address: organization.address || '',
       start_date: organization.start_date ? new Date(organization.start_date).toISOString().split('T')[0] : '',
       // Find admin details from users
-      admin_name: '',
+      admin_first_name: '',
+      admin_last_name: '',
       admin_email: '',
       team_members: [''],
       office_type: 'private_office',
@@ -875,7 +876,8 @@ export default function AdminDashboard() {
       if (orgAdmin) {
         setOrgData(prev => ({
           ...prev,
-          admin_name: orgAdmin.first_name || '',
+          admin_first_name: orgAdmin.first_name || '',
+          admin_last_name: orgAdmin.last_name || '',
           admin_email: orgAdmin.email || ''
         }));
       }
@@ -897,11 +899,12 @@ export default function AdminDashboard() {
         
         // Also update the admin user if the details changed
         const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'member_organization_admin');
-        if (orgAdmin && (orgAdmin.first_name !== orgData.admin_name || orgAdmin.email !== orgData.admin_email)) {
+        if (orgAdmin && (orgAdmin.first_name !== orgData.admin_first_name || orgAdmin.last_name !== orgData.admin_last_name || orgAdmin.email !== orgData.admin_email)) {
           await updateUser.mutateAsync({ 
             userId: orgAdmin.id, 
             updates: { 
-              first_name: orgData.admin_name,
+              first_name: orgData.admin_first_name,
+              last_name: orgData.admin_last_name,
               email: orgData.admin_email 
             } 
           });
@@ -985,15 +988,27 @@ export default function AdminDashboard() {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label htmlFor="edit_admin_name">Admin Name</Label>
-          <Input
-            id="edit_admin_name"
-            placeholder="John Doe"
-            value={orgData.admin_name}
-            onChange={(e) => setOrgData({...orgData, admin_name: e.target.value})}
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="edit_admin_first_name">Admin First Name</Label>
+            <Input
+              id="edit_admin_first_name"
+              placeholder="John"
+              value={orgData.admin_first_name}
+              onChange={(e) => setOrgData({...orgData, admin_first_name: e.target.value})}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit_admin_last_name">Admin Last Name</Label>
+            <Input
+              id="edit_admin_last_name"
+              placeholder="Doe"
+              value={orgData.admin_last_name}
+              onChange={(e) => setOrgData({...orgData, admin_last_name: e.target.value})}
+              required
+            />
+          </div>
         </div>
         <div>
           <Label htmlFor="edit_admin_email">Admin Email</Label>
@@ -1143,15 +1158,27 @@ export default function AdminDashboard() {
 
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="edit_first_name">Full Name</Label>
-          <Input
-            id="edit_first_name"
-            placeholder="John Doe"
-            value={formData.first_name}
-            onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="edit_first_name">First Name</Label>
+            <Input
+              id="edit_first_name"
+              placeholder="John"
+              value={formData.first_name}
+              onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit_last_name">Last Name</Label>
+            <Input
+              id="edit_last_name"
+              placeholder="Doe"
+              value={formData.last_name}
+              onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+              required
+            />
+          </div>
         </div>
         <div>
           <Label htmlFor="edit_email">Email</Label>
@@ -1389,7 +1416,6 @@ export default function AdminDashboard() {
       const submitData = {
         ...cleanData,
         organization_id: cleanData.organization_id || undefined,
-        last_name: '', // Add empty last_name since we're using full name in first_name
         credits: monthly_credits, // Map monthly_credits to the credits field
         start_date: formData.start_date, // Include start_date
         bio: formData.bio || null,
@@ -1403,15 +1429,27 @@ export default function AdminDashboard() {
 
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="first_name">Full Name</Label>
-          <Input
-            id="first_name"
-            placeholder="John Doe"
-            value={formData.first_name}
-            onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="first_name">First Name</Label>
+            <Input
+              id="first_name"
+              placeholder="John"
+              value={formData.first_name}
+              onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="last_name">Last Name</Label>
+            <Input
+              id="last_name"
+              placeholder="Doe"
+              value={formData.last_name}
+              onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+              required
+            />
+          </div>
         </div>
         <div>
           <Label htmlFor="email">Email</Label>
@@ -1615,7 +1653,8 @@ export default function AdminDashboard() {
       name: '',
       email: '',
       site: 'blue_area',
-      admin_name: '',
+      admin_first_name: '',
+      admin_last_name: '',
       admin_email: '',
       team_members: [''],
       office_type: 'private_office',
@@ -1631,7 +1670,8 @@ export default function AdminDashboard() {
         name: orgData.name,
         email: orgData.email,
         site: orgData.site,
-        admin_name: orgData.admin_name,
+        admin_first_name: orgData.admin_first_name,
+        admin_last_name: orgData.admin_last_name,
         admin_email: orgData.admin_email,
         team_members: orgData.team_members.filter(member => member.trim() !== ''),
         start_date: orgData.start_date,
@@ -1662,15 +1702,27 @@ export default function AdminDashboard() {
           />
         </div>
         
-        <div>
-          <Label htmlFor="admin_name">Admin Name</Label>
-          <Input
-            id="admin_name"
-            value={orgData.admin_name}
-            onChange={(e) => setOrgData({...orgData, admin_name: e.target.value})}
-            placeholder="Enter admin name"
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="admin_first_name">Admin First Name</Label>
+            <Input
+              id="admin_first_name"
+              value={orgData.admin_first_name}
+              onChange={(e) => setOrgData({...orgData, admin_first_name: e.target.value})}
+              placeholder="John"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="admin_last_name">Admin Last Name</Label>
+            <Input
+              id="admin_last_name"
+              value={orgData.admin_last_name}
+              onChange={(e) => setOrgData({...orgData, admin_last_name: e.target.value})}
+              placeholder="Doe"
+              required
+            />
+          </div>
         </div>
         
         <div>

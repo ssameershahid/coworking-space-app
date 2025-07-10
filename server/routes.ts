@@ -1018,7 +1018,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      const { name, email, site, admin_name, admin_email, team_members = [], start_date } = req.body;
+      const { name, email, site, admin_first_name, admin_last_name, admin_email, team_members = [], start_date } = req.body;
       
       // Validate organization data
       const orgData: any = { name, email, site };
@@ -1035,15 +1035,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const organization = await storage.createOrganization(orgResult.data);
 
       // Create admin user account
-      if (admin_name && admin_email) {
+      if (admin_first_name && admin_last_name && admin_email) {
         const tempPassword = Math.random().toString(36).slice(-8);
         const hashedPassword = await bcrypt.hash(tempPassword, 10);
         
         const adminUser = await storage.createUser({
           email: admin_email,
           password: hashedPassword,
-          first_name: admin_name,
-          last_name: '',
+          first_name: admin_first_name,
+          last_name: admin_last_name,
           role: 'member_organization_admin',
           organization_id: organization.id,
           site: site,
@@ -1055,7 +1055,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Try to send welcome email to admin
         try {
-          await emailService.sendWelcomeEmail(admin_email, admin_name, tempPassword);
+          await emailService.sendWelcomeEmail(admin_email, admin_first_name, tempPassword);
         } catch (emailError) {
           console.error("Failed to send admin welcome email:", emailError);
         }
