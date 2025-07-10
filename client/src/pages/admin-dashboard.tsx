@@ -2615,7 +2615,7 @@ export default function AdminDashboard() {
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
-          <TabsTrigger value="menu">Menu</TabsTrigger>
+          <TabsTrigger value="menu">Cafe Menu</TabsTrigger>
           <TabsTrigger value="rooms">Meeting Rooms</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
