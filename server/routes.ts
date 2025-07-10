@@ -21,8 +21,10 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === "production",
+    secure: false, // Set to false for development to ensure cookies work
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true,
+    sameSite: "lax", // More permissive for development
   },
 };
 
@@ -132,10 +134,35 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // CORS middleware to handle cross-origin requests
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+
   // Session and passport setup
   app.use(session(sessionConfig));
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Add debug logging for session
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api/') && req.path !== '/api/auth/login') {
+      console.log('Session debug - Path:', req.path);
+      console.log('Session debug - isAuthenticated:', req.isAuthenticated());
+      console.log('Session debug - user:', req.user ? req.user.email : 'null');
+      console.log('Session debug - cookies:', req.headers.cookie);
+    }
+    next();
+  });
 
   // Serve uploaded images
   app.use('/uploads', express.static(uploadsDir));
@@ -264,6 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/auth/me", requireAuth, (req, res) => {
     const { password, ...userWithoutPassword } = req.user as any;
+    console.log("Auth me request - User:", userWithoutPassword);
     res.json({ user: userWithoutPassword });
   });
 
@@ -330,12 +358,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/menu/items", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
     try {
+      console.log("Create menu item request - User:", req.user);
+      console.log("Create menu item request - Body:", req.body);
+      
       const result = schema.insertMenuItemSchema.safeParse(req.body);
       if (!result.success) {
+        console.log("Menu item validation failed:", result.error.issues);
         return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
       }
 
       const item = await storage.createMenuItem(result.data);
+      console.log("Menu item created successfully:", item);
       res.status(201).json(item);
     } catch (error) {
       console.error("Error creating menu item:", error);
@@ -1142,6 +1175,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const { site } = req.query;
+      console.log("Admin users request - User:", req.user);
+      console.log("Admin users request - Site filter:", site);
       
       // Build query with optional site filtering
       let query = db
@@ -1179,6 +1214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const users = await query.orderBy(desc(schema.users.created_at));
+      console.log("Admin users result count:", users.length);
 
       res.json(users);
     } catch (error) {
@@ -1189,6 +1225,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
+      console.log("Admin create user request - User:", req.user);
+      console.log("Admin create user request - Body:", req.body);
+      
       const { start_date, ...bodyData } = req.body;
       
       // Handle start_date conversion
