@@ -2616,7 +2616,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
           <TabsTrigger value="menu">Menu</TabsTrigger>
-          <TabsTrigger value="rooms">Rooms</TabsTrigger>
+          <TabsTrigger value="rooms">Meeting Rooms</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
