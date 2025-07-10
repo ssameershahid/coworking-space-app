@@ -34,8 +34,8 @@ export default function Navigation() {
       { name: "Billing & Transactions", href: "/billing-transactions", current: location === "/billing-transactions" },
       { name: "Menu Management", href: "/menu-management", current: location === "/menu-management" }
     ] : []),
-    ...(showCafeAndRooms ? [{ name: "Café", href: "/cafe", current: location === "/cafe" }] : []),
-    ...(showCafeAndRooms ? [{ name: "Rooms", href: "/rooms", current: location === "/rooms" }] : []),
+    ...(showCafeAndRooms ? [{ name: "Cafe Order", href: "/cafe", current: location === "/cafe" }] : []),
+    ...(showCafeAndRooms ? [{ name: "Meeting Rooms", href: "/rooms", current: location === "/rooms" }] : []),
     ...(showCommunity ? [{ name: "Community", href: "/community", current: location === "/community" }] : []),
     ...(showOrganization ? [{ name: "Organization", href: "/organization", current: location === "/organization" }] : []),
   ];
