@@ -168,7 +168,7 @@ const CommunitySection = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {announcements.map((announcement: any) => (
+              {(announcements || []).map((announcement: any) => (
                 <Alert key={announcement.id} className="border-l-4 border-l-blue-500 bg-blue-50">
                   <Bell className="h-4 w-4" />
                   <AlertDescription>
@@ -409,9 +409,16 @@ export default function AdminDashboard() {
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ['/api/admin/users', selectedSite],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/admin/users' : `/api/admin/users?site=${selectedSite}`;
-      const response = await fetch(url);
-      return response.json();
+      try {
+        const url = selectedSite === 'all' ? '/api/admin/users' : `/api/admin/users?site=${selectedSite}`;
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
+      }
     },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
@@ -419,9 +426,16 @@ export default function AdminDashboard() {
   const { data: organizations = [] } = useQuery<Organization[]>({
     queryKey: ['/api/organizations', selectedSite],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedSite}`;
-      const response = await fetch(url);
-      return response.json();
+      try {
+        const url = selectedSite === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedSite}`;
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching organizations:', error);
+        return [];
+      }
     },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
@@ -429,9 +443,16 @@ export default function AdminDashboard() {
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
     queryKey: ['/api/admin/menu/items', selectedSite],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/admin/menu/items' : `/api/admin/menu/items?site=${selectedSite}`;
-      const response = await fetch(url);
-      return response.json();
+      try {
+        const url = selectedSite === 'all' ? '/api/admin/menu/items' : `/api/admin/menu/items?site=${selectedSite}`;
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+        return [];
+      }
     },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
@@ -439,9 +460,16 @@ export default function AdminDashboard() {
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
     queryKey: ['/api/rooms', selectedSite],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/rooms' : `/api/rooms?site=${selectedSite}`;
-      const response = await fetch(url);
-      return response.json();
+      try {
+        const url = selectedSite === 'all' ? '/api/rooms' : `/api/rooms?site=${selectedSite}`;
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching rooms:', error);
+        return [];
+      }
     },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
@@ -449,9 +477,16 @@ export default function AdminDashboard() {
   const { data: announcements = [] } = useQuery<Announcement[]>({
     queryKey: ['/api/announcements', selectedSite],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/announcements' : `/api/announcements?site=${selectedSite}`;
-      const response = await fetch(url);
-      return response.json();
+      try {
+        const url = selectedSite === 'all' ? '/api/announcements' : `/api/announcements?site=${selectedSite}`;
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching announcements:', error);
+        return [];
+      }
     },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
@@ -459,9 +494,16 @@ export default function AdminDashboard() {
   const { data: allOrders = [] } = useQuery<any[]>({
     queryKey: ['/api/cafe/orders/all', selectedSite],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/cafe/orders/all' : `/api/cafe/orders/all?site=${selectedSite}`;
-      const response = await fetch(url);
-      return response.json();
+      try {
+        const url = selectedSite === 'all' ? '/api/cafe/orders/all' : `/api/cafe/orders/all?site=${selectedSite}`;
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching all orders:', error);
+        return [];
+      }
     },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
@@ -469,9 +511,16 @@ export default function AdminDashboard() {
   const { data: allBookings = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/bookings', selectedSite],
     queryFn: async () => {
-      const url = selectedSite === 'all' ? '/api/admin/bookings' : `/api/admin/bookings?site=${selectedSite}`;
-      const response = await fetch(url);
-      return response.json();
+      try {
+        const url = selectedSite === 'all' ? '/api/admin/bookings' : `/api/admin/bookings?site=${selectedSite}`;
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching all bookings:', error);
+        return [];
+      }
     },
     enabled: !!user && user.role === 'calmkaaj_admin'
   });
@@ -1135,7 +1184,7 @@ export default function AdminDashboard() {
                 <SelectValue placeholder="Select organization" />
               </SelectTrigger>
               <SelectContent>
-                {organizations.map((org) => (
+                {(organizations || []).map((org) => (
                   <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -1408,7 +1457,7 @@ export default function AdminDashboard() {
                 <SelectValue placeholder="Select organization" />
               </SelectTrigger>
               <SelectContent>
-                {organizations.map((org) => (
+                {(organizations || []).map((org) => (
                   <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -2728,8 +2777,8 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {organizations.map((org) => {
-                    const orgAdmin = users.find(u => u.organization_id === org.id && u.role === 'member_organization_admin');
+                  {(organizations || []).map((org) => {
+                    const orgAdmin = (users || []).find(u => u.organization_id === org.id && u.role === 'member_organization_admin');
                     const isActive = orgAdmin?.is_active || false;
                     
                     return (
@@ -2849,7 +2898,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {menuItems.map((item) => (
+                  {(menuItems || []).map((item) => (
                     <TableRow key={item.id} className={!item.is_available ? "opacity-50" : ""}>
                       <TableCell>
                         <div>
@@ -2968,7 +3017,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rooms.map((room) => (
+                  {(rooms || []).map((room) => (
                     <TableRow key={room.id} className={!room.is_available ? "opacity-50" : ""}>
                       <TableCell>
                         <div>
@@ -3083,7 +3132,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {announcements.map((announcement) => (
+                  {(announcements || []).map((announcement) => (
                     <TableRow key={announcement.id}>
                       <TableCell>
                         <div>
