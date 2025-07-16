@@ -29,8 +29,8 @@ export function RoomCardCalendar({
   const { data: bookings = [], refetch } = useQuery({
     queryKey: ['room-bookings', room.id, selectedDate],
     queryFn: () => fetch(`/api/rooms/${room.id}/bookings?date=${selectedDate}`).then(res => res.json()),
-    staleTime: 30000, // Consider data fresh for 30 seconds
-    refetchInterval: 30000, // Auto-refetch every 30 seconds for real-time updates
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    refetchInterval: false, // Disable auto-polling to reduce compute costs
   });
 
   // Generate time slots using useMemo to avoid infinite loops

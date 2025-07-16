@@ -16,10 +16,10 @@ export function ImpersonationBanner() {
   const { data: impersonationStatus } = useQuery({
     queryKey: ['/api/admin/impersonation-status'],
     enabled: !!user && user.role === 'calmkaaj_admin',
-    refetchInterval: 30000, // Check every 30 seconds instead of 5
+    refetchInterval: false, // Disable auto-polling to reduce compute costs
     retry: 1,
     retryDelay: 1000,
-    staleTime: 20000, // Consider data fresh for 20 seconds
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 
   const isImpersonating = (impersonationStatus as any)?.isImpersonating || false;

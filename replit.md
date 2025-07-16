@@ -382,6 +382,14 @@ Changelog:
   * Added comprehensive session debugging to track authentication flow
   * Updated navigation text: "Café" to "Cafe Order" and "Rooms" to "Meeting Rooms" for clarity
   * Admin dashboard now fully functional with all API endpoints working correctly
+- July 16, 2025. COMPLETED Critical performance optimization to reduce compute costs:
+  * Removed excessive session debugging console.log statements that were logging every API call
+  * Disabled aggressive 30-second polling intervals in impersonation banner and room components
+  * Eliminated debug logging from admin routes, menu creation, and user management endpoints
+  * Changed refetchInterval from 30 seconds to false (disabled) for cost reduction
+  * Increased staleTime to 5 minutes to reduce unnecessary API calls
+  * Removed console.log statements from auth, menu, announcement, and admin user management routes
+  * Optimized for production deployment with significant compute cost reduction
 ```
 
 ## User Preferences

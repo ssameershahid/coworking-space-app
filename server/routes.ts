@@ -154,12 +154,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.session());
   
   // Add debug logging for session
+  // Session debugging removed to reduce compute costs
+  // Only log critical authentication errors
   app.use((req, res, next) => {
-    if (req.path.startsWith('/api/') && req.path !== '/api/auth/login') {
-      console.log('Session debug - Path:', req.path);
-      console.log('Session debug - isAuthenticated:', req.isAuthenticated());
-      console.log('Session debug - user:', req.user ? req.user.email : 'null');
-      console.log('Session debug - cookies:', req.headers.cookie);
+    // Only log failed authentication attempts, not every API call
+    if (req.path.startsWith('/api/') && req.path !== '/api/auth/login' && !req.isAuthenticated()) {
+      console.log('Auth failed for:', req.path);
     }
     next();
   });
@@ -291,7 +291,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/auth/me", requireAuth, (req, res) => {
     const { password, ...userWithoutPassword } = req.user as any;
-    console.log("Auth me request - User:", userWithoutPassword);
     res.json({ user: userWithoutPassword });
   });
 
@@ -358,8 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/menu/items", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
     try {
-      console.log("Create menu item request - User:", req.user);
-      console.log("Create menu item request - Body:", req.body);
+      // Debug logging removed to reduce compute costs
       
       const result = schema.insertMenuItemSchema.safeParse(req.body);
       if (!result.success) {
@@ -368,7 +366,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const item = await storage.createMenuItem(result.data);
-      console.log("Menu item created successfully:", item);
       res.status(201).json(item);
     } catch (error) {
       console.error("Error creating menu item:", error);
@@ -932,7 +929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/announcements", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      console.log("Received announcement data:", req.body);
+      // Debug logging removed to reduce compute costs
       
       // Handle multi-site data
       const { sites, ...otherData } = req.body;
@@ -1175,8 +1172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
       const { site } = req.query;
-      console.log("Admin users request - User:", req.user);
-      console.log("Admin users request - Site filter:", site);
+      // Debug logging removed to reduce compute costs
       
       // Build query with optional site filtering
       let query = db
@@ -1214,7 +1210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const users = await query.orderBy(desc(schema.users.created_at));
-      console.log("Admin users result count:", users.length);
+      // Debug logging removed to reduce compute costs
 
       res.json(users);
     } catch (error) {
@@ -1225,8 +1221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
-      console.log("Admin create user request - User:", req.user);
-      console.log("Admin create user request - Body:", req.body);
+      // Debug logging removed to reduce compute costs
       
       const { start_date, ...bodyData } = req.body;
       
