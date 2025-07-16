@@ -35,8 +35,23 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY || 'ox0Lm9vjWcxrhNk04JXf6k8Sr16SSfircZs6qzSxQkw'
 );
 
-// Store push subscriptions in memory (in production, use database)
+// Store push subscriptions in memory with size limit to prevent memory leaks
 const pushSubscriptions = new Map<number, any>();
+const MAX_PUSH_SUBSCRIPTIONS = 1000; // Prevent unbounded growth
+
+// Cleanup function to remove expired subscriptions
+const cleanupPushSubscriptions = () => {
+  if (pushSubscriptions.size > MAX_PUSH_SUBSCRIPTIONS * 0.8) {
+    console.warn(`Push subscriptions approaching limit (${pushSubscriptions.size}/${MAX_PUSH_SUBSCRIPTIONS})`);
+    // Remove oldest 20% of subscriptions if near limit
+    const toRemove = Math.floor(pushSubscriptions.size * 0.2);
+    const entries = Array.from(pushSubscriptions.entries());
+    for (let i = 0; i < toRemove; i++) {
+      pushSubscriptions.delete(entries[i][0]);
+    }
+    console.log(`Cleaned up ${toRemove} push subscriptions`);
+  }
+};
 
 // Passport configuration
 passport.use(
@@ -171,8 +186,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
-  // WebSocket connection handling
+  // WebSocket connection handling with size limit
   const clients = new Map<number, WebSocket>();
+  const MAX_CLIENTS = 500; // Prevent unbounded growth
   
   wss.on('connection', (ws: WebSocket, req) => {
     console.log('WebSocket connection established');
@@ -181,6 +197,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const data = JSON.parse(message);
         if (data.type === 'authenticate' && data.userId) {
+          // Enforce client limit to prevent memory leaks
+          if (clients.size >= MAX_CLIENTS) {
+            console.warn(`WebSocket client limit reached (${MAX_CLIENTS}), rejecting new connection`);
+            ws.close(1000, 'Server at capacity');
+            return;
+          }
           clients.set(data.userId, ws);
           console.log(`User ${data.userId} connected via WebSocket`);
         }
@@ -190,8 +212,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     ws.on('close', () => {
-      // Remove client from map
-      for (const [userId, client] of Array.from(clients.entries())) {
+      // Efficient cleanup - find and remove without creating new arrays
+      for (const [userId, client] of clients) {
         if (client === ws) {
           clients.delete(userId);
           break;

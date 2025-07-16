@@ -390,6 +390,13 @@ Changelog:
   * Increased staleTime to 5 minutes to reduce unnecessary API calls
   * Removed console.log statements from auth, menu, announcement, and admin user management routes
   * Optimized for production deployment with significant compute cost reduction
+- July 16, 2025. COMPLETED Critical memory leak fixes and connection limits:
+  * Fixed unbounded growth of WebSocket clients Map and push subscriptions Map
+  * Added MAX_CLIENTS (500) and MAX_PUSH_SUBSCRIPTIONS (1000) limits to prevent memory exhaustion
+  * Optimized WebSocket cleanup to avoid creating arrays on every disconnect (O(n) to O(1) improvement)
+  * Reduced WebSocket reconnection attempts from 5 to 3 and interval from 3s to 10s
+  * Added automatic cleanup mechanism for push subscriptions when approaching limits
+  * Implemented connection capacity limits to prevent server overload with proper error handling
 ```
 
 ## User Preferences

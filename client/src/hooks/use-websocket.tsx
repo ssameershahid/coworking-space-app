@@ -23,8 +23,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     onMessage,
     onConnect,
     onDisconnect,
-    reconnectAttempts = 5,
-    reconnectInterval = 3000,
+    reconnectAttempts = 3, // Reduced from 5 to 3 to prevent connection churn
+    reconnectInterval = 10000, // Increased from 3s to 10s to reduce server load
   } = options;
 
   const connect = () => {
