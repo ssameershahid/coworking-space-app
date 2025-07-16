@@ -1,23 +1,23 @@
 {
-  "timestamp": "2025-07-16T16:34:33.680Z",
-  "dataPoints": 3,
+  "timestamp": "2025-07-16T16:40:50.907Z",
+  "dataPoints": 13,
   "averages": {
-    "wsConnections": 19.33,
-    "memory": 263.75,
-    "cpu": 1382.71,
-    "apiCallsPerHour": 3000
+    "wsConnections": 3.08,
+    "memory": 249.15,
+    "cpu": 830.22,
+    "apiCallsPerHour": -735.47
   },
   "hourlyCosts": {
-    "wsConnections": 0.00019333333333333333,
-    "apiCalls": 0.01499999583333449,
-    "memory": 0.052749333333333336,
-    "cpu": 0.49777439999999995,
+    "wsConnections": 0.000030769230769230774,
+    "apiCalls": -0.003677342373908597,
+    "memory": 0.04982953846153845,
+    "cpu": 0.29887836923076927,
     "logs": 0.0005,
-    "total": 0.566217062500001
+    "total": 0.3455613345491684
   },
   "projections": {
-    "daily": 13.589209500000024,
-    "weekly": 95.12446650000017,
-    "monthly": 407.6762850000007
+    "daily": 8.293472029180041,
+    "weekly": 58.05430420426029,
+    "monthly": 248.80416087540124
   }
 }
