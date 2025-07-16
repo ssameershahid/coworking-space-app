@@ -14,6 +14,10 @@ import * as schema from "@shared/schema";
 import { eq, desc, sql, asc, and, or } from "drizzle-orm";
 import { emailService } from "./email-service";
 import webpush from "web-push";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Session configuration
 const sessionConfig = {
@@ -173,8 +177,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Only log critical authentication errors
   app.use((req, res, next) => {
     // Only log failed authentication attempts, not every API call
-    if (req.path.startsWith('/api/') && req.path !== '/api/auth/login' && !req.isAuthenticated()) {
-      console.log('Auth failed for:', req.path);
+    if (req.path.startsWith('/api/')) {
+      METRICS.apiCalls++;
+      if (req.path !== '/api/auth/login' && !req.isAuthenticated()) {
+        METRICS.authFailures++;
+        console.log('Auth failed for:', req.path);
+      }
     }
     next();
   });
@@ -190,7 +198,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const clients = new Map<number, WebSocket>();
   const MAX_CLIENTS = 500; // Prevent unbounded growth
   
+  // Real-time metrics tracking
+  const METRICS = {
+    startTime: new Date(),
+    wsConnections: 0,
+    pushSubs: pushSubscriptions.size,
+    memory: 0,
+    reconnects: 0,
+    apiCalls: 0,
+    authFailures: 0,
+    cpu: 0
+  };
+  
   wss.on('connection', (ws: WebSocket, req) => {
+    METRICS.wsConnections++;
     console.log('WebSocket connection established');
     
     ws.on('message', (message: string) => {
@@ -212,6 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     ws.on('close', () => {
+      METRICS.wsConnections--;
       // Efficient cleanup - find and remove without creating new arrays
       for (const [userId, client] of clients) {
         if (client === ws) {
@@ -1635,6 +1657,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to generate PDF" });
     }
   });
+
+  // Start metrics reporting every 30 seconds
+  setInterval(() => {
+    METRICS.memory = process.memoryUsage().rss / 1024 / 1024;
+    METRICS.cpu = process.cpuUsage().system / 1000;
+    METRICS.pushSubs = pushSubscriptions.size;
+    
+    const metricsData = {
+      timestamp: new Date().toISOString(),
+      wsConnections: METRICS.wsConnections,
+      pushSubs: METRICS.pushSubs,
+      memory: Math.round(METRICS.memory * 100) / 100,
+      cpu: Math.round(METRICS.cpu * 100) / 100,
+      apiCalls: METRICS.apiCalls,
+      authFailures: METRICS.authFailures,
+      reconnects: METRICS.reconnects,
+      uptime: Math.round((Date.now() - METRICS.startTime.getTime()) / 1000)
+    };
+    
+    // Log to file for analysis
+    fs.appendFileSync(path.join(__dirname, '..', 'verification', 'metrics.log'), 
+      JSON.stringify(metricsData) + '\n');
+    
+    // Log to console in production
+    console.log('📊 Metrics:', JSON.stringify(metricsData));
+    
+    // Alert if thresholds exceeded
+    if (METRICS.wsConnections > 500) {
+      console.error('🚨 ALERT: WebSocket connections exceed 500!', METRICS.wsConnections);
+    }
+    if (METRICS.memory > 1000) {
+      console.error('🚨 ALERT: Memory usage exceeds 1GB!', METRICS.memory, 'MB');
+    }
+  }, 30000);
 
   return httpServer;
 }

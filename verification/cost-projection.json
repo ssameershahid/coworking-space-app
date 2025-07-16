@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-07-16T16:34:33.680Z",
+  "dataPoints": 3,
+  "averages": {
+    "wsConnections": 19.33,
+    "memory": 263.75,
+    "cpu": 1382.71,
+    "apiCallsPerHour": 3000
+  },
+  "hourlyCosts": {
+    "wsConnections": 0.00019333333333333333,
+    "apiCalls": 0.01499999583333449,
+    "memory": 0.052749333333333336,
+    "cpu": 0.49777439999999995,
+    "logs": 0.0005,
+    "total": 0.566217062500001
+  },
+  "projections": {
+    "daily": 13.589209500000024,
+    "weekly": 95.12446650000017,
+    "monthly": 407.6762850000007
+  }
+}

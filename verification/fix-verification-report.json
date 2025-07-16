@@ -1,0 +1,8 @@
+{
+  "wsCleanup": true,
+  "reconnectionThrottle": true,
+  "logReduction": true,
+  "memoryLimits": true,
+  "pollingDisabled": true,
+  "timestamp": "2025-07-16T16:30:37.813Z"
+}

@@ -1,0 +1,120 @@
+I NEED YOU TO DO THE FOLLOWING TO MAKE THIS APP AS EFFICIENT AS POSSIBLE TO USE LESS COMPUTING UNITS, WITHOUT COMPROMISING ON USER EXPERIENCE, BY DOING THE FOLLOWING THINGS AS A WORLD-CLASS SOFTWARE ENGINEER, DEVOPS EXPERT AND DEBUGGER
+
+1) IMPLEMENT REAL-TIME METRICS DASHBOARD
+// ADD TO server.js
+const METRICS = {
+  startTime: new Date(),
+  wsConnections: 0,
+  pushSubs: 0,
+  memory: 0,
+  reconnects: 0
+};
+
+setInterval(() => {
+  METRICS.memory = process.memoryUsage().rss / 1024 / 1024;
+  console.metrics(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    ...METRICS,
+    cpu: process.cpuUsage().system / 1000
+  }));
+}, 30000);
+
+// INSTRUMENT WS CONNECTIONS
+wsServer.on('connection', (ws) => {
+  METRICS.wsConnections++;
+  ws.on('close', () => METRICS.wsConnections--);
+});
+
+// INSTRUMENT RECONNECTS
+window.addEventListener('online', () => METRICS.reconnects++);
+
+-----------
+
+2) EXECUTE STRESS TESTS
+# TEST 1: WS CONNECTION LEAK TEST (100 connections)
+for i in {1..100}; do
+  node -e "const WebSocket = require('ws'); 
+           const ws = new WebSocket('ws://localhost:3000'); 
+           setTimeout(() => ws.close(), 500)" &
+done
+
+# TEST 2: RECONNECTION STORM
+for i in {1..50}; do
+  curl -X POST http://localhost:3000/api/network-disrupt
+  sleep 0.2
+done
+
+# TEST 3: MEMORY LOAD TEST
+node -e "let arr = []; 
+         setInterval(() => arr.push(new Array(1e4)), 100)" &
+
+--------
+
+3) VERIFY FIXES
+// CONFIRM IN CODE:
+// 1. WS CLEANUP MECHANISM (routes.ts)
+if (clients.size >= 500) {
+  const oldest = [...clients.keys()][0];
+  clients.get(oldest).close();  // MUST EXIST
+}
+
+// 2. RECONNECTION THROTTLE (use-websocket.tsx)
+reconnectInterval: 10000  // MUST BE 10s
+
+// 3. LOG REDUCTION CONFIRMATION
+grep -c "console.log" src/ server/ | tee log-counts.txt
+
+-------
+
+4) COST PROJECTION CALCULATION
+# RUN 24-HOUR COST SIMULATION
+START_UNITS=$(replctl billing status | grep "Compute units" | cut -d: -f2)
+npx loadtest -n 5000 -c 20 -k http://localhost:3000/api/health &
+sleep 86400 # Wait 24 hours
+END_UNITS=$(replctl billing status | grep "Compute units" | cut -d: -f2)
+
+DAILY_UNITS=$((END_UNITS - START_UNITS))
+PROJECTED_COST=$(echo "scale=4; $DAILY_UNITS * 30 * 0.000004" | bc)
+
+echo "Projected Monthly Cost: \$$PROJECTED_COST"
+
+
+----------
+
+5) GENERATE VERIFICATION REPORT
+After 24 hours, run:
+echo "🩻 HEALTH REPORT:
+- Max WS Connections: $(grep 'wsConnections' metrics.log | jq '.wsConnections' | sort -n | tail -1)
+- Memory High Watermark: $(grep 'memory' metrics.log | jq '.memory' | sort -n | tail -1) MB
+- Daily Reconnects: $(grep 'reconnects' metrics.log | jq '.reconnects' | tail -1)
+- CPU Peak: $(grep 'cpu' metrics.log | jq '.cpu' | sort -n | tail -1) ms
+- Log Volume: $(wc -l server.log | cut -d' ' -f1) lines
+- Projected Monthly Cost: \$$PROJECTED_COST
+
+🚨 ALERT IF:
+- WS > 500 ❌  
+- Memory > 1000 MB ❌  
+- Cost > $5 ❌"
+
+-------------
+
+6) FAILSAFE PROTOCOL
+If any metric exceeds thresholds:
+# DOWNGRADE IMMEDIATELY
+replctl deploy update --power 0.5vcpu-0.5gb --max-instances 1
+
+# BLOCK HEAVY ROUTES
+app.use('/admin/reports', (req, res) => res.status(503).send('Cost protection active'));
+
+------------
+
+IMPLEMENTATION REQUIREMENTS
+
+1. Execute ALL commands in order
+2. Run for full 24-hour period
+3. Save all outputs to /verification/
+4. Alert immediately if:
+- Memory > 1GB
+- WS connections > 500
+- CPU > 70% for >5 minutes
+5. Provide actionable fix recommendations for any failures
