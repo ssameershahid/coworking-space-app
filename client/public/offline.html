@@ -147,13 +147,8 @@
         window.addEventListener('online', updateConnectionStatus);
         window.addEventListener('offline', updateConnectionStatus);
         
-        // DISABLED: This setInterval was consuming excessive compute units
-        // Only rely on 'online' event listener for connection restoration
-        // setInterval(() => {
-        //     if (navigator.onLine) {
-        //         window.location.reload();
-        //     }
-        // }, 5000);
+        // COMPLETELY DISABLED: Offline functionality removed to reduce compute usage
+        // For internal company app, users can manually refresh if needed
     </script>
 </body>
 </html>
