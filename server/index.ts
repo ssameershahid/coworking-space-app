@@ -60,6 +60,9 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
+
+// Force production mode for compute efficiency
+process.env.NODE_ENV = 'production';
   server.listen({
     port,
     host: "0.0.0.0",
