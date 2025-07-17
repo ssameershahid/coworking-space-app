@@ -61,20 +61,10 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   const port = 5000;
 
-// Force production mode for compute efficiency
-process.env.NODE_ENV = 'production';
   server.listen({
     port,
     host: "0.0.0.0",
-    reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
-    
-    // Register service worker if available
-    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(registration => log('SW registered'))
-        .catch(error => log('SW registration failed'));
-    }
   });
 })();
