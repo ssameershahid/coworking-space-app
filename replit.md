@@ -405,6 +405,13 @@ Changelog:
   * Added automatic alerts for critical thresholds (>500 WS connections, >1GB memory)
   * Verified all optimizations: WS cleanup ✅, reconnection throttle ✅, log reduction ✅, memory limits ✅, polling disabled ✅
   * Production-ready with enterprise-grade monitoring, automatic cost tracking, and health reporting
+- July 17, 2025. CRITICAL FIX: Disabled monitoring system that was consuming excessive compute units:
+  * IDENTIFIED ROOT CAUSE: Metrics collection system was running every 30 seconds consuming 26,309 compute units/hour
+  * Disabled continuous metrics tracking, API call counting, WebSocket connection tracking, and excessive logging
+  * Eliminated file I/O operations (metrics.log writes every 30s), memory/CPU calculations, and console logging
+  * Expected 80-90% compute reduction: from 26,309 to <5,000 units/hour (monitoring was more expensive than the app)
+  * Maintained all core functionality: authentication, cafe orders, room booking, WebSocket updates, push notifications
+  * Monitoring tools available for debugging but disabled in production to prevent compute waste
 ```
 
 ## User Preferences

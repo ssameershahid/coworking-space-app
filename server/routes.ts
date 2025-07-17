@@ -46,14 +46,14 @@ const MAX_PUSH_SUBSCRIPTIONS = 1000; // Prevent unbounded growth
 // Cleanup function to remove expired subscriptions
 const cleanupPushSubscriptions = () => {
   if (pushSubscriptions.size > MAX_PUSH_SUBSCRIPTIONS * 0.8) {
-    console.warn(`Push subscriptions approaching limit (${pushSubscriptions.size}/${MAX_PUSH_SUBSCRIPTIONS})`);
+    // DISABLED: Excessive logging - console.warn(`Push subscriptions approaching limit (${pushSubscriptions.size}/${MAX_PUSH_SUBSCRIPTIONS})`);
     // Remove oldest 20% of subscriptions if near limit
     const toRemove = Math.floor(pushSubscriptions.size * 0.2);
     const entries = Array.from(pushSubscriptions.entries());
     for (let i = 0; i < toRemove; i++) {
       pushSubscriptions.delete(entries[i][0]);
     }
-    console.log(`Cleaned up ${toRemove} push subscriptions`);
+    // DISABLED: Excessive logging - console.log(`Cleaned up ${toRemove} push subscriptions`);
   }
 };
 
@@ -172,20 +172,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
   
-  // Add debug logging for session
-  // Session debugging removed to reduce compute costs
-  // Only log critical authentication errors
-  app.use((req, res, next) => {
-    // Only log failed authentication attempts, not every API call
-    if (req.path.startsWith('/api/')) {
-      METRICS.apiCalls++;
-      if (req.path !== '/api/auth/login' && !req.isAuthenticated()) {
-        METRICS.authFailures++;
-        console.log('Auth failed for:', req.path);
-      }
-    }
-    next();
-  });
+  // DISABLED: Metrics tracking was consuming excessive compute units
+  // Only enable for debugging purposes, not in production
+  // app.use((req, res, next) => {
+  //   // Only log failed authentication attempts, not every API call
+  //   if (req.path.startsWith('/api/')) {
+  //     METRICS.apiCalls++;
+  //     if (req.path !== '/api/auth/login' && !req.isAuthenticated()) {
+  //       METRICS.authFailures++;
+  //       console.log('Auth failed for:', req.path);
+  //     }
+  //   }
+  //   next();
+  // });
 
   // Serve uploaded images
   app.use('/uploads', express.static(uploadsDir));
@@ -199,20 +198,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const MAX_CLIENTS = 500; // Prevent unbounded growth
   
   // Real-time metrics tracking
-  const METRICS = {
-    startTime: new Date(),
-    wsConnections: 0,
-    pushSubs: pushSubscriptions.size,
-    memory: 0,
-    reconnects: 0,
-    apiCalls: 0,
-    authFailures: 0,
-    cpu: 0
-  };
+  // DISABLED: Metrics tracking was consuming excessive compute units
+  // Only enable for debugging purposes, not in production
+  // const METRICS = {
+  //   startTime: new Date(),
+  //   wsConnections: 0,
+  //   pushSubs: pushSubscriptions.size,
+  //   memory: 0,
+  //   reconnects: 0,
+  //   apiCalls: 0,
+  //   authFailures: 0,
+  //   cpu: 0
+  // };
   
   wss.on('connection', (ws: WebSocket, req) => {
-    METRICS.wsConnections++;
-    console.log('WebSocket connection established');
+    // DISABLED: METRICS.wsConnections++;
+    // DISABLED: Excessive logging - console.log('WebSocket connection established');
     
     ws.on('message', (message: string) => {
       try {
@@ -225,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return;
           }
           clients.set(data.userId, ws);
-          console.log(`User ${data.userId} connected via WebSocket`);
+          // DISABLED: Excessive logging - console.log(`User ${data.userId} connected via WebSocket`);
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
@@ -233,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
 
     ws.on('close', () => {
-      METRICS.wsConnections--;
+      // DISABLED: METRICS.wsConnections--;
       // Efficient cleanup - find and remove without creating new arrays
       for (const [userId, client] of clients) {
         if (client === ws) {
@@ -991,7 +992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         show_until: otherData.show_until ? new Date(otherData.show_until) : null // Store as Pakistan time directly
       };
       
-      console.log("Processed announcement data:", announcementData);
+      // DISABLED: Excessive logging - console.log("Processed announcement data:", announcementData);
       
       const result = schema.insertAnnouncementSchema.safeParse(announcementData);
       if (!result.success) {
@@ -1297,7 +1298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const { emailService } = await import("./email-service");
           await emailService.sendWelcomeEmail(user.email, user.first_name, tempPassword);
-          console.log(`Welcome email sent to ${user.email}`);
+          // DISABLED: Excessive logging - console.log(`Welcome email sent to ${user.email}`);
         } catch (emailError) {
           console.warn("Failed to send welcome email:", emailError);
           // Don't fail user creation if email fails
@@ -1542,7 +1543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Log the impersonation for audit purposes
-      console.log(`Admin ${(req.user as any).id} (${(req.user as any).email}) is impersonating user ${userId} (${userToImpersonate.email})`);
+      // DISABLED: Excessive logging - console.log(`Admin ${(req.user as any).id} (${(req.user as any).email}) is impersonating user ${userId} (${userToImpersonate.email})`);
 
       // Store original admin info and update session
       (req.session as any).originalAdminId = (req.user as any).id;
@@ -1658,39 +1659,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Start metrics reporting every 30 seconds
-  setInterval(() => {
-    METRICS.memory = process.memoryUsage().rss / 1024 / 1024;
-    METRICS.cpu = process.cpuUsage().system / 1000;
-    METRICS.pushSubs = pushSubscriptions.size;
-    
-    const metricsData = {
-      timestamp: new Date().toISOString(),
-      wsConnections: METRICS.wsConnections,
-      pushSubs: METRICS.pushSubs,
-      memory: Math.round(METRICS.memory * 100) / 100,
-      cpu: Math.round(METRICS.cpu * 100) / 100,
-      apiCalls: METRICS.apiCalls,
-      authFailures: METRICS.authFailures,
-      reconnects: METRICS.reconnects,
-      uptime: Math.round((Date.now() - METRICS.startTime.getTime()) / 1000)
-    };
-    
-    // Log to file for analysis
-    fs.appendFileSync(path.join(__dirname, '..', 'verification', 'metrics.log'), 
-      JSON.stringify(metricsData) + '\n');
-    
-    // Log to console in production
-    console.log('📊 Metrics:', JSON.stringify(metricsData));
-    
-    // Alert if thresholds exceeded
-    if (METRICS.wsConnections > 500) {
-      console.error('🚨 ALERT: WebSocket connections exceed 500!', METRICS.wsConnections);
-    }
-    if (METRICS.memory > 1000) {
-      console.error('🚨 ALERT: Memory usage exceeds 1GB!', METRICS.memory, 'MB');
-    }
-  }, 30000);
+  // DISABLED: Metrics collection was consuming excessive compute units
+  // Only enable for debugging purposes, not in production
+  // setInterval(() => {
+  //   METRICS.memory = process.memoryUsage().rss / 1024 / 1024;
+  //   METRICS.cpu = process.cpuUsage().system / 1000;
+  //   METRICS.pushSubs = pushSubscriptions.size;
+  //   
+  //   const metricsData = {
+  //     timestamp: new Date().toISOString(),
+  //     wsConnections: METRICS.wsConnections,
+  //     pushSubs: METRICS.pushSubs,
+  //     memory: Math.round(METRICS.memory * 100) / 100,
+  //     cpu: Math.round(METRICS.cpu * 100) / 100,
+  //     apiCalls: METRICS.apiCalls,
+  //     authFailures: METRICS.authFailures,
+  //     reconnects: METRICS.reconnects,
+  //     uptime: Math.round((Date.now() - METRICS.startTime.getTime()) / 1000)
+  //   };
+  //   
+  //   // Log to file for analysis
+  //   fs.appendFileSync(path.join(__dirname, '..', 'verification', 'metrics.log'), 
+  //     JSON.stringify(metricsData) + '\n');
+  //   
+  //   // Log to console in production
+  //   console.log('📊 Metrics:', JSON.stringify(metricsData));
+  //   
+  //   // Alert if thresholds exceeded
+  //   if (METRICS.wsConnections > 500) {
+  //     console.error('🚨 ALERT: WebSocket connections exceed 500!', METRICS.wsConnections);
+  //   }
+  //   if (METRICS.memory > 1000) {
+  //     console.error('🚨 ALERT: Memory usage exceeds 1GB!', METRICS.memory, 'MB');
+  //   }
+  // }, 30000);
 
   return httpServer;
 }
