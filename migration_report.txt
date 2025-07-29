@@ -1,0 +1,24 @@
+=== DATABASE EXPORT SUMMARY ===
+Export Date: Tue Jul 29 11:16:46 AM UTC 2025
+Database: CalmKaaj Coworking Management System
+
+=== FILES CREATED ===
+• supabase_migration.sql - Complete database dump (schema + data)
+• supabase_schema.sql - Schema-only dump (for reference)
+• migration_report.txt - This verification report
+
+=== TABLES EXPORTED ===
+• announcements: 7 records
+• cafe_order_items: 49 records
+• cafe_orders: 29 records
+• meeting_bookings: 9 records
+• meeting_rooms: 3 records
+• menu_categories: 11 records
+• menu_items: 29 records
+• organizations: 0 records
+• users: 9 records
+
+=== FILE SIZES ===
+-rw-r--r-- 1 runner runner 631 Jul 29 11:16 migration_report.txt
+-rw-r--r-- 1 runner runner 39K Jul 29 11:16 supabase_migration.sql
+-rw-r--r-- 1 runner runner 19K Jul 29 11:16 supabase_schema.sql
