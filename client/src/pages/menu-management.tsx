@@ -80,10 +80,18 @@ export default function MenuManagement() {
     mutationFn: async (itemId: number) => {
       return apiRequest('DELETE', `/api/menu/items/${itemId}`);
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
-      toast({ title: "Menu item deleted successfully!" });
+      
+      if (data?.soft_deleted) {
+        toast({ 
+          title: "Menu item marked as unavailable",
+          description: "Item cannot be deleted as it has existing orders. It has been marked as unavailable instead."
+        });
+      } else {
+        toast({ title: "Menu item deleted successfully!" });
+      }
     },
     onError: (error: any) => {
       toast({ 

@@ -500,9 +500,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       await storage.deleteMenuItem(id);
       res.json({ message: "Menu item deleted successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting menu item:", error);
-      res.status(500).json({ message: "Failed to delete menu item" });
+      
+      // Check if it's a foreign key constraint error
+      if (error.code === '23503' && error.constraint?.includes('cafe_order_items')) {
+        // Soft delete: mark as unavailable instead of hard delete
+        try {
+          await storage.updateMenuItem(id, { is_available: false });
+          res.json({ 
+            message: "Menu item marked as unavailable (cannot delete items with existing orders)",
+            soft_deleted: true 
+          });
+        } catch (updateError) {
+          console.error("Error soft deleting menu item:", updateError);
+          res.status(500).json({ message: "Failed to delete menu item" });
+        }
+      } else {
+        res.status(500).json({ message: "Failed to delete menu item" });
+      }
     }
   });
 
