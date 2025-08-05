@@ -4,7 +4,7 @@ export interface User {
   first_name: string;
   last_name: string;
   phone?: string;
-  role: 'member_individual' | 'member_organization_admin' | 'cafe_manager' | 'calmkaaj_admin';
+  role: 'member_individual' | 'member_organization' | 'member_organization_admin' | 'cafe_manager' | 'calmkaaj_team' | 'calmkaaj_admin';
   organization_id?: string;
   site: 'blue_area' | 'i_10';
   credits: number;
@@ -12,6 +12,7 @@ export interface User {
   is_active: boolean;
   can_charge_cafe_to_org: boolean;
   can_charge_room_to_org: boolean;
+  onboarding_completed: boolean;
   created_at?: string;
 }
 

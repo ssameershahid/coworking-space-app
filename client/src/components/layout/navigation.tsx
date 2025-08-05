@@ -132,6 +132,12 @@ export default function Navigation() {
               <Link 
                 key={item.name} 
                 href={item.href}
+                data-onboarding={
+                  item.href === '/cafe' ? 'cafe-link' :
+                  item.href === '/rooms' ? 'rooms-link' :
+                  item.href === '/community' ? 'community-link' :
+                  undefined
+                }
                 className={`pb-4 font-medium transition-colors cursor-pointer ${
                   item.current
                     ? "text-primary border-b-2 border-primary"
@@ -151,7 +157,11 @@ export default function Navigation() {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center space-x-2"
+                  data-onboarding="profile-menu"
+                >
                   <Avatar className="h-8 w-8">
                     {user.profile_image && (
                       <AvatarImage 

@@ -45,6 +45,7 @@ export const users = pgTable("users", {
   company: text("company"),
   community_visible: boolean("community_visible").default(true),
   email_visible: boolean("email_visible").default(false),
+  onboarding_completed: boolean("onboarding_completed").default(false),
   created_at: timestamp("created_at").defaultNow(),
 });
 
