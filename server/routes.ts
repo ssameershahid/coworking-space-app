@@ -261,20 +261,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Broadcast to all cafe managers
   const broadcastToCafeManagers = async (message: any) => {
     try {
+      console.log('🔥 BROADCAST FUNCTION CALLED:', message.type);
       const cafeManagers = await storage.getUsersByRole('cafe_manager');
-      console.log(`Broadcasting to ${cafeManagers.length} cafe managers:`, message.type);
+      console.log(`📡 Broadcasting to ${cafeManagers.length} cafe managers:`, message.type);
+      console.log('🔗 Active WebSocket connections:', clients.size);
       
       cafeManagers.forEach(manager => {
         const client = clients.get(manager.id);
+        console.log(`👤 Checking cafe manager ${manager.id} (${manager.email})`);
         if (client && client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify(message));
-          console.log(`Message sent to cafe manager ${manager.id} (${manager.email})`);
+          console.log(`✅ Message sent to cafe manager ${manager.id} (${manager.email})`);
         } else {
-          console.log(`Cafe manager ${manager.id} (${manager.email}) not connected via WebSocket`);
+          console.log(`❌ Cafe manager ${manager.id} (${manager.email}) not connected via WebSocket`);
         }
       });
     } catch (error) {
-      console.error('Error broadcasting to cafe managers:', error);
+      console.error('💥 Error broadcasting to cafe managers:', error);
     }
   };
 
