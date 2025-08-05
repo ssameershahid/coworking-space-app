@@ -534,7 +534,9 @@ export default function Dashboard() {
                         <p className="text-sm text-gray-500">
                           {new Date(booking.start_time).toLocaleDateString()} • {new Date(booking.start_time).toLocaleTimeString()} - {new Date(booking.end_time).toLocaleTimeString()}
                         </p>
-                        <p className="text-xs text-gray-400">{booking.duration_minutes} minutes</p>
+                        <p className="text-xs text-gray-400">
+                          {Math.round((new Date(booking.end_time).getTime() - new Date(booking.start_time).getTime()) / (1000 * 60))} minutes
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
