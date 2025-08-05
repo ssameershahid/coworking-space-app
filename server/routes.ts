@@ -510,11 +510,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const otherSiteData = { ...updates, site: otherSite };
           updatedOther = await storage.updateMenuItem(otherSiteMatch.id, otherSiteData);
         } else {
-          // Create new item on other site
+          // Create new item on other site (exclude ID to avoid conflicts)
+          const { id, ...updatesWithoutId } = updates;
           const otherSiteData = { 
-            ...updates, 
+            ...updatesWithoutId, 
             site: otherSite,
-            name: updates.name || currentItem.name // Ensure name is included
+            name: updates.name || currentItem.name, // Ensure name is included
+            category_id: updates.category_id || currentItem.category_id,
+            price: updates.price || currentItem.price,
+            description: updates.description || currentItem.description,
+            image_url: updates.image_url || currentItem.image_url,
+            is_available: updates.is_available !== undefined ? updates.is_available : currentItem.is_available,
+            is_daily_special: updates.is_daily_special !== undefined ? updates.is_daily_special : currentItem.is_daily_special
           };
           updatedOther = await storage.createMenuItem(otherSiteData);
         }
