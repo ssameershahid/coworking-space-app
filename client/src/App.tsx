@@ -27,7 +27,6 @@ import MobileNav from "@/components/layout/mobile-nav";
 import Footer from "@/components/layout/footer";
 import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
 import OnboardingManager from "@/components/onboarding/onboarding-manager";
-import OnboardingResetButton from "@/components/onboarding/onboarding-reset-button";
 import { useAuth } from "@/hooks/use-auth";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -53,7 +52,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       {!isCafeManager && <Footer />}
       <MobileNav />
       <OnboardingManager />
-      <OnboardingResetButton />
     </div>
   );
 }

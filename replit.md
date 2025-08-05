@@ -38,6 +38,7 @@ Preferred communication style: Simple, everyday language.
 - **Organization Management**: Employee permission management, billing controls, invoice generation, multi-site support (Blue Area, I-10).
 - **Admin Dashboard**: User management, menu item CRUD, room configuration, system analytics.
 - **Community Features**: Member directory with integrated user profiles, self-service profile editing, privacy controls for email visibility, global avatar system.
+- **Onboarding System**: Playful animated welcome experience for new users featuring personalized greetings, interactive feature tours with spotlights, confetti celebrations, and guided tooltips. Shows once per user account with database tracking.
 - **UI/UX Decisions**: Green brand color scheme with orange accents, professional PDF generation, responsive design (desktop & mobile), dynamic conference room graphics, visual calendar picker, PKR currency localization, unified component design (e.g., universal menu item editor, consistent checkout dialog).
 - **PWA Implementation**: Full PWA capabilities including push notifications, install prompt, and offline support.
 
