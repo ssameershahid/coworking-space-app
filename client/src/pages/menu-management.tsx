@@ -21,7 +21,8 @@ export default function MenuManagement() {
   // Determine API endpoint based on user role
   const isAdmin = user?.role === 'calmkaaj_admin';
   const isCafeManager = user?.role === 'cafe_manager';
-  const apiEndpoint = isAdmin ? '/api/admin/menu/items' : '/api/menu/items';
+  // Both admins and cafe managers should see all items to manage both sites
+  const apiEndpoint = (isAdmin || isCafeManager) ? '/api/admin/menu/items' : '/api/menu/items';
 
   // Fetch menu items
   const { data: menuItems = [], isLoading } = useQuery({
@@ -29,8 +30,8 @@ export default function MenuManagement() {
     enabled: !!user && (isAdmin || isCafeManager)
   });
 
-  // Fetch categories (admin gets all categories, others get site-specific)
-  const categoriesEndpoint = isAdmin ? '/api/admin/menu/categories' : '/api/menu/categories';
+  // Fetch categories (admin and cafe managers get all categories to see both sites)
+  const categoriesEndpoint = (isAdmin || isCafeManager) ? '/api/admin/menu/categories' : '/api/menu/categories';
   const { data: categories = [] } = useQuery({
     queryKey: [categoriesEndpoint],
     enabled: !!user && (isAdmin || isCafeManager)
@@ -42,7 +43,8 @@ export default function MenuManagement() {
       return apiRequest('POST', '/api/menu/items', menuItemData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
       toast({ title: "Menu item created successfully!" });
     },
     onError: (error: any) => {
@@ -60,7 +62,8 @@ export default function MenuManagement() {
       return apiRequest('PATCH', `/api/menu/items/${itemId}`, updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
       toast({ title: "Menu item updated successfully!" });
     },
     onError: (error: any) => {
@@ -78,7 +81,8 @@ export default function MenuManagement() {
       return apiRequest('DELETE', `/api/menu/items/${itemId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
       toast({ title: "Menu item deleted successfully!" });
     },
     onError: (error: any) => {
