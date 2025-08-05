@@ -711,7 +711,7 @@ export default function RoomsPage() {
                   <Alert className="mt-3">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      Negative balance will appear on your account for manual billing at month-end.
+                      Insufficient credits. Negative balance will appear on your account for manual billing at month-end.
                     </AlertDescription>
                   </Alert>
                 )}
