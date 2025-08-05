@@ -29,6 +29,13 @@ export default function MenuManagement() {
     enabled: !!user && (isAdmin || isCafeManager)
   });
 
+  // Fetch categories (admin gets all categories, others get site-specific)
+  const categoriesEndpoint = isAdmin ? '/api/admin/menu/categories' : '/api/menu/categories';
+  const { data: categories = [] } = useQuery({
+    queryKey: [categoriesEndpoint],
+    enabled: !!user && (isAdmin || isCafeManager)
+  });
+
   // Create menu item mutation
   const createMenuItem = useMutation({
     mutationFn: async (menuItemData: any) => {
@@ -173,7 +180,9 @@ export default function MenuManagement() {
                         </div>
                       </TableCell>
                       <TableCell>Rs. {item.price}</TableCell>
-                      <TableCell className="capitalize">{item.category || "Uncategorized"}</TableCell>
+                      <TableCell className="capitalize">
+                        {categories.find((cat: any) => cat.id == item.category_id)?.name || "Uncategorized"}
+                      </TableCell>
                       <TableCell>
                         {item.site === 'blue_area' ? 'Blue Area' : 'I-10'}
                       </TableCell>
