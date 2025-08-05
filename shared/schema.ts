@@ -123,7 +123,7 @@ export const meeting_bookings = pgTable("meeting_bookings", {
   room_id: integer("room_id").references(() => meeting_rooms.id).notNull(),
   start_time: timestamp("start_time").notNull(),
   end_time: timestamp("end_time").notNull(),
-  credits_used: integer("credits_used").notNull(),
+  credits_used: decimal("credits_used", { precision: 10, scale: 2 }).notNull(),
   status: bookingStatusEnum("status").default("confirmed"),
   billed_to: billingTypeEnum("billed_to").default("personal"),
   org_id: uuid("org_id").references(() => organizations.id),

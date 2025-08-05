@@ -841,9 +841,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Room not found" });
       }
 
-      // Calculate credits needed
-      const durationHours = Math.ceil((endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60));
-      const creditsNeeded = durationHours * room.credit_cost_per_hour;
+      // Calculate credits needed - STRICT RULE: 1 hour = 1 credit
+      const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+      const creditsNeeded = Math.round(durationHours * 100) / 100; // Round to 2 decimal places
 
       // Allow bookings even with insufficient credits (track negative balance for manual billing)
       const availableCredits = (user.credits || 0) - (user.used_credits || 0);
