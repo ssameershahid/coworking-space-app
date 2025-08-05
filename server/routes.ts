@@ -489,32 +489,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Menu item not found" });
         }
 
-        // Update current item for blue_area
-        const blueAreaData = { ...updates, site: "blue_area" };
-        const updatedBlueArea = await storage.updateMenuItem(id, blueAreaData);
+        // Update current item (keep its original site)
+        const currentSiteData = { ...updates, site: currentItem.site };
+        const updatedCurrent = await storage.updateMenuItem(id, currentSiteData);
 
-        // Check if there's already an item with same name on i_10 site
+        // Determine the other site
+        const otherSite = currentItem.site === "blue_area" ? "i_10" : "blue_area";
+        
+        // Find matching item on the other site by name
         const allItems = await storage.getAllMenuItems();
-        const i10Match = allItems.find(item => 
-          item.name === updates.name && 
-          item.site === "i_10" && 
+        const otherSiteMatch = allItems.find(item => 
+          item.name === currentItem.name && 
+          item.site === otherSite && 
           item.id !== id
         );
 
-        let updatedI10;
-        if (i10Match) {
-          // Update existing i_10 item
-          const i10Data = { ...updates, site: "i_10" };
-          updatedI10 = await storage.updateMenuItem(i10Match.id, i10Data);
+        let updatedOther;
+        if (otherSiteMatch) {
+          // Update existing item on other site
+          const otherSiteData = { ...updates, site: otherSite };
+          updatedOther = await storage.updateMenuItem(otherSiteMatch.id, otherSiteData);
         } else {
-          // Create new i_10 item
-          const i10Data = { ...updates, site: "i_10" };
-          updatedI10 = await storage.createMenuItem(i10Data);
+          // Create new item on other site
+          const otherSiteData = { 
+            ...updates, 
+            site: otherSite,
+            name: updates.name || currentItem.name // Ensure name is included
+          };
+          updatedOther = await storage.createMenuItem(otherSiteData);
         }
 
         res.json({ 
           message: "Items updated for both sites",
-          items: [updatedBlueArea, updatedI10]
+          items: [updatedCurrent, updatedOther]
         });
       } else {
         // Handle single site update
