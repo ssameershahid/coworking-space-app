@@ -479,10 +479,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/menu/items/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const updates = req.body;
+      const { site, ...updates } = req.body;
       
-      const item = await storage.updateMenuItem(id, updates);
-      res.json(item);
+      // Handle "both" site option for updates
+      if (site === "both") {
+        // Can't update single item to both sites - this should create new items instead
+        return res.status(400).json({ 
+          message: "Cannot update existing item to both sites. Please create a new item for both sites instead." 
+        });
+      } else {
+        // Handle single site update
+        const updatedItem = await storage.updateMenuItem(id, { ...updates, site });
+        res.json(updatedItem);
+      }
     } catch (error) {
       console.error("Error updating menu item:", error);
       res.status(500).json({ message: "Failed to update menu item" });

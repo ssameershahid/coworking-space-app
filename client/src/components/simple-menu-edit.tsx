@@ -37,7 +37,7 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
       setPrice(item.price?.toString() || "");
       setImageUrl(item.image_url || "");
       setCategoryId(item.category_id?.toString() || "");
-      setSite(item.site || "blue_area");
+      setSite(item.site || "blue_area"); // Don't allow "both" for editing existing items
       setIsAvailable(item.is_available ?? true);
       setIsDailySpecial(item.is_daily_special ?? false);
     } else {
@@ -145,7 +145,7 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
               <SelectContent>
                 <SelectItem value="blue_area">Blue Area</SelectItem>
                 <SelectItem value="i_10">I-10</SelectItem>
-                <SelectItem value="both">Both Sites</SelectItem>
+                {!item && <SelectItem value="both">Both Sites</SelectItem>}
               </SelectContent>
             </Select>
           </div>
