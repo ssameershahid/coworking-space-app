@@ -294,9 +294,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Log session info for testing 3-week duration
         const sessionExpiry = new Date(Date.now() + (21 * 24 * 60 * 60 * 1000));
-        console.log(`✅ User ${user.email} logged in successfully`);
+        console.log(`✅ User ${user.email} (${user.role}) logged in successfully`);
         console.log(`📅 Session will expire on: ${sessionExpiry.toLocaleString('en-PK', {timeZone: 'Asia/Karachi'})}`);
-        console.log(`⏰ Session duration: 21 days (3 weeks)`);
+        console.log(`⏰ Session duration: 21 days (3 weeks) - APPLIES TO ALL ROLES`);
         
         // Remove password from response
         const { password, ...userWithoutPassword } = user;
