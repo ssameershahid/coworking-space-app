@@ -496,8 +496,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/menu/items/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
+    const id = parseInt(req.params.id); // Move id declaration outside try block
     try {
-      const id = parseInt(req.params.id);
       await storage.deleteMenuItem(id);
       res.json({ message: "Menu item deleted successfully" });
     } catch (error: any) {
