@@ -145,4 +145,6 @@ export interface Organization {
 export interface WebSocketMessage {
   type: string;
   [key: string]: any;
+  type: string;
+  [key: string]: any;
 }

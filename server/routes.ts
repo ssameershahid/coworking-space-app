@@ -257,6 +257,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // Broadcast to all cafe managers
+  const broadcastToCafeManagers = async (message: any) => {
+    try {
+      const cafeManagers = await storage.getUsersByRole('cafe_manager');
+      cafeManagers.forEach(manager => {
+        broadcast(manager.id, message);
+      });
+    } catch (error) {
+      console.error('Error broadcasting to cafe managers:', error);
+    }
+  };
+
   // File upload endpoint
   app.post("/api/upload/profile-image", requireAuth, upload.single('image'), (req, res) => {
     try {
@@ -589,7 +601,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Broadcast to cafe managers
       const orderWithDetails = await storage.getCafeOrderById(order.id);
-      // Here you would broadcast to cafe managers via WebSocket
+      
+      // Broadcast new order to all cafe managers
+      broadcastToCafeManagers({
+        type: 'NEW_ORDER',
+        order: orderWithDetails
+      });
       
       res.status(201).json(orderWithDetails);
     } catch (error) {

@@ -34,6 +34,7 @@ export const BILLING_TYPES = {
 export const WEBSOCKET_MESSAGE_TYPES = {
   AUTHENTICATE: 'authenticate',
   ORDER_STATUS_UPDATE: 'order_status_update',
+  NEW_ORDER: 'NEW_ORDER',
   BOOKING_REMINDER: 'booking_reminder',
   ANNOUNCEMENT: 'announcement',
 } as const;

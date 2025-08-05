@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+import { useWebSocket } from "@/hooks/use-websocket";
+import { WEBSOCKET_MESSAGE_TYPES } from "@/lib/constants";
 
 
 
@@ -64,6 +66,22 @@ export default function CafeManagerDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<CafeOrder | null>(null);
+
+  // Setup WebSocket for real-time order updates
+  useWebSocket({
+    onMessage: (message) => {
+      if (message.type === WEBSOCKET_MESSAGE_TYPES.NEW_ORDER) {
+        // Invalidate and refetch orders when a new order comes in
+        queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+        
+        // Show toast notification
+        toast({
+          title: "New Order Received!",
+          description: `Order #${message.order?.id} from ${message.order?.user?.first_name} ${message.order?.user?.last_name}`,
+        });
+      }
+    }
+  });
   
 
 
