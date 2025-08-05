@@ -70,7 +70,10 @@ export default function CafeManagerDashboard() {
   // Setup WebSocket for real-time order updates
   useWebSocket({
     onMessage: (message) => {
+      console.log('🎯🎯🎯 CAFE MANAGER RECEIVED WEBSOCKET MESSAGE:', message);
       if (message.type === WEBSOCKET_MESSAGE_TYPES.NEW_ORDER) {
+        console.log('🎉🎉🎉 NEW ORDER RECEIVED IN CAFE MANAGER DASHBOARD!');
+        console.log('🎉 Order details:', message.order);
         // Invalidate and refetch orders when a new order comes in
         queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
         

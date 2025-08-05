@@ -265,26 +265,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Broadcast to all cafe managers
+  // Broadcast to all cafe managers  
   const broadcastToCafeManagers = async (message: any) => {
     try {
-      console.log('🔥 BROADCAST FUNCTION CALLED:', message.type);
-      const cafeManagers = await storage.getUsersByRole('cafe_manager');
-      console.log(`📡 Broadcasting to ${cafeManagers.length} cafe managers:`, message.type);
-      console.log('🔗 Active WebSocket connections:', clients.size);
+      console.log('🔥🔥🔥 BROADCAST FUNCTION CALLED:', message.type);
+      console.log('🔥 Message data:', JSON.stringify(message));
+      console.log('🔥 Clients Map size:', clients.size);
+      console.log('🔥 Clients Map contents:', Array.from(clients.keys()));
       
+      const cafeManagers = await storage.getUsersByRole('cafe_manager');
+      console.log(`📡 Found ${cafeManagers.length} cafe managers in database`);
+      console.log('📡 Cafe managers:', cafeManagers.map(m => `${m.id}: ${m.email}`));
+      
+      let sentCount = 0;
       cafeManagers.forEach(manager => {
+        console.log(`\n👤 Processing cafe manager ${manager.id} (${manager.email})`);
         const client = clients.get(manager.id);
-        console.log(`👤 Checking cafe manager ${manager.id} (${manager.email})`);
-        if (client && client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(message));
-          console.log(`✅ Message sent to cafe manager ${manager.id} (${manager.email})`);
+        
+        if (!client) {
+          console.log(`❌ No WebSocket client found for manager ${manager.id}`);
+        } else if (client.readyState !== WebSocket.OPEN) {
+          console.log(`❌ WebSocket not OPEN for manager ${manager.id}, state: ${client.readyState}`);
         } else {
-          console.log(`❌ Cafe manager ${manager.id} (${manager.email}) not connected via WebSocket`);
+          console.log(`✅ Sending message to manager ${manager.id}`);
+          client.send(JSON.stringify(message));
+          sentCount++;
+          console.log(`✅ Message sent successfully to ${manager.email}`);
         }
       });
+      
+      console.log(`\n🎯 BROADCAST COMPLETE: Sent to ${sentCount}/${cafeManagers.length} cafe managers`);
     } catch (error) {
-      console.error('💥 Error broadcasting to cafe managers:', error);
+      console.error('💥💥💥 ERROR broadcasting to cafe managers:', error);
+      console.error('Stack trace:', error.stack);
     }
   };
 
@@ -625,11 +638,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orderWithDetails = await storage.getCafeOrderById(order.id);
       
       // Broadcast new order to all cafe managers
-      console.log(`New order created: ${order.id}, broadcasting to cafe managers`);
+      console.log(`\n🚀🚀🚀 NEW ORDER CREATED: ${order.id}`);
+      console.log(`🚀 Order details:`, {
+        id: order.id,
+        user: user.email,
+        site: user.site,
+        total: order.total_amount
+      });
+      
+      console.log(`🚀 Starting broadcast to cafe managers...`);
       await broadcastToCafeManagers({
         type: 'NEW_ORDER',
         order: orderWithDetails
       });
+      console.log(`🚀 Broadcast complete for order ${order.id}`);
       
       res.status(201).json(orderWithDetails);
     } catch (error) {
