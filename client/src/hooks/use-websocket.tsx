@@ -32,21 +32,25 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
     try {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      const wsUrl = `${protocol}//${window.location.host}`;
+      console.log(`🔌 Attempting WebSocket connection to: ${wsUrl}`);
       
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
+        console.log('✅ WebSocket connected successfully');
         setIsConnected(true);
         setConnectionError(null);
         reconnectAttemptsRef.current = 0;
         
         // Authenticate the connection
-        ws.send(JSON.stringify({
+        const authMessage = {
           type: WEBSOCKET_MESSAGE_TYPES.AUTHENTICATE,
           userId: user.id,
-        }));
+        };
+        console.log('🔐 Sending authentication:', authMessage);
+        ws.send(JSON.stringify(authMessage));
 
         onConnect?.();
       };
@@ -54,9 +58,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       ws.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
+          console.log('📨 WebSocket message received:', message);
           onMessage?.(message);
         } catch (error) {
-          console.error("Failed to parse WebSocket message:", error);
+          console.error("❌ Failed to parse WebSocket message:", error);
         }
       };
 
@@ -77,8 +82,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       };
 
       ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        setConnectionError("Connection error occurred");
+        console.error('💥 WebSocket error:', error);
+        setConnectionError("WebSocket connection error");
       };
     } catch (error) {
       console.error("Failed to create WebSocket connection:", error);

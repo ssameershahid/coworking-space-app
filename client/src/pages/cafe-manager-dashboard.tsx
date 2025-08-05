@@ -83,20 +83,7 @@ export default function CafeManagerDashboard() {
     }
   });
 
-  // Auto-refresh fallback - refresh orders every 5 seconds for more responsive updates
-  useEffect(() => {
-    if (!user || user.role !== 'cafe_manager') return;
-    
-    const interval = setInterval(() => {
-      // Only refresh if user is not actively interacting with the page
-      if (document.visibilityState === 'visible') {
-        queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
-        console.log('Auto-refreshing cafe manager orders...');
-      }
-    }, 5000); // 5 seconds for faster updates
 
-    return () => clearInterval(interval);
-  }, [user, queryClient]);
   
 
 
