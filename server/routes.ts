@@ -1862,6 +1862,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   //   }
   // }, 30000);
 
+  // DEBUG: Test endpoint to manually trigger WebSocket broadcast
+  app.post("/api/debug/test-websocket", requireAuth, async (req, res) => {
+    try {
+      console.log('🧪🧪🧪 MANUAL WEBSOCKET TEST TRIGGERED');
+      console.log('🧪 Current user:', req.user?.email);
+      console.log('🧪 Connected clients:', clients.size);
+      console.log('🧪 Client IDs:', Array.from(clients.keys()));
+      
+      await broadcastToCafeManagers({
+        type: 'NEW_ORDER',
+        order: {
+          id: 999,
+          user_id: 1,
+          total_amount: "100.00",
+          status: "pending",
+          created_at: new Date().toISOString(),
+          test: true
+        }
+      });
+      
+      res.json({ message: 'WebSocket test broadcast sent', clients: clients.size });
+    } catch (error) {
+      console.error('🧪 Test broadcast error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   return httpServer;
 }
 
