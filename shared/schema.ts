@@ -7,7 +7,7 @@ export const userRoleEnum = pgEnum("user_role", ["member_individual", "member_or
 export const billingTypeEnum = pgEnum("billing_type", ["personal", "organization"]);
 export const orderStatusEnum = pgEnum("order_status", ["pending", "accepted", "preparing", "ready", "delivered", "cancelled"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["confirmed", "cancelled", "completed"]);
-export const siteEnum = pgEnum("site", ["blue_area", "i_10"]);
+export const siteEnum = pgEnum("site", ["blue_area", "i_10", "both"]);
 
 // Organizations
 export const organizations = pgTable("organizations", {
