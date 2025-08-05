@@ -191,6 +191,7 @@ export default function MenuManagement() {
                         <span className="capitalize">
                           {item.site === 'blue_area' ? 'Blue Area' : 
                            item.site === 'i_10' ? 'I-10' : 
+                           item.site === 'both' ? 'Both Sites' :
                            item.site}
                         </span>
                       </TableCell>

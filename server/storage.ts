@@ -202,8 +202,12 @@ export class DatabaseStorage implements IStorage {
 
   async getAllMenuItems(site?: string): Promise<schema.MenuItem[]> {
     if (site) {
+      // Include items for specific site AND items marked as "both"
       return await db.select().from(schema.menu_items)
-        .where(eq(schema.menu_items.site, site as any))
+        .where(or(
+          eq(schema.menu_items.site, site as any),
+          eq(schema.menu_items.site, "both" as any)
+        ))
         .orderBy(asc(schema.menu_items.name));
     } else {
       return await db.select().from(schema.menu_items)

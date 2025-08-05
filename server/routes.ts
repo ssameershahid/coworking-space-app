@@ -440,25 +440,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { site, ...itemData } = req.body;
       
-      // Handle "both" site option by creating items for both sites
+      // Handle "both" site option by storing as single item with site="both"
       if (site === "both") {
-        const blueAreaData = { ...itemData, site: "blue_area" };
-        const i10Data = { ...itemData, site: "i_10" };
+        const bothSitesData = { ...itemData, site: "both" };
         
-        const blueAreaResult = schema.insertMenuItemSchema.safeParse(blueAreaData);
-        const i10Result = schema.insertMenuItemSchema.safeParse(i10Data);
-        
-        if (!blueAreaResult.success || !i10Result.success) {
-          return res.status(400).json({ message: "Invalid input" });
+        const result = schema.insertMenuItemSchema.safeParse(bothSitesData);
+        if (!result.success) {
+          console.log("Menu item validation failed:", result.error.issues);
+          return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
         }
         
-        const blueAreaItem = await storage.createMenuItem(blueAreaResult.data);
-        const i10Item = await storage.createMenuItem(i10Result.data);
-        
-        res.status(201).json({ 
-          message: "Items created for both sites",
-          items: [blueAreaItem, i10Item]
-        });
+        const item = await storage.createMenuItem(result.data);
+        res.status(201).json(item);
       } else {
         // Handle single site creation
         const result = schema.insertMenuItemSchema.safeParse(req.body);
@@ -481,57 +474,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { site, ...updates } = req.body;
       
-      // Handle "both" site option for updates
+      // Handle "both" site option for updates - simply update to site="both"
       if (site === "both") {
-        // Get the current item to know its details
-        const currentItem = await storage.getMenuItemById(id);
-        if (!currentItem) {
-          return res.status(404).json({ message: "Menu item not found" });
-        }
-
         // Remove ID from updates to prevent conflicts
         const { id: updateId, ...cleanUpdates } = updates;
-
-        // Update current item (keep its original site)
-        const currentSiteData = { ...cleanUpdates, site: currentItem.site };
-        const updatedCurrent = await storage.updateMenuItem(id, currentSiteData);
-
-        // Determine the other site
-        const otherSite = currentItem.site === "blue_area" ? "i_10" : "blue_area";
         
-        // Find matching item on the other site by name
-        const allItems = await storage.getAllMenuItems();
-        const otherSiteMatch = allItems.find(item => 
-          item.name === currentItem.name && 
-          item.site === otherSite && 
-          item.id !== id
-        );
-
-        let updatedOther;
-        if (otherSiteMatch) {
-          // Update existing item on other site
-          const otherSiteData = { ...cleanUpdates, site: otherSite };
-          updatedOther = await storage.updateMenuItem(otherSiteMatch.id, otherSiteData);
-        } else {
-          // Create new item on other site
-          const otherSiteData = { 
-            ...cleanUpdates, 
-            site: otherSite,
-            name: cleanUpdates.name || currentItem.name,
-            category_id: cleanUpdates.category_id || currentItem.category_id,
-            price: cleanUpdates.price || currentItem.price,
-            description: cleanUpdates.description || currentItem.description,
-            image_url: cleanUpdates.image_url || currentItem.image_url,
-            is_available: cleanUpdates.is_available !== undefined ? cleanUpdates.is_available : currentItem.is_available,
-            is_daily_special: cleanUpdates.is_daily_special !== undefined ? cleanUpdates.is_daily_special : currentItem.is_daily_special
-          };
-          updatedOther = await storage.createMenuItem(otherSiteData);
-        }
-
-        res.json({ 
-          message: "Items updated for both sites",
-          items: [updatedCurrent, updatedOther]
-        });
+        // Update item to both sites
+        const bothSitesData = { ...cleanUpdates, site: "both" };
+        const updatedItem = await storage.updateMenuItem(id, bothSitesData);
+        
+        res.json(updatedItem);
       } else {
         // Handle single site update
         const updatedItem = await storage.updateMenuItem(id, { ...updates, site });
