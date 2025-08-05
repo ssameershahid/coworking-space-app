@@ -15,6 +15,7 @@ import { eq, desc, sql, asc, and, or } from "drizzle-orm";
 import { emailService } from "./email-service";
 import webpush from "web-push";
 import { fileURLToPath } from 'url';
+import { getPakistanTime, parseDateInPakistanTime, convertToPakistanTime } from "./utils/pakistan-time.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -820,9 +821,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startTime = new Date(start_time);
       const endTime = new Date(end_time);
       
-      // Check if booking is in the past
-      const now = new Date();
-      if (startTime < now) {
+      // Check if booking is in the past - Use Pakistan time
+      const nowPakistan = getPakistanTime();
+      if (startTime < nowPakistan) {
+        console.log(`Booking rejected - Start time: ${startTime.toISOString()}, Pakistan time now: ${nowPakistan.toISOString()}`);
         return res.status(400).json({ message: "Cannot book a room for a time in the past" });
       }
       
@@ -930,12 +932,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Booking is already cancelled" });
       }
 
-      // Check 5-minute rule - allow cancellation only up to 5 minutes before start time
-      const now = new Date();
-      const startTime = new Date(booking.start_time);
+      // Check 5-minute rule - allow cancellation only up to 5 minutes before start time (Pakistan time)
+      const nowPakistan = getPakistanTime();
+      const startTime = convertToPakistanTime(new Date(booking.start_time));
       const fiveMinutesBeforeStart = new Date(startTime.getTime() - 5 * 60 * 1000); // 5 minutes before start
       
-      if (now > fiveMinutesBeforeStart) {
+      console.log(`Cancellation check - Now: ${nowPakistan.toISOString()}, Start: ${startTime.toISOString()}, 5min before: ${fiveMinutesBeforeStart.toISOString()}`);
+      
+      if (nowPakistan > fiveMinutesBeforeStart) {
         return res.status(400).json({ 
           message: "Cannot cancel booking within 5 minutes of start time" 
         });
