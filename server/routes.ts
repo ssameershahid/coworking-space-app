@@ -565,6 +565,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as schema.User;
       const { items, billed_to, notes } = req.body;
+      
+      console.log(`Creating new cafe order for user ${user.id} (${user.email})`);
+      console.log('Order details:', { items, billed_to, notes });
 
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Order must contain at least one item" });
