@@ -522,23 +522,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Force delete endpoint - actually deletes the menu item
+  // Force delete endpoint - actually deletes the menu item and related order items
   app.delete("/api/menu/items/:id/force", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
     const id = parseInt(req.params.id);
     try {
+      // First, delete any related order items that reference this menu item
+      await storage.deleteCafeOrderItemsByMenuId(id);
+      
+      // Then delete the menu item itself
       await storage.deleteMenuItem(id);
-      res.json({ message: "Menu item permanently deleted" });
+      
+      res.json({ message: "Menu item and related order history permanently deleted" });
     } catch (error: any) {
       console.error("Error force deleting menu item:", error);
-      
-      if (error.code === '23503' && error.constraint?.includes('cafe_order_items')) {
-        res.status(400).json({ 
-          message: "Cannot delete menu item as it has existing orders. Please archive it instead.",
-          error_type: "foreign_key_constraint"
-        });
-      } else {
-        res.status(500).json({ message: "Failed to delete menu item" });
-      }
+      res.status(500).json({ message: "Failed to delete menu item" });
     }
   });
 
