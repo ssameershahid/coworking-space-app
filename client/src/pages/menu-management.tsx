@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit2, Trash2, Menu } from "lucide-react";
+import { Plus, Edit2, Trash2, Menu, Ghost } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -75,31 +75,42 @@ export default function MenuManagement() {
     }
   });
 
-  // Delete menu item mutation
-  const deleteMenuItem = useMutation({
+  // Archive menu item mutation (mark as unavailable)
+  const archiveMenuItem = useMutation({
     mutationFn: async (itemId: number) => {
-      return apiRequest('DELETE', `/api/menu/items/${itemId}`);
+      return apiRequest('PATCH', `/api/menu/items/${itemId}`, { is_available: false });
     },
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
-      
-      if (data?.soft_deleted) {
-        toast({ 
-          title: "Menu item marked as unavailable",
-          description: "Item cannot be deleted as it has existing orders. It has been marked as unavailable instead."
-        });
-      } else {
-        toast({ title: "Menu item deleted successfully!" });
-      }
+      toast({ title: "Menu item archived (marked as unavailable)!" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Failed to delete menu item", 
-        description: error.message || "Please try again.",
-        variant: "destructive"
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to archive menu item",
+        variant: "destructive",
       });
-    }
+    },
+  });
+
+  // Force delete menu item mutation (actual deletion)
+  const forceDeleteMenuItem = useMutation({
+    mutationFn: async (itemId: number) => {
+      return apiRequest('DELETE', `/api/menu/items/${itemId}/force`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
+      toast({ title: "Menu item permanently deleted!" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete menu item. Item may have existing orders.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleEditMenuItem = (item: any) => {
@@ -124,9 +135,15 @@ export default function MenuManagement() {
     setEditingMenuItem(null);
   };
 
-  const handleDeleteMenuItem = (itemId: number) => {
-    if (confirm("Are you sure you want to delete this menu item?")) {
-      deleteMenuItem.mutate(itemId);
+  const handleArchiveMenuItem = (itemId: number) => {
+    if (confirm("Are you sure you want to archive this menu item? This will mark it as unavailable.")) {
+      archiveMenuItem.mutate(itemId);
+    }
+  };
+
+  const handleForceDeleteMenuItem = (itemId: number) => {
+    if (confirm("Are you sure you want to PERMANENTLY DELETE this menu item? This action cannot be undone!")) {
+      forceDeleteMenuItem.mutate(itemId);
     }
   };
 
@@ -219,13 +236,23 @@ export default function MenuManagement() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleEditMenuItem(item)}
+                            title="Edit menu item"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDeleteMenuItem(item.id)}
+                            onClick={() => handleArchiveMenuItem(item.id)}
+                            title="Archive menu item (mark as unavailable)"
+                          >
+                            <Ghost className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleForceDeleteMenuItem(item.id)}
+                            title="Permanently delete menu item"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
