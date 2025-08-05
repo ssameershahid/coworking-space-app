@@ -75,7 +75,7 @@ function Router() {
     );
   }
 
-  if (user.role === 'calmkaaj_admin') {
+  if (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team') {
     return (
       <Switch>
         <Route path="/" component={AdminDashboard} />

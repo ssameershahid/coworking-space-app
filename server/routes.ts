@@ -363,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin endpoint to get all menu items (including inactive ones)
-  app.get("/api/admin/menu/items", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
+  app.get("/api/admin/menu/items", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
     try {
       const user = req.user as any;
       const items = await storage.getAllMenuItems(user?.site);
@@ -400,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/menu/items", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
+  app.post("/api/menu/items", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
     try {
       // Debug logging removed to reduce compute costs
       
@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/menu/items/:id", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
+  app.patch("/api/menu/items/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
@@ -431,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/menu/items/:id", requireAuth, requireRole(["calmkaaj_admin", "cafe_manager"]), async (req, res) => {
+  app.delete("/api/menu/items/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteMenuItem(id);
@@ -780,7 +780,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/rooms", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.post("/api/rooms", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const result = schema.insertMeetingRoomSchema.safeParse(req.body);
       if (!result.success) {
@@ -795,7 +795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/rooms/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.patch("/api/rooms/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
@@ -972,7 +972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/announcements", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.post("/api/announcements", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       // Debug logging removed to reduce compute costs
       
@@ -1058,7 +1058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const { name, email, site, admin_first_name, admin_last_name, admin_email, team_members = [], start_date } = req.body;
       
@@ -1214,7 +1214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin-only routes for CalmKaaj administrators
-  app.get("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.get("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const { site } = req.query;
       // Debug logging removed to reduce compute costs
@@ -1264,7 +1264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.post("/api/admin/users", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       // Debug logging removed to reduce compute costs
       
@@ -1344,7 +1344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/admin/users/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.patch("/api/admin/users/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
       const updates = req.body;
@@ -1370,7 +1370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/admin/users/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.delete("/api/admin/users/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
       
@@ -1382,7 +1382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/admin/organizations/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.delete("/api/admin/organizations/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const orgId = req.params.id;
       
@@ -1394,7 +1394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/bookings", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.get("/api/admin/bookings", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const { site } = req.query;
       // Get all bookings for admin dashboard with optional site filtering
@@ -1440,21 +1440,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching admin stats:", error);
       res.status(500).json({ message: "Failed to fetch statistics" });
-    }
-  });
-
-  app.post("/api/rooms", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
-    try {
-      const result = schema.insertMeetingRoomSchema.safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
-      }
-
-      const room = await storage.createMeetingRoom(result.data);
-      res.status(201).json(room);
-    } catch (error) {
-      console.error("Error creating meeting room:", error);
-      res.status(500).json({ message: "Failed to create meeting room" });
     }
   });
 

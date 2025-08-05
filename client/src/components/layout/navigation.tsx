@@ -22,10 +22,11 @@ export default function Navigation() {
 
   if (!user) return null;
 
-  const showCafeAndRooms = ["member_individual", "member_organization_admin", "calmkaaj_admin"].includes(user.role);
-  const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin"].includes(user.role);
+  const showCafeAndRooms = ["member_individual", "member_organization_admin", "calmkaaj_admin", "calmkaaj_team"].includes(user.role);
+  const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin", "calmkaaj_team"].includes(user.role);
   const showOrganization = user.role === "member_organization_admin";
   const isCafeManager = user.role === "cafe_manager";
+  const isAdminUser = user.role === "calmkaaj_admin" || user.role === "calmkaaj_team";
 
   const navigation = [
     { name: "Dashboard", href: "/", current: location === "/" },

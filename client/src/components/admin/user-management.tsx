@@ -66,6 +66,8 @@ export default function UserManagement({ users }: UserManagementProps) {
     switch (role) {
       case 'calmkaaj_admin':
         return 'bg-red-100 text-red-800';
+      case 'calmkaaj_team':
+        return 'bg-orange-100 text-orange-800';
       case 'cafe_manager':
         return 'bg-green-100 text-green-800';
       case 'member_organization':

@@ -14,25 +14,25 @@ export default function AdminPage() {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ["/api/users"],
-    enabled: !!user && user.role === "calmkaaj_admin",
+    enabled: !!user && (user.role === "calmkaaj_admin" || user.role === "calmkaaj_team"),
   });
 
   const { data: allOrders = [] } = useQuery({
     queryKey: ["/api/cafe/orders"],
-    enabled: !!user && user.role === "calmkaaj_admin",
+    enabled: !!user && user.role === "calmkaaj_admin", // Only CalmKaaj Admin can see orders/revenue
   });
 
   const { data: allBookings = [] } = useQuery({
     queryKey: ["/api/bookings"],
-    enabled: !!user && user.role === "calmkaaj_admin",
+    enabled: !!user && (user.role === "calmkaaj_admin" || user.role === "calmkaaj_team"),
   });
 
   const { data: rooms = [] } = useQuery({
     queryKey: ["/api/rooms"],
-    enabled: !!user && user.role === "calmkaaj_admin",
+    enabled: !!user && (user.role === "calmkaaj_admin" || user.role === "calmkaaj_team"),
   });
 
-  if (!user || user.role !== "calmkaaj_admin") {
+  if (!user || (user.role !== "calmkaaj_admin" && user.role !== "calmkaaj_team")) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
@@ -43,14 +43,15 @@ export default function AdminPage() {
     );
   }
 
-  const todaysOrders = allOrders.filter((order: any) => {
+  // Revenue calculations (only for calmkaaj_admin)
+  const todaysOrders = user.role === "calmkaaj_admin" ? allOrders.filter((order: any) => {
     const orderDate = new Date(order.created_at);
     const today = new Date();
     return orderDate.toDateString() === today.toDateString();
-  });
+  }) : [];
 
-  const todaysRevenue = todaysOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
-  const activeOrders = allOrders.filter((order: any) => order.status === "pending" || order.status === "preparing").length;
+  const todaysRevenue = user.role === "calmkaaj_admin" ? todaysOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0) : 0;
+  const activeOrders = user.role === "calmkaaj_admin" ? allOrders.filter((order: any) => order.status === "pending" || order.status === "preparing").length : 0;
   const occupiedRooms = allBookings.filter((booking: any) => {
     const now = new Date();
     const startTime = new Date(booking.start_time);
@@ -83,33 +84,39 @@ export default function AdminPage() {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Daily Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">Rs. {todaysRevenue.toFixed(2)}</p>
+        {/* Revenue card - only for calmkaaj_admin */}
+        {user.role === "calmkaaj_admin" && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Daily Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900">Rs. {todaysRevenue.toFixed(2)}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
         
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{activeOrders}</p>
+        {/* Active Orders card - only for calmkaaj_admin */}
+        {user.role === "calmkaaj_admin" && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Orders</p>
+                  <p className="text-2xl font-bold text-gray-900">{activeOrders}</p>
+                </div>
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <ShoppingCart className="h-6 w-6 text-orange-600" />
+                </div>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <ShoppingCart className="h-6 w-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
         
         <Card>
           <CardContent className="p-6">

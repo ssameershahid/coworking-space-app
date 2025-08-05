@@ -8,6 +8,7 @@ export const USER_ROLES = {
   MEMBER_ORGANIZATION: 'member_organization',
   MEMBER_ORGANIZATION_ADMIN: 'member_organization_admin',
   CAFE_MANAGER: 'cafe_manager',
+  CALMKAAJ_TEAM: 'calmkaaj_team',
   CALMKAAJ_ADMIN: 'calmkaaj_admin',
 } as const;
 
