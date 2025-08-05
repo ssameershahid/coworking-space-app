@@ -291,6 +291,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (err) {
           return next(err);
         }
+        
+        // Log session info for testing 3-week duration
+        const sessionExpiry = new Date(Date.now() + (21 * 24 * 60 * 60 * 1000));
+        console.log(`✅ User ${user.email} logged in successfully`);
+        console.log(`📅 Session will expire on: ${sessionExpiry.toLocaleString('en-PK', {timeZone: 'Asia/Karachi'})}`);
+        console.log(`⏰ Session duration: 21 days (3 weeks)`);
+        
         // Remove password from response
         const { password, ...userWithoutPassword } = user;
         res.json({ user: userWithoutPassword });
@@ -340,7 +347,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/auth/me", requireAuth, (req, res) => {
     const { password, ...userWithoutPassword } = req.user as any;
-    res.json({ user: userWithoutPassword });
+    
+    // Add session info for testing
+    const session = req.session as any;
+    const sessionExpiry = session.cookie.expires;
+    const remainingTime = sessionExpiry ? new Date(sessionExpiry).getTime() - Date.now() : null;
+    const remainingDays = remainingTime ? Math.floor(remainingTime / (1000 * 60 * 60 * 24)) : null;
+    
+    res.json({ 
+      user: userWithoutPassword,
+      sessionInfo: {
+        expiresOn: sessionExpiry ? new Date(sessionExpiry).toLocaleString('en-PK', {timeZone: 'Asia/Karachi'}) : null,
+        remainingDays: remainingDays,
+        remainingHours: remainingTime ? Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) : null
+      }
+    });
   });
 
   // Menu routes
