@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -55,8 +55,21 @@ export default function MenuManagement() {
 
   const { data: categories = [] } = useQuery({
     queryKey: ["/api/admin/menu/categories"],
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+
+  // Debug: Log categories when they change
+  useEffect(() => {
+    console.log("Categories data updated:", categories);
+  }, [categories]);
+
+  // Force cache clear for menu data on component mount
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/menu"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/menu"] });
+  }, [queryClient]);
 
   const createItemMutation = useMutation({
     mutationFn: async (itemData: any) => {
@@ -70,7 +83,7 @@ export default function MenuManagement() {
       });
       setIsDialogOpen(false);
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
     },
     onError: (error: any) => {
       toast({
@@ -94,7 +107,7 @@ export default function MenuManagement() {
       setIsDialogOpen(false);
       setEditingItem(null);
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
     },
     onError: (error: any) => {
       toast({
