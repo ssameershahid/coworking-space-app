@@ -50,11 +50,12 @@ export default function MenuManagement() {
   });
 
   const { data: menuItems = [] } = useQuery({
-    queryKey: ["/api/menu/items"],
+    queryKey: ["/api/admin/menu/items"],
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["/api/menu/categories"],
+    queryKey: ["/api/admin/menu/categories"],
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
   const createItemMutation = useMutation({

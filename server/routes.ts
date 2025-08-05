@@ -399,6 +399,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to get all menu categories from all sites
+  app.get("/api/admin/menu/categories", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
+    try {
+      const categories = await storage.getMenuCategories(); // No site filter - get all categories
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching all menu categories:", error);
+      res.status(500).json({ message: "Failed to fetch all menu categories" });
+    }
+  });
+
   // Daily specials endpoint
   app.get("/api/menu/daily-specials", requireAuth, async (req, res) => {
     try {
