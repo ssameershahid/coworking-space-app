@@ -75,20 +75,21 @@ export default function MenuManagement() {
     }
   });
 
-  // Archive menu item mutation (mark as unavailable)
-  const archiveMenuItem = useMutation({
-    mutationFn: async (itemId: number) => {
-      return apiRequest('PATCH', `/api/menu/items/${itemId}`, { is_available: false });
+  // Toggle availability mutation (archive/unarchive)
+  const toggleAvailability = useMutation({
+    mutationFn: async ({itemId, currentStatus}: {itemId: number, currentStatus: boolean}) => {
+      return apiRequest('PATCH', `/api/menu/items/${itemId}`, { is_available: !currentStatus });
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/menu/items"] });
-      toast({ title: "Menu item archived (marked as unavailable)!" });
+      const newStatus = !variables.currentStatus;
+      toast({ title: newStatus ? "Menu item made available!" : "Menu item archived (unavailable)!" });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error?.message || "Failed to archive menu item",
+        description: error?.message || "Failed to update menu item",
         variant: "destructive",
       });
     },
@@ -135,9 +136,10 @@ export default function MenuManagement() {
     setEditingMenuItem(null);
   };
 
-  const handleArchiveMenuItem = (itemId: number) => {
-    if (confirm("Are you sure you want to archive this menu item? This will mark it as unavailable.")) {
-      archiveMenuItem.mutate(itemId);
+  const handleToggleAvailability = (item: any) => {
+    const action = item.is_available ? "archive (make unavailable)" : "make available";
+    if (confirm(`Are you sure you want to ${action} this menu item?`)) {
+      toggleAvailability.mutate({itemId: item.id, currentStatus: item.is_available});
     }
   };
 
@@ -243,8 +245,8 @@ export default function MenuManagement() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleArchiveMenuItem(item.id)}
-                            title="Archive menu item (mark as unavailable)"
+                            onClick={() => handleToggleAvailability(item)}
+                            title={item.is_available ? "Archive menu item (mark as unavailable)" : "Un-archive menu item (make available)"}
                           >
                             <Ghost className="h-4 w-4" />
                           </Button>
