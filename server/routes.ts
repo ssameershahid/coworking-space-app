@@ -230,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return;
           }
           clients.set(data.userId, ws);
-          // DISABLED: Excessive logging - console.log(`User ${data.userId} connected via WebSocket`);
+          console.log(`User ${data.userId} connected via WebSocket`);
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
@@ -240,9 +240,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('close', () => {
       // DISABLED: METRICS.wsConnections--;
       // Efficient cleanup - find and remove without creating new arrays
-      for (const [userId, client] of clients) {
+      for (const [userId, client] of clients.entries()) {
         if (client === ws) {
           clients.delete(userId);
+          console.log(`User ${userId} disconnected from WebSocket`);
           break;
         }
       }
@@ -261,8 +262,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const broadcastToCafeManagers = async (message: any) => {
     try {
       const cafeManagers = await storage.getUsersByRole('cafe_manager');
+      console.log(`Broadcasting to ${cafeManagers.length} cafe managers:`, message.type);
+      
       cafeManagers.forEach(manager => {
-        broadcast(manager.id, message);
+        const client = clients.get(manager.id);
+        if (client && client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(message));
+          console.log(`Message sent to cafe manager ${manager.id} (${manager.email})`);
+        } else {
+          console.log(`Cafe manager ${manager.id} (${manager.email}) not connected via WebSocket`);
+        }
       });
     } catch (error) {
       console.error('Error broadcasting to cafe managers:', error);
@@ -603,7 +612,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orderWithDetails = await storage.getCafeOrderById(order.id);
       
       // Broadcast new order to all cafe managers
-      broadcastToCafeManagers({
+      console.log(`New order created: ${order.id}, broadcasting to cafe managers`);
+      await broadcastToCafeManagers({
         type: 'NEW_ORDER',
         order: orderWithDetails
       });
