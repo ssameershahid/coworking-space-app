@@ -70,6 +70,7 @@ export default function RoomsPage() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [duration, setDuration] = useState("1");
+  const [meetingNotes, setMeetingNotes] = useState("");
   const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -114,6 +115,7 @@ export default function RoomsPage() {
       setStartTime("");
       setEndTime("");
       setDuration("1");
+      setMeetingNotes("");
       setBillingType("personal");
       setSelectedTimeSlot("");
       toast({
@@ -261,6 +263,7 @@ export default function RoomsPage() {
       credits_used: creditsNeeded,
       billed_to: billingType,
       org_id: billingType === "organization" ? user?.organization_id : null,
+      notes: meetingNotes || null,
       site: user?.site,
     };
 
@@ -281,6 +284,7 @@ export default function RoomsPage() {
     setBookingDate(selectedDateView); // Set booking date to match selected date view
     setDuration("1");
     setEndTime(""); // Clear end time
+    setMeetingNotes("");
     setBillingType("personal");
     setShowBookingModal(true);
   };
@@ -562,7 +566,7 @@ export default function RoomsPage() {
                     }}
                     className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
                   >
-                    <option value="">Select end time</option>
+                    <option value="">Select time</option>
                     {Array.from({ length: 48 }, (_, i) => {
                       const hours = Math.floor(i / 2);
                       const minutes = (i % 2) * 30;
@@ -686,7 +690,20 @@ export default function RoomsPage() {
               </div>
             )}
 
-
+            {/* Meeting Notes/Agenda - Compact */}
+            <div>
+              <Label htmlFor="meeting-notes" className="text-sm font-medium mb-1 block">Meeting Notes/Agenda (Optional)</Label>
+              <textarea
+                id="meeting-notes"
+                placeholder="Brief notes or agenda..."
+                value={meetingNotes}
+                onChange={(e) => setMeetingNotes(e.target.value)}
+                maxLength={150}
+                rows={2}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white resize-none"
+              />
+              <p className="text-xs text-gray-500 mt-1">{meetingNotes.length}/150 characters</p>
+            </div>
 
             {/* Credit Check */}
             {selectedRoom && (duration || endTime) && (
