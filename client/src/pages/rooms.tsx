@@ -589,7 +589,7 @@ export default function RoomsPage() {
               {/* Duration Selection with Smaller Buttons - Optional if End Time not selected */}
               {!endTime && (
                 <div>
-                  <Label className="text-base font-medium mb-2 block">Duration (Optional)</Label>
+                  <Label className="text-sm font-medium mb-2 block">Duration (Optional)</Label>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
                     type="button"
