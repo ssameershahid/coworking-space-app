@@ -82,7 +82,7 @@ function Router() {
         <Route path="/cafe" component={CafePage} />
         <Route path="/rooms" component={RoomsPage} />
         <Route path="/community" component={CommunityPage} />
-        <Route path="/admin" component={AdminPage} />
+        <Route path="/admin" component={AdminDashboard} />
         <Route path="/menu-management" component={MenuManagement} />
         <Route path="/profile" component={ProfilePage} />
         <Route component={NotFound} />

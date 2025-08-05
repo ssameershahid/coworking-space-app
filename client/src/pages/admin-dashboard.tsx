@@ -305,7 +305,7 @@ export default function AdminDashboard() {
   const [selectedSite, setSelectedSite] = useState<string>("all");
 
   // Early return if user is not authenticated or not admin
-  if (!user || user.role !== 'calmkaaj_admin') {
+  if (!user || (user.role !== 'calmkaaj_admin' && user.role !== 'calmkaaj_team')) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
@@ -420,7 +420,7 @@ export default function AdminDashboard() {
         return [];
       }
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team')
   });
 
   const { data: organizations = [] } = useQuery<Organization[]>({
@@ -437,7 +437,7 @@ export default function AdminDashboard() {
         return [];
       }
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team')
   });
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
@@ -454,7 +454,7 @@ export default function AdminDashboard() {
         return [];
       }
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team')
   });
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
@@ -471,7 +471,7 @@ export default function AdminDashboard() {
         return [];
       }
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team')
   });
 
   const { data: announcements = [] } = useQuery<Announcement[]>({
@@ -488,7 +488,7 @@ export default function AdminDashboard() {
         return [];
       }
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team')
   });
 
   const { data: allOrders = [] } = useQuery<any[]>({
@@ -522,7 +522,7 @@ export default function AdminDashboard() {
         return [];
       }
     },
-    enabled: !!user && user.role === 'calmkaaj_admin'
+    enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team')
   });
 
   // Calculate filtered stats based on selected site
@@ -2618,20 +2618,23 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">Rs. {filteredStats.totalRevenue.toFixed(2)}</p>
-                <p className="text-xs text-green-600">{filteredStats.totalOrders} orders</p>
+        {/* Only show Total Revenue for CalmKaaj Admin */}
+        {user.role === 'calmkaaj_admin' && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900">Rs. {filteredStats.totalRevenue.toFixed(2)}</p>
+                  <p className="text-xs text-green-600">{filteredStats.totalOrders} orders</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-green-600" />
+                </div>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardContent className="p-6">
@@ -2672,7 +2675,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="menu">Cafe Menu</TabsTrigger>
           <TabsTrigger value="rooms">Meeting Rooms</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          {/* Only show Analytics tab for CalmKaaj Admin */}
+          {user.role === 'calmkaaj_admin' && (
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          )}
         </TabsList>
 
         {/* User Management */}
@@ -3251,74 +3257,76 @@ export default function AdminDashboard() {
           <CommunitySection />
         </TabsContent>
 
-        {/* Analytics */}
-        <TabsContent value="analytics">
-          <div className="grid gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{(users || []).filter(u => u.role === 'member_individual').length}</div>
-                    <div className="text-sm text-gray-600">Individual Members</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{(users || []).filter(u => u.role === 'member_organization_admin').length}</div>
-                    <div className="text-sm text-gray-600">Org Admins</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{(users || []).filter(u => u.role === 'cafe_manager').length}</div>
-                    <div className="text-sm text-gray-600">Cafe Managers</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Analytics - Only show for CalmKaaj Admin */}
+        {user.role === 'calmkaaj_admin' && (
+          <TabsContent value="analytics">
+            <div className="grid gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Site Distribution</CardTitle>
+                  <CardTitle>System Analytics</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span>Blue Area</span>
-                      <Badge>{(users || []).filter(u => u.site === 'blue_area').length} users</Badge>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{(users || []).filter(u => u.role === 'member_individual').length}</div>
+                      <div className="text-sm text-gray-600">Individual Members</div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span>I-10</span>
-                      <Badge>{(users || []).filter(u => u.site === 'i_10').length} users</Badge>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{(users || []).filter(u => u.role === 'member_organization_admin').length}</div>
+                      <div className="text-sm text-gray-600">Org Admins</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{(users || []).filter(u => u.role === 'cafe_manager').length}</div>
+                      <div className="text-sm text-gray-600">Cafe Managers</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Activity className="h-4 w-4 text-green-600" />
-                      <span>{(allOrders || []).filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length} orders today</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Site Distribution</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span>Blue Area</span>
+                        <Badge>{(users || []).filter(u => u.site === 'blue_area').length} users</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>I-10</span>
+                        <Badge>{(users || []).filter(u => u.site === 'i_10').length} users</Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                      <span>{(allBookings || []).filter(b => new Date(b.created_at).toDateString() === new Date().toDateString()).length} bookings today</span>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Activity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Activity className="h-4 w-4 text-green-600" />
+                        <span>{(allOrders || []).filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length} orders today</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4 text-blue-600" />
+                        <span>{(allBookings || []).filter(b => new Date(b.created_at).toDateString() === new Date().toDateString()).length} bookings today</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Users className="h-4 w-4 text-purple-600" />
+                        <span>{(users || []).filter(u => new Date(u.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length} new users this week</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-purple-600" />
-                      <span>{(users || []).filter(u => new Date(u.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length} new users this week</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Edit User Dialog */}
