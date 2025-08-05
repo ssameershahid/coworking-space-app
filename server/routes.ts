@@ -483,9 +483,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle "both" site option for updates
       if (site === "both") {
-        // Can't update single item to both sites - this should create new items instead
-        return res.status(400).json({ 
-          message: "Cannot update existing item to both sites. Please create a new item for both sites instead." 
+        // Get the current item to know its details
+        const currentItem = await storage.getMenuItemById(id);
+        if (!currentItem) {
+          return res.status(404).json({ message: "Menu item not found" });
+        }
+
+        // Update current item for blue_area
+        const blueAreaData = { ...updates, site: "blue_area" };
+        const updatedBlueArea = await storage.updateMenuItem(id, blueAreaData);
+
+        // Check if there's already an item with same name on i_10 site
+        const allItems = await storage.getAllMenuItems();
+        const i10Match = allItems.find(item => 
+          item.name === updates.name && 
+          item.site === "i_10" && 
+          item.id !== id
+        );
+
+        let updatedI10;
+        if (i10Match) {
+          // Update existing i_10 item
+          const i10Data = { ...updates, site: "i_10" };
+          updatedI10 = await storage.updateMenuItem(i10Match.id, i10Data);
+        } else {
+          // Create new i_10 item
+          const i10Data = { ...updates, site: "i_10" };
+          updatedI10 = await storage.createMenuItem(i10Data);
+        }
+
+        res.json({ 
+          message: "Items updated for both sites",
+          items: [updatedBlueArea, updatedI10]
         });
       } else {
         // Handle single site update
