@@ -212,7 +212,7 @@ export default function RoomsPage() {
       durationHours = parseFloat(duration);
     }
     
-    return Math.ceil(durationHours); // Fixed: 1 hour = 1 credit rule
+    return durationHours; // 1 hour = 1 credit, 30 min = 0.5 credits (exact calculation)
   };
 
   const handleBookRoom = () => {
