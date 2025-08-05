@@ -20,14 +20,14 @@ import { getPakistanTime, parseDateInPakistanTime, convertToPakistanTime } from 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Session configuration
+// Session configuration - Extended for PWA usage
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || "your-secret-key-here",
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: false, // Set to false for development to ensure cookies work
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 21 * 24 * 60 * 60 * 1000, // 3 weeks for PWA experience
     httpOnly: true,
     sameSite: "lax" as const, // More permissive for development
   },
