@@ -68,9 +68,9 @@ export default function RoomsPage() {
   const [selectedRoom, setSelectedRoom] = useState<MeetingRoom | null>(null);
   const [bookingDate, setBookingDate] = useState(getPakistanDateString());
   const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [duration, setDuration] = useState("1");
   const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
-  const [bookingNotes, setBookingNotes] = useState("");
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<MeetingBooking | null>(null);
@@ -112,9 +112,9 @@ export default function RoomsPage() {
       setSelectedRoom(null);
       setBookingDate(new Date().toISOString().split('T')[0]);
       setStartTime("");
+      setEndTime("");
       setDuration("1");
       setBillingType("personal");
-      setBookingNotes("");
       setSelectedTimeSlot("");
       toast({
         title: "Booking Confirmed!",
@@ -192,33 +192,57 @@ export default function RoomsPage() {
     });
 
   const calculateCredits = () => {
-    if (!selectedRoom || !duration) return 0;
-    // Fixed credit calculation: 1 hour = 1 credit, 30 min = 0.5 credits
-    return parseFloat(duration);
+    if (!selectedRoom || !startTime) return 0;
+    
+    let durationHours = 0;
+    
+    if (endTime) {
+      // Calculate duration from start and end times
+      const [startHours, startMinutes] = startTime.split(':').map(Number);
+      const [endHours, endMinutes] = endTime.split(':').map(Number);
+      
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      
+      if (endTotalMinutes <= startTotalMinutes) return 0; // Invalid time range
+      
+      durationHours = (endTotalMinutes - startTotalMinutes) / 60;
+    } else if (duration) {
+      // Use selected duration
+      durationHours = parseFloat(duration);
+    }
+    
+    return Math.ceil(durationHours * selectedRoom.credit_cost_per_hour);
   };
 
   const handleBookRoom = () => {
-    if (!selectedRoom || !bookingDate || !startTime || !duration) {
+    if (!selectedRoom || !bookingDate || !startTime || (!duration && !endTime)) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required booking details.",
+        description: "Please fill in all required booking details including either duration or end time.",
         variant: "destructive",
       });
       return;
     }
 
     const creditsNeeded = calculateCredits();
-    if (creditsNeeded > (user?.credits || 0) - (user?.used_credits || 0)) {
+    if (creditsNeeded <= 0) {
       toast({
-        title: "Insufficient Credits",
-        description: `You need ${creditsNeeded} credits but only have ${(user?.credits || 0) - (user?.used_credits || 0)} available.`,
+        title: "Invalid Time Selection",
+        description: "Please check your time selection. End time must be after start time.",
         variant: "destructive",
       });
       return;
     }
 
     const startDateTime = new Date(`${bookingDate}T${startTime}`);
-    const endDateTime = new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000);
+    let endDateTime: Date;
+    
+    if (endTime) {
+      endDateTime = new Date(`${bookingDate}T${endTime}`);
+    } else {
+      endDateTime = new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000);
+    }
     
     // Check if booking is in the past using Pakistan time
     if (isPastTimePakistan(startDateTime.toISOString())) {
@@ -237,7 +261,6 @@ export default function RoomsPage() {
       credits_used: creditsNeeded,
       billed_to: billingType,
       org_id: billingType === "organization" ? user?.organization_id : null,
-      notes: bookingNotes || null,
       site: user?.site,
     };
 
@@ -257,8 +280,8 @@ export default function RoomsPage() {
     setStartTime(time);
     setBookingDate(selectedDateView); // Set booking date to match selected date view
     setDuration("1");
+    setEndTime(""); // Clear end time
     setBillingType("personal");
-    setBookingNotes("");
     setShowBookingModal(true);
   };
   const availableCredits = (user?.credits || 0) - (user?.used_credits || 0);
@@ -465,8 +488,8 @@ export default function RoomsPage() {
           <div className="space-y-6">
             {/* Date and Time Selection - Compact 2-Row Layout */}
             <div className="space-y-4">
-              {/* Date and Time in 2 columns */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Date and Time in 3 columns */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-base font-medium mb-1 block">Select a Date</Label>
                   <Popover>
@@ -522,11 +545,43 @@ export default function RoomsPage() {
                     })}
                   </select>
                 </div>
+                <div>
+                  <Label htmlFor="end-time" className="text-base font-medium mb-1 block">End Time (Optional)</Label>
+                  <select
+                    id="end-time"
+                    value={endTime}
+                    onChange={(e) => {
+                      setEndTime(e.target.value);
+                      if (e.target.value) {
+                        setDuration(""); // Clear duration when end time is selected
+                      }
+                    }}
+                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
+                  >
+                    <option value="">Select end time</option>
+                    {Array.from({ length: 48 }, (_, i) => {
+                      const hours = Math.floor(i / 2);
+                      const minutes = (i % 2) * 30;
+                      const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                      const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
+                        hour: 'numeric', 
+                        minute: '2-digit',
+                        hour12: true 
+                      });
+                      return (
+                        <option key={time24} value={time24}>
+                          {time12}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
               </div>
               
-              {/* Duration Selection with Smaller Buttons */}
-              <div>
-                <Label className="text-base font-medium mb-2 block">Duration</Label>
+              {/* Duration Selection with Smaller Buttons - Optional if End Time not selected */}
+              {!endTime && (
+                <div>
+                  <Label className="text-base font-medium mb-2 block">Duration</Label>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
                     type="button"
@@ -583,12 +638,13 @@ export default function RoomsPage() {
                     4 hrs
                   </Button>
                 </div>
-              </div>
+                </div>
+              )}
               
-              {/* End Time Display */}
-              {startTime && duration && (
+              {/* End Time Display - only show if using duration mode */}
+              {startTime && duration && !endTime && (
                 <div>
-                  <Label className="text-base font-medium mb-1 block">End Time</Label>
+                  <Label className="text-base font-medium mb-1 block">Calculated End Time</Label>
                   <div className="p-3 bg-gray-100 rounded text-center text-sm font-medium">
                     {(() => {
                       const [hours, minutes] = startTime.split(':').map(Number);
@@ -626,20 +682,10 @@ export default function RoomsPage() {
               </div>
             )}
 
-            {/* Notes */}
-            <div>
-              <Label htmlFor="booking-notes">Meeting Notes (Optional)</Label>
-              <Textarea
-                id="booking-notes"
-                placeholder="Meeting agenda, special requirements, etc..."
-                value={bookingNotes}
-                onChange={(e) => setBookingNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
+
 
             {/* Credit Check */}
-            {selectedRoom && duration && (
+            {selectedRoom && (duration || endTime) && (
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <span>Credits Required:</span>
@@ -661,9 +707,7 @@ export default function RoomsPage() {
                   <Alert className="mt-3">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Insufficient Credits</strong><br />
-                      You need {calculateCredits() - availableCredits} more credits. This booking will be allowed, 
-                      but the negative balance will appear on your account for manual billing at month-end.
+                      Negative balance will appear on your account for manual billing at month-end.
                     </AlertDescription>
                   </Alert>
                 )}
