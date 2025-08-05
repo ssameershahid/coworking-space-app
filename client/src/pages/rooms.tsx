@@ -212,7 +212,7 @@ export default function RoomsPage() {
       durationHours = parseFloat(duration);
     }
     
-    return Math.ceil(durationHours * selectedRoom.credit_cost_per_hour);
+    return Math.ceil(durationHours); // Fixed: 1 hour = 1 credit rule
   };
 
   const handleBookRoom = () => {
@@ -546,7 +546,7 @@ export default function RoomsPage() {
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="end-time" className="text-base font-medium mb-1 block">End Time (Optional)</Label>
+                  <Label htmlFor="end-time" className="text-base font-medium mb-1 block">End Time</Label>
                   <select
                     id="end-time"
                     value={endTime}
@@ -581,7 +581,7 @@ export default function RoomsPage() {
               {/* Duration Selection with Smaller Buttons - Optional if End Time not selected */}
               {!endTime && (
                 <div>
-                  <Label className="text-base font-medium mb-2 block">Duration</Label>
+                  <Label className="text-base font-medium mb-2 block">Duration (Optional)</Label>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
                     type="button"
