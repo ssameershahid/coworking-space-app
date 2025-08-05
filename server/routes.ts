@@ -157,6 +157,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Create HTTP server first to ensure WebSocket works with Vite
+  const httpServer = createServer(app);
   // CORS middleware to handle cross-origin requests
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -193,9 +195,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded images
   app.use('/uploads', express.static(uploadsDir));
 
-  // WebSocket setup
-  const httpServer = createServer(app);
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // WebSocket setup - use dedicated path to avoid Vite conflicts
+  console.log('🌐 Creating WebSocket server on path: /api/ws');
+  const wss = new WebSocketServer({ 
+    server: httpServer,
+    path: '/api/ws'
+  });
 
   // WebSocket connection handling with size limit
   const clients = new Map<number, WebSocket>();
@@ -216,8 +221,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // };
   
   wss.on('connection', (ws: WebSocket, req) => {
+    console.log('🔗 ✅ NEW WebSocket connection established from:', req.socket.remoteAddress);
+    console.log('🔗 Request URL:', req.url);
+    console.log('🔗 Request headers:', req.headers.upgrade, req.headers.connection);
     // DISABLED: METRICS.wsConnections++;
-    // DISABLED: Excessive logging - console.log('WebSocket connection established');
     
     ws.on('message', (message: string) => {
       try {
