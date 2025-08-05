@@ -489,8 +489,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Menu item not found" });
         }
 
+        // Remove ID from updates to prevent conflicts
+        const { id: updateId, ...cleanUpdates } = updates;
+
         // Update current item (keep its original site)
-        const currentSiteData = { ...updates, site: currentItem.site };
+        const currentSiteData = { ...cleanUpdates, site: currentItem.site };
         const updatedCurrent = await storage.updateMenuItem(id, currentSiteData);
 
         // Determine the other site
@@ -507,21 +510,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let updatedOther;
         if (otherSiteMatch) {
           // Update existing item on other site
-          const otherSiteData = { ...updates, site: otherSite };
+          const otherSiteData = { ...cleanUpdates, site: otherSite };
           updatedOther = await storage.updateMenuItem(otherSiteMatch.id, otherSiteData);
         } else {
-          // Create new item on other site (exclude ID to avoid conflicts)
-          const { id, ...updatesWithoutId } = updates;
+          // Create new item on other site
           const otherSiteData = { 
-            ...updatesWithoutId, 
+            ...cleanUpdates, 
             site: otherSite,
-            name: updates.name || currentItem.name, // Ensure name is included
-            category_id: updates.category_id || currentItem.category_id,
-            price: updates.price || currentItem.price,
-            description: updates.description || currentItem.description,
-            image_url: updates.image_url || currentItem.image_url,
-            is_available: updates.is_available !== undefined ? updates.is_available : currentItem.is_available,
-            is_daily_special: updates.is_daily_special !== undefined ? updates.is_daily_special : currentItem.is_daily_special
+            name: cleanUpdates.name || currentItem.name,
+            category_id: cleanUpdates.category_id || currentItem.category_id,
+            price: cleanUpdates.price || currentItem.price,
+            description: cleanUpdates.description || currentItem.description,
+            image_url: cleanUpdates.image_url || currentItem.image_url,
+            is_available: cleanUpdates.is_available !== undefined ? cleanUpdates.is_available : currentItem.is_available,
+            is_daily_special: cleanUpdates.is_daily_special !== undefined ? cleanUpdates.is_daily_special : currentItem.is_daily_special
           };
           updatedOther = await storage.createMenuItem(otherSiteData);
         }
