@@ -127,6 +127,20 @@ export default function RoomsPage() {
       queryClient.invalidateQueries({ queryKey: ["room-bookings"] });
     },
     onError: (error: any) => {
+      console.error('Booking error:', error);
+      // Check if it's an authentication error and redirect to login
+      if (error.message?.includes('Authentication required') || error.status === 401) {
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue booking rooms.",
+          variant: "destructive",
+        });
+        // Clear all cached data and redirect to home to force re-authentication
+        queryClient.clear();
+        window.location.href = '/';
+        return;
+      }
+      
       toast({
         title: "Booking Failed",
         description: error.message || "There was an error booking the room. Please try again.",

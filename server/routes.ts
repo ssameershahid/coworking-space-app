@@ -28,8 +28,9 @@ const sessionConfig = {
     secure: false, // Set to false for development to ensure cookies work
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
-    sameSite: "lax", // More permissive for development
+    sameSite: "lax" as const, // More permissive for development
   },
+  name: 'connect.sid', // Explicit session name
 };
 
 // Configure web-push for notifications
@@ -96,6 +97,13 @@ passport.deserializeUser(async (id: number, done) => {
 
 // Auth middleware
 const requireAuth = async (req: any, res: any, next: any) => {
+  console.log('requireAuth check:', {
+    isAuthenticated: req.isAuthenticated(),
+    sessionID: req.sessionID,
+    hasUser: !!req.user,
+    userAgent: req.headers['user-agent']?.substring(0, 50)
+  });
+  
   if (req.isAuthenticated()) {
     // Check if we're in impersonation mode
     if ((req.session as any).impersonating && (req.session as any).userId) {
