@@ -33,7 +33,7 @@ export const users = pgTable("users", {
   organization_id: uuid("organization_id").references(() => organizations.id),
   site: siteEnum("site").notNull().default("blue_area"),
   credits: integer("credits").default(30),
-  used_credits: integer("used_credits").default(0),
+  used_credits: decimal("used_credits", { precision: 10, scale: 2 }).default("0"),
   is_active: boolean("is_active").default(true),
   can_charge_cafe_to_org: boolean("can_charge_cafe_to_org").default(false),
   can_charge_room_to_org: boolean("can_charge_room_to_org").default(true),

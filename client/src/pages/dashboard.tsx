@@ -242,7 +242,7 @@ export default function Dashboard() {
                 <Alert>
                   <DollarSign className="h-4 w-4" />
                   <AlertDescription className="text-sm">
-                    Your account has a negative balance. This will appear on your monthly invoice for manual billing.
+                    Your account has a negative balance and will appear on your monthly invoice for billing.
                   </AlertDescription>
                 </Alert>
               )}
