@@ -230,11 +230,11 @@ export default function Dashboard() {
               />
               <div className="flex justify-between items-center">
                 <p className={`text-xs ${isNegativeBalance ? 'text-red-600' : 'text-green-600'}`}>
-                  Total: {user.credits} credits
+                  Credits Assigned: {user.credits}
                 </p>
                 {isNegativeBalance && (
                   <p className="text-xs text-red-600 font-medium">
-                    Owes: {Math.abs(availableCredits)} credits
+                    Extra Usage: {Math.abs(availableCredits)} credits
                   </p>
                 )}
               </div>
