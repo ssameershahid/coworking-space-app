@@ -188,7 +188,11 @@ export default function MenuManagement() {
                         {categories.find((cat: any) => cat.id == item.category_id)?.name || "Uncategorized"}
                       </TableCell>
                       <TableCell>
-                        {item.site === 'blue_area' ? 'Blue Area' : 'I-10'}
+                        <span className="capitalize">
+                          {item.site === 'blue_area' ? 'Blue Area' : 
+                           item.site === 'i_10' ? 'I-10' : 
+                           item.site}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">

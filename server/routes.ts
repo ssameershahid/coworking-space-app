@@ -390,8 +390,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin endpoint to get all menu items (including inactive ones)
   app.get("/api/admin/menu/items", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
     try {
-      const user = req.user as any;
-      const items = await storage.getAllMenuItems(user?.site);
+      // Admin endpoint should return ALL items from ALL sites (no site filtering)
+      const items = await storage.getAllMenuItems();
       res.json(items);
     } catch (error) {
       console.error("Error fetching all menu items:", error);
