@@ -309,7 +309,7 @@ export default function MenuManagement() {
                   </TableCell>
                   <TableCell>Rs. {item.price}</TableCell>
                   <TableCell>
-                    {categories.find((cat: any) => cat.id === item.category_id)?.name || "Uncategorized"}
+                    {categories.find((cat: any) => cat.id == item.category_id)?.name || "Uncategorized"}
                   </TableCell>
                   <TableCell>
                     {item.site === 'blue_area' ? 'Blue Area' : 'I-10'}
