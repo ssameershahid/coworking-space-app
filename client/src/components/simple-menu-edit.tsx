@@ -56,7 +56,7 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
     const data = {
       name,
       description,
-      price: parseFloat(price),
+      price: price, // Keep as string for decimal validation
       image_url: imageUrl,
       category_id: parseInt(categoryId),
       site,
