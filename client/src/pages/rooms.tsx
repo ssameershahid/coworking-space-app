@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { RoomCardCalendar } from "@/components/room-card-calendar";
+import { CreditAnimation, useCreditAnimation } from "@/components/ui/credit-animation";
 import { 
   Calendar, 
   Clock, 
@@ -303,6 +304,9 @@ export default function RoomsPage() {
     setShowBookingModal(true);
   };
   const availableCredits = (user?.credits || 0) - (user?.used_credits || 0);
+  
+  // Credit animation hook
+  const { previousCredits, showAnimation } = useCreditAnimation(availableCredits);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -323,7 +327,12 @@ export default function RoomsPage() {
               <p className="text-green-600">Available for room bookings</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-green-800">{availableCredits}</p>
+              <CreditAnimation 
+                currentCredits={availableCredits}
+                previousCredits={previousCredits}
+                showAnimation={showAnimation}
+                className="text-3xl font-bold text-green-800"
+              />
               <p className="text-sm text-green-600">of {user?.credits || 0} total</p>
             </div>
           </div>
@@ -728,14 +737,22 @@ export default function RoomsPage() {
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span>Available Credits:</span>
-                  <span className="font-semibold">{availableCredits}</span>
+                  <CreditAnimation 
+                    currentCredits={availableCredits}
+                    previousCredits={previousCredits}
+                    showAnimation={showAnimation}
+                    className="font-semibold"
+                  />
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between items-center font-bold">
                   <span>Remaining After Booking:</span>
-                  <span className={availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}>
-                    {availableCredits - calculateCredits()}
-                  </span>
+                  <CreditAnimation 
+                    currentCredits={availableCredits - calculateCredits()}
+                    previousCredits={previousCredits ? previousCredits - calculateCredits() : undefined}
+                    showAnimation={showAnimation}
+                    className={availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}
+                  />
                 </div>
                 
                 {availableCredits - calculateCredits() < 0 && (

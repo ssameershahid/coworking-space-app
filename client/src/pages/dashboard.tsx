@@ -34,6 +34,7 @@ import {
   DollarSign
 } from "lucide-react";
 import { CafeOrder, MeetingBooking, Announcement } from "@/lib/types";
+import { CreditAnimation, useCreditAnimation } from "@/components/ui/credit-animation";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -134,6 +135,9 @@ export default function Dashboard() {
   const availableCredits = user.credits - user.used_credits;
   const creditsUsedPercentage = user.credits > 0 ? Math.min((user.used_credits / user.credits) * 100, 100) : 0;
   const isNegativeBalance = availableCredits < 0;
+  
+  // Credit animation hook
+  const { previousCredits, showAnimation } = useCreditAnimation(availableCredits);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -211,8 +215,13 @@ export default function Dashboard() {
                 <span className={isNegativeBalance ? "text-red-700" : "text-green-700"}>
                   Used: {user.used_credits}
                 </span>
-                <span className={`font-medium ${availableCredits < 0 ? "text-red-700" : "text-green-700"}`}>
-                  Available: {availableCredits}
+                <span className="font-medium">
+                  Available: <CreditAnimation 
+                    currentCredits={availableCredits}
+                    previousCredits={previousCredits}
+                    showAnimation={showAnimation}
+                    className={availableCredits < 0 ? "text-red-700" : "text-green-700"}
+                  />
                 </span>
               </div>
               <Progress 

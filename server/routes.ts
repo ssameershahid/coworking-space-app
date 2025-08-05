@@ -97,12 +97,7 @@ passport.deserializeUser(async (id: number, done) => {
 
 // Auth middleware
 const requireAuth = async (req: any, res: any, next: any) => {
-  console.log('requireAuth check:', {
-    isAuthenticated: req.isAuthenticated(),
-    sessionID: req.sessionID,
-    hasUser: !!req.user,
-    userAgent: req.headers['user-agent']?.substring(0, 50)
-  });
+  // Removed excessive logging to reduce console output
   
   if (req.isAuthenticated()) {
     // Check if we're in impersonation mode
