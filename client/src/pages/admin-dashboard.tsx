@@ -1242,6 +1242,7 @@ export default function AdminDashboard() {
               <SelectItem value="member_organization">Member Organization</SelectItem>
               <SelectItem value="member_organization_admin">Member Organization Admin</SelectItem>
               <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
+              <SelectItem value="calmkaaj_team">CalmKaaj Team</SelectItem>
               <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
             </SelectContent>
           </Select>
@@ -1483,6 +1484,7 @@ export default function AdminDashboard() {
               <SelectItem value="member_organization">Member Organization</SelectItem>
               <SelectItem value="member_organization_admin">Member Organization Admin</SelectItem>
               <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
+              <SelectItem value="calmkaaj_team">CalmKaaj Team</SelectItem>
               <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
             </SelectContent>
           </Select>
