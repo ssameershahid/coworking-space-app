@@ -842,10 +842,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const durationHours = Math.ceil((endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60));
       const creditsNeeded = durationHours * room.credit_cost_per_hour;
 
-      // Check user credits
-      if ((user.credits || 0) < creditsNeeded) {
-        return res.status(400).json({ message: "Insufficient credits" });
-      }
+      // Allow bookings even with insufficient credits (track negative balance for manual billing)
+      const availableCredits = (user.credits || 0) - (user.used_credits || 0);
+      console.log(`User ${user.id} booking: needs ${creditsNeeded}, has ${availableCredits} available`);
 
       // Create booking
       const booking = await storage.createMeetingBooking({

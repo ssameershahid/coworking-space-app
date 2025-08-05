@@ -131,7 +131,9 @@ export default function Dashboard() {
 
   if (!user) return null;
 
-  const creditsUsedPercentage = user.credits > 0 ? (user.used_credits / user.credits) * 100 : 0;
+  const availableCredits = user.credits - user.used_credits;
+  const creditsUsedPercentage = user.credits > 0 ? Math.min((user.used_credits / user.credits) * 100, 100) : 0;
+  const isNegativeBalance = availableCredits < 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -191,23 +193,50 @@ export default function Dashboard() {
         </Link>
 
         {/* Credits Widget */}
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+        <Card className={`bg-gradient-to-br ${isNegativeBalance ? 'from-red-50 to-orange-50 border-red-200' : 'from-green-50 to-emerald-50 border-green-200'}`}>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-green-800">
+            <CardTitle className={`flex items-center gap-2 ${isNegativeBalance ? 'text-red-800' : 'text-green-800'}`}>
               <CreditCard className="h-5 w-5" />
               Your Credits
+              {isNegativeBalance && (
+                <Badge variant="destructive" className="ml-2 text-xs">
+                  Negative Balance
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-green-700">Used: {user.used_credits}</span>
-                <span className="text-green-700">Available: {user.credits - user.used_credits}</span>
+                <span className={isNegativeBalance ? "text-red-700" : "text-green-700"}>
+                  Used: {user.used_credits}
+                </span>
+                <span className={`font-medium ${availableCredits < 0 ? "text-red-700" : "text-green-700"}`}>
+                  Available: {availableCredits}
+                </span>
               </div>
-              <Progress value={creditsUsedPercentage} className="h-2" />
-              <p className="text-xs text-green-600">
-                Total: {user.credits} credits
-              </p>
+              <Progress 
+                value={creditsUsedPercentage} 
+                className={`h-2 ${isNegativeBalance ? 'bg-red-100' : ''}`}
+              />
+              <div className="flex justify-between items-center">
+                <p className={`text-xs ${isNegativeBalance ? 'text-red-600' : 'text-green-600'}`}>
+                  Total: {user.credits} credits
+                </p>
+                {isNegativeBalance && (
+                  <p className="text-xs text-red-600 font-medium">
+                    Owes: {Math.abs(availableCredits)} credits
+                  </p>
+                )}
+              </div>
+              {isNegativeBalance && (
+                <Alert>
+                  <DollarSign className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    Your account has a negative balance. This will appear on your monthly invoice for manual billing.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           </CardContent>
         </Card>

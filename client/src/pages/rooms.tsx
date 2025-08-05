@@ -44,6 +44,7 @@ import {
   Moon
 } from "lucide-react";
 import { MeetingRoom, MeetingBooking } from "@/lib/types";
+import NewBookingModal from "@/components/rooms/new-booking-modal";
 import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime } from "@/lib/pakistan-time";
 import { format } from "date-fns";
 
@@ -455,241 +456,19 @@ export default function RoomsPage() {
           </Card>
         ))}
       </div>
-      {/* Booking Modal */}
-      <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Book {selectedRoom?.name}</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            
-
-            {/* Date and Time Selection - Compact 2-Row Layout */}
-            <div className="space-y-4">
-              {/* Date and Time in 2 columns */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-base font-medium mb-1 block">Select a Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-center text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white px-3 py-2"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {bookingDate
-                          ? format(new Date(bookingDate), "dd/MM/yyyy")
-                          : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={bookingDate ? new Date(bookingDate) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            setBookingDate(date.toISOString().split('T')[0]);
-                          }
-                        }}
-                        disabled={(date) => date < new Date() || date > new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label htmlFor="start-time" className="text-base font-medium mb-1 block">Start Time</Label>
-                  <select
-                    id="start-time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
-                  >
-                    <option value="">Select time</option>
-                    {Array.from({ length: 48 }, (_, i) => {
-                      const hours = Math.floor(i / 2);
-                      const minutes = (i % 2) * 30;
-                      const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                      const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
-                        hour: 'numeric', 
-                        minute: '2-digit',
-                        hour12: true 
-                      });
-                      return (
-                        <option key={time24} value={time24}>
-                          {time12}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-              </div>
-              
-              {/* Duration Selection with Smaller Buttons */}
-              <div>
-                <Label className="text-base font-medium mb-2 block">Duration</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    type="button"
-                    variant={duration === "0.5" ? "default" : "outline"}
-                    size="xs"
-                    onClick={() => setDuration("0.5")}
-                    className={`text-base py-2 font-medium ${duration === "0.5" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
-                  >
-                    30 min
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={duration === "1" ? "default" : "outline"}
-                    size="xs"
-                    onClick={() => setDuration("1")}
-                    className={`text-base py-2 font-medium ${duration === "1" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
-                  >
-                    1 hour
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={duration === "1.5" ? "default" : "outline"}
-                    size="xs"
-                    onClick={() => setDuration("1.5")}
-                    className={`text-base py-2 font-medium ${duration === "1.5" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
-                  >
-                    1.5 hrs
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={duration === "2" ? "default" : "outline"}
-                    size="xs"
-                    onClick={() => setDuration("2")}
-                    className={`text-base py-2 font-medium ${duration === "2" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
-                  >
-                    2 hrs
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={duration === "3" ? "default" : "outline"}
-                    size="xs"
-                    onClick={() => setDuration("3")}
-                    className={`text-base py-2 font-medium ${duration === "3" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
-                  >
-                    3 hrs
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={duration === "4" ? "default" : "outline"}
-                    size="xs"
-                    onClick={() => setDuration("4")}
-                    className={`text-base py-2 font-medium ${duration === "4" ? "bg-orange-500 hover:bg-orange-600" : ""}`}
-                  >
-                    4 hrs
-                  </Button>
-                </div>
-              </div>
-              
-              {/* End Time Display */}
-              {startTime && duration && (
-                <div>
-                  <Label className="text-base font-medium mb-1 block">End Time</Label>
-                  <div className="p-3 bg-gray-100 rounded text-center text-sm font-medium">
-                    {(() => {
-                      const [hours, minutes] = startTime.split(':').map(Number);
-                      const startMinutes = hours * 60 + minutes;
-                      const endMinutes = startMinutes + parseFloat(duration) * 60;
-                      const endHours = Math.floor(endMinutes / 60) % 24;
-                      const endMins = endMinutes % 60;
-                      return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-                    })()}
-                  </div>
-                </div>
-              )}
-            </div>
-
-
-
-            {/* Billing Options */}
-            {canChargeToOrg && (
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Billing Options</Label>
-                <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="personal" id="personal-room" />
-                    <Label htmlFor="personal-room" className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4" />
-                      Use My Credits (Personal)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="organization" id="organization-room" />
-                    <Label htmlFor="organization-room" className="flex items-center gap-2">
-                      <Building className="h-4 w-4" />
-                      Charge to My Company
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-            )}
-
-            {/* Notes */}
-            <div>
-              <Label htmlFor="booking-notes">Meeting Notes (Optional)</Label>
-              <Textarea
-                id="booking-notes"
-                placeholder="Meeting agenda, special requirements, etc..."
-                value={bookingNotes}
-                onChange={(e) => setBookingNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            {/* Credit Check */}
-            {selectedRoom && duration && (
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span>Credits Required:</span>
-                  <span className="font-semibold">{calculateCredits()}</span>
-                </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span>Available Credits:</span>
-                  <span className="font-semibold">{availableCredits}</span>
-                </div>
-                <Separator className="my-2" />
-                <div className="flex justify-between items-center font-bold">
-                  <span>Remaining After Booking:</span>
-                  <span className={availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}>
-                    {availableCredits - calculateCredits()}
-                  </span>
-                </div>
-                
-                {availableCredits - calculateCredits() < 0 && (
-                  <Alert className="mt-3">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Insufficient credits. You need {calculateCredits() - availableCredits} more credits.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            )}
-
-            {/* Book Button */}
-            <Button 
-              className="w-full h-12 text-lg"
-              onClick={handleBookRoom}
-              disabled={bookRoomMutation.isPending || availableCredits - calculateCredits() < 0}
-            >
-              {bookRoomMutation.isPending ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Booking...
-                </div>
-              ) : (
-                `Confirm Booking • ${calculateCredits()} Credits`
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* New Booking Modal */}
+      <NewBookingModal
+        room={selectedRoom}
+        bookingData={{
+          date: bookingDate,
+          start_time: startTime,
+          duration: duration
+        }}
+        onClose={() => {
+          setShowBookingModal(false);
+          setSelectedRoom(null);
+        }}
+      />
       {/* Cancel Booking Confirmation Modal */}
       <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
         <DialogContent className="sm:max-w-md">
