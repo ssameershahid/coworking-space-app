@@ -438,16 +438,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/menu/items", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team", "cafe_manager"]), async (req, res) => {
     try {
-      // Debug logging removed to reduce compute costs
+      const { site, ...itemData } = req.body;
       
-      const result = schema.insertMenuItemSchema.safeParse(req.body);
-      if (!result.success) {
-        console.log("Menu item validation failed:", result.error.issues);
-        return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
-      }
+      // Handle "both" site option by creating items for both sites
+      if (site === "both") {
+        const blueAreaData = { ...itemData, site: "blue_area" };
+        const i10Data = { ...itemData, site: "i_10" };
+        
+        const blueAreaResult = schema.insertMenuItemSchema.safeParse(blueAreaData);
+        const i10Result = schema.insertMenuItemSchema.safeParse(i10Data);
+        
+        if (!blueAreaResult.success || !i10Result.success) {
+          return res.status(400).json({ message: "Invalid input" });
+        }
+        
+        const blueAreaItem = await storage.createMenuItem(blueAreaResult.data);
+        const i10Item = await storage.createMenuItem(i10Result.data);
+        
+        res.status(201).json({ 
+          message: "Items created for both sites",
+          items: [blueAreaItem, i10Item]
+        });
+      } else {
+        // Handle single site creation
+        const result = schema.insertMenuItemSchema.safeParse(req.body);
+        if (!result.success) {
+          console.log("Menu item validation failed:", result.error.issues);
+          return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
+        }
 
-      const item = await storage.createMenuItem(result.data);
-      res.status(201).json(item);
+        const item = await storage.createMenuItem(result.data);
+        res.status(201).json(item);
+      }
     } catch (error) {
       console.error("Error creating menu item:", error);
       res.status(500).json({ message: "Failed to create menu item" });

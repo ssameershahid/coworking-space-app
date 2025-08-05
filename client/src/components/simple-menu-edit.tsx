@@ -145,6 +145,7 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
               <SelectContent>
                 <SelectItem value="blue_area">Blue Area</SelectItem>
                 <SelectItem value="i_10">I-10</SelectItem>
+                <SelectItem value="both">Both Sites</SelectItem>
               </SelectContent>
             </Select>
           </div>
