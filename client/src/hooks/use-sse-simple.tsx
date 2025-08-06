@@ -35,40 +35,33 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
             console.log('🤝 SSE connection confirmed');
             break;
           
-          case 'new_order':
-            console.log('🔔 NEW ORDER NOTIFICATION!', message.order);
-            if (onNewOrder && message.order) {
-              onNewOrder(message.order);
+          case 'order.new':
+            console.log('🔔 NEW ORDER NOTIFICATION!', message.data);
+            if (onNewOrder && message.data) {
+              onNewOrder(message.data);
               toast({
                 title: "🔔 New Order!",
-                description: `Order #${message.order.id} from ${message.order.user?.first_name} ${message.order.user?.last_name}`,
+                description: `Order #${message.data.id} from ${message.data.user?.first_name} ${message.data.user?.last_name}`,
                 duration: 6000,
               });
             }
             break;
           
-          case 'order_status_update':
-            console.log('📋 Order status update:', message.order);
-            if (onOrderStatusUpdate && message.order) {
-              onOrderStatusUpdate(message.order);
+          case 'order.update':
+            console.log('📋 Order status update:', message.data);
+            if (onOrderStatusUpdate && message.data) {
+              onOrderStatusUpdate(message.data);
               toast({
                 title: "Order Updated",
-                description: `Order #${message.order.id} is now ${message.order.status}`,
+                description: `Order #${message.data.id} is now ${message.data.status}`,
                 duration: 4000,
               });
             }
             break;
           
-          case 'payment_status_update':
-            console.log('💳 Payment status update:', message.order);
-            if (onPaymentStatusUpdate && message.order) {
-              onPaymentStatusUpdate(message.order);
-              toast({
-                title: "Payment Updated", 
-                description: `Payment for order #${message.order.id} is ${message.order.payment_status}`,
-                duration: 4000,
-              });
-            }
+          case 'heartbeat':
+            // Just log heartbeat quietly
+            console.log('💓 SSE heartbeat received');
             break;
         }
       } catch (error) {

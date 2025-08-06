@@ -69,7 +69,7 @@ export default function CafeManagerDashboard() {
 
   // SSE for real-time order updates (simplified)
   useSSESimple({
-    endpoint: "/api/sse/cafe-manager",
+    endpoint: "/events",
     onNewOrder: (order) => {
       console.log('🔔 NEW ORDER ALERT! Order received in cafe manager dashboard:', order);
       // Refresh orders list immediately

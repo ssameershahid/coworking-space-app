@@ -35,6 +35,7 @@ export interface IStorage {
   createCafeOrderItem(item: schema.InsertCafeOrderItem): Promise<schema.CafeOrderItem>;
   getCafeOrders(userId?: number, orgId?: string, site?: string): Promise<any[]>;
   getCafeOrderById(id: number): Promise<any>;
+  getCafeOrdersSince(since: Date, site?: string, userId?: number): Promise<any[]>;
   updateCafeOrderStatus(id: number, status: string, handledBy?: number): Promise<schema.CafeOrder>;
   updateCafeOrderPaymentStatus(id: number, paymentStatus: string, updatedBy: number): Promise<schema.CafeOrder>;
   createCafeOrderOnBehalf(order: schema.InsertCafeOrder, items: Partial<schema.InsertCafeOrderItem>[], createdBy: number): Promise<any>;
@@ -376,6 +377,47 @@ export class DatabaseStorage implements IStorage {
     return undefined;
   }
 
+  async getCafeOrdersSince(since: Date, site?: string, userId?: number): Promise<any[]> {
+    let query = db.select({
+      id: schema.cafe_orders.id,
+      user_id: schema.cafe_orders.user_id,
+      total_amount: schema.cafe_orders.total_amount,
+      status: schema.cafe_orders.status,
+      billed_to: schema.cafe_orders.billed_to,
+      org_id: schema.cafe_orders.org_id,
+      notes: schema.cafe_orders.notes,
+      payment_status: schema.cafe_orders.payment_status,
+      created_at: schema.cafe_orders.created_at,
+      updated_at: schema.cafe_orders.updated_at,
+      site: schema.cafe_orders.site,
+      handled_by: schema.cafe_orders.handled_by,
+      user: {
+        id: schema.users.id,
+        first_name: schema.users.first_name,
+        last_name: schema.users.last_name,
+        email: schema.users.email,
+      },
+      organization: {
+        id: schema.organizations.id,
+        name: schema.organizations.name,
+      }
+    }).from(schema.cafe_orders)
+      .leftJoin(schema.users, eq(schema.cafe_orders.user_id, schema.users.id))
+      .leftJoin(schema.organizations, eq(schema.cafe_orders.org_id, schema.organizations.id));
+
+    const conditions = [gte(schema.cafe_orders.created_at, since)];
+    
+    if (site) {
+      conditions.push(eq(schema.cafe_orders.site, site as any));
+    }
+    
+    if (userId) {
+      conditions.push(eq(schema.cafe_orders.user_id, userId));
+    }
+
+    return await query.where(and(...conditions)).orderBy(desc(schema.cafe_orders.created_at));
+  }
+
   async updateCafeOrderStatus(id: number, status: string, handledBy?: number): Promise<schema.CafeOrder> {
     const updates: any = { status, updated_at: new Date() };
     if (handledBy) updates.handled_by = handledBy;
@@ -412,7 +454,9 @@ export class DatabaseStorage implements IStorage {
     for (const item of items) {
       const [orderItem] = await db.insert(schema.cafe_order_items)
         .values({
-          ...item,
+          menu_item_id: item.menu_item_id!,
+          quantity: item.quantity!,
+          price: item.price!,
           order_id: newOrder.id
         })
         .returning();
@@ -498,12 +542,13 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(schema.meeting_rooms.site, site as any));
     }
 
-    let finalQuery = query;
     if (conditions.length > 0) {
-      finalQuery = query.where(conditions.length === 1 ? conditions[0] : and(...conditions));
+      return await query
+        .where(conditions.length === 1 ? conditions[0] : and(...conditions))
+        .orderBy(desc(schema.meeting_bookings.created_at));
     }
 
-    return await finalQuery.orderBy(desc(schema.meeting_bookings.created_at));
+    return await query.orderBy(desc(schema.meeting_bookings.created_at));
 
 
   }
@@ -611,7 +656,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAnnouncement(announcement: schema.InsertAnnouncement): Promise<schema.Announcement> {
-    const [newAnnouncement] = await db.insert(schema.announcements).values([announcement]).returning();
+    // Convert show_until string to Date if provided
+    const processedAnnouncement = {
+      ...announcement,
+      show_until: announcement.show_until ? new Date(announcement.show_until) : null
+    };
+    
+    const [newAnnouncement] = await db.insert(schema.announcements).values(processedAnnouncement).returning();
     return newAnnouncement;
   }
 

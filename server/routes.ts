@@ -16,7 +16,7 @@ import { emailService } from "./email-service";
 import webpush from "web-push";
 import { fileURLToPath } from 'url';
 import { getPakistanTime, parseDateInPakistanTime, convertToPakistanTime } from "./utils/pakistan-time.js";
-import { SSEManager } from "./sse";
+import { broadcaster, handleSSEConnection } from './realtime';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -213,22 +213,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Server-Sent Events endpoints for real-time updates
-  app.get("/api/sse/cafe-manager", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin", "calmkaaj_team"]), (req, res) => {
+  // Single SSE endpoint for real-time updates
+  app.get("/events", requireAuth, (req, res) => {
     const user = req.user as any;
-    console.log(`Cafe manager SSE connection established for user: ${user.id}`);
-    SSEManager.addConnection('cafe_manager', user.id.toString(), res);
+    console.log(`🔌 SSE connection established for user: ${user.id} (${user.role})`);
+    handleSSEConnection(user, res);
   });
 
-  app.get("/api/sse/user", requireAuth, (req, res) => {
-    const user = req.user as any;
-    console.log(`User SSE connection established for user: ${user.id}`);
-    SSEManager.addConnection('user', user.id.toString(), res);
+  // Backfill API for missed events
+  app.get("/api/orders/since", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { timestamp } = req.query;
+      
+      if (!timestamp) {
+        return res.status(400).json({ message: "timestamp parameter required" });
+      }
+
+      const since = new Date(timestamp as string);
+      let orders;
+
+      if (user.role === 'cafe_manager' || user.role === 'calmkaaj_admin') {
+        orders = await storage.getCafeOrdersSince(since, user.site);
+      } else {
+        orders = await storage.getCafeOrdersSince(since, undefined, user.id);
+      }
+
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching orders since timestamp:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
   });
 
   // SSE connection stats for debugging
-  app.get("/api/sse/stats", requireAuth, requireRole(["calmkaaj_admin"]), (req, res) => {
-    res.json(SSEManager.getConnectionStats());
+  app.get("/api/realtime/stats", requireAuth, requireRole(["calmkaaj_admin"]), (req, res) => {
+    res.json(broadcaster.getStats());
   });
 
   // Authentication routes
@@ -554,7 +574,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Send real-time new order notification to cafe managers via SSE
       if (orderWithDetails) {
-        SSEManager.notifyNewOrder(orderWithDetails, user.site);
+        const cafeId = user.site || 'default';
+        broadcaster.broadcastNewOrder(cafeId, orderWithDetails);
       }
       
       res.status(201).json(orderWithDetails);
@@ -664,7 +685,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send real-time status update to user via SSE
       const orderWithDetails = await storage.getCafeOrderById(id);
       if (orderWithDetails) {
-        SSEManager.notifyOrderStatusUpdate(orderWithDetails.user.id, orderWithDetails);
+        const cafeId = user.site || 'default';
+        broadcaster.broadcastOrderUpdate(orderWithDetails.user.id, orderWithDetails, cafeId);
       }
       
       res.json(order);
@@ -686,7 +708,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send real-time payment update to user via SSE
       const orderWithDetails = await storage.getCafeOrderById(id);
       if (orderWithDetails) {
-        SSEManager.notifyPaymentStatusUpdate(orderWithDetails.user.id, orderWithDetails);
+        const cafeId = user.site || 'default';
+        broadcaster.broadcastOrderUpdate(orderWithDetails.user.id, orderWithDetails, cafeId);
       }
       
       res.json(order);
@@ -747,7 +770,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Send real-time notification to cafe managers about new order
       if (order) {
-        SSEManager.notifyNewOrder(order, cafeManager.site);
+        const cafeId = cafeManager.site || 'default';
+        broadcaster.broadcastNewOrder(cafeId, order);
       }
       
       res.status(201).json(order);
@@ -1308,13 +1332,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(schema.users)
         .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id));
 
-      // Apply site filter if provided
-      let finalQuery = query;
+      // Apply site filter if provided and execute query
       if (site && site !== 'all') {
-        finalQuery = query.where(eq(schema.users.site, site as any));
+        const users = await query
+          .where(eq(schema.users.site, site as any))
+          .orderBy(desc(schema.users.created_at));
+        return res.json(users);
       }
 
-      const users = await finalQuery.orderBy(desc(schema.users.created_at));
+      const users = await query.orderBy(desc(schema.users.created_at));
 
 
       // Debug logging removed to reduce compute costs
