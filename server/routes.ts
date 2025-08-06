@@ -888,7 +888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const creditsNeeded = Math.round(durationHours * 100) / 100; // Round to 2 decimal places
 
       // Allow bookings even with insufficient credits (track negative balance for manual billing)
-      const availableCredits = (user.credits || 0) - (user.used_credits || 0);
+      const availableCredits = (user.credits || 0) - parseFloat(user.used_credits || "0");
       console.log(`User ${user.id} booking: needs ${creditsNeeded}, has ${availableCredits} available`);
 
       // Create booking
@@ -897,7 +897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         room_id,
         start_time: startTime,
         end_time: endTime,
-        credits_used: creditsNeeded,
+        credits_used: creditsNeeded.toString(),
         status: "confirmed",
         billed_to: billed_to || "personal",
         org_id: billed_to === "organization" ? user.organization_id : undefined,
@@ -907,7 +907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Deduct credits
       await storage.updateUser(user.id, {
-        used_credits: (user.used_credits || 0) + creditsNeeded,
+        used_credits: (parseFloat(user.used_credits || "0") + creditsNeeded).toString(),
       });
 
       res.status(201).json(booking);
@@ -954,7 +954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/bookings/:id/cancel", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.user.id;
+      const userId = (req.user as schema.User).id;
       
       // Get the booking details first
       const booking = await storage.getMeetingBookingById(id);
@@ -991,8 +991,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Refund the credits to the user
       const user = await storage.getUserById(userId);
       if (user) {
-        const newUsedCredits = Math.max(0, (user.used_credits || 0) - booking.credits_used);
-        await storage.updateUser(userId, { used_credits: newUsedCredits });
+        const currentUsedCredits = parseFloat(user.used_credits || "0");
+        const refundAmount = parseFloat(booking.credits_used || "0");
+        const newUsedCredits = Math.max(0, currentUsedCredits - refundAmount);
+        await storage.updateUser(userId, { used_credits: newUsedCredits.toString() });
       }
 
       res.json({ 
@@ -1296,11 +1298,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id));
 
       // Apply site filter if provided
+      let finalQuery = query;
       if (site && site !== 'all') {
-        query = query.where(eq(schema.users.site, site as string));
+        finalQuery = query.where(eq(schema.users.site, site as any));
       }
 
-      const users = await query.orderBy(desc(schema.users.created_at));
+      const users = await finalQuery.orderBy(desc(schema.users.created_at));
+
+
       // Debug logging removed to reduce compute costs
 
       res.json(users);
@@ -1369,7 +1374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = req.body;
       
       // Check if user is updating their own profile
-      if (req.user.id !== userId) {
+      if ((req.user as schema.User).id !== userId) {
         return res.status(403).json({ message: "Not authorized to update this profile" });
       }
       
@@ -1377,7 +1382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allowedFields = ['first_name', 'last_name', 'phone', 'bio', 'linkedin_url', 'profile_image', 'job_title', 'company', 'community_visible', 'email_visible'];
       const filteredUpdates = Object.keys(updates)
         .filter(key => allowedFields.includes(key))
-        .reduce((obj, key) => {
+        .reduce((obj: any, key) => {
           obj[key] = updates[key];
           return obj;
         }, {});
@@ -1393,7 +1398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Complete onboarding for the authenticated user
   app.post("/api/user/complete-onboarding", requireAuth, async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = (req.user as schema.User).id;
       
       // Update user's onboarding status
       const updatedUser = await storage.updateUser(userId, { 
@@ -1485,8 +1490,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = new Date();
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      const monthlyOrders = orders.filter(order => new Date(order.created_at) >= startOfMonth);
-      const monthlyBookings = bookings.filter(booking => new Date(booking.created_at) >= startOfMonth);
+      const monthlyOrders = orders.filter(order => order.created_at && new Date(order.created_at) >= startOfMonth);
+      const monthlyBookings = bookings.filter(booking => booking.created_at && new Date(booking.created_at) >= startOfMonth);
 
       const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
       const monthlyRevenue = monthlyOrders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);

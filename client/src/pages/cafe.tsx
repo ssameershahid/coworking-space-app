@@ -56,7 +56,7 @@ export default function CafePage() {
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [currentOrder, setCurrentOrder] = useState<CafeOrder | null>(null);
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<{id: number, name: string}[]>({
     queryKey: ["/api/menu/categories"],
     enabled: !!user,
   });
@@ -88,8 +88,8 @@ export default function CafePage() {
     mutationFn: async (orderData: any) => {
       return apiRequest('POST', '/api/cafe/orders', orderData);
     },
-    onSuccess: (response) => {
-      const order = response.json();
+    onSuccess: async (response) => {
+      const order = await response.json();
       setCurrentOrder(order);
       clearCart();
       setIsCheckingOut(false);
@@ -217,7 +217,7 @@ export default function CafePage() {
         >
           All Items
         </Button>
-        {categories.map((category: any) => (
+        {categories.map((category) => (
           <Button
             key={category.id}
             variant={selectedCategory === category.id.toString() ? "default" : "outline"}

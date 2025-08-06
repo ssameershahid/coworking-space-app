@@ -37,7 +37,7 @@ export interface IStorage {
   getCafeOrderById(id: number): Promise<any>;
   updateCafeOrderStatus(id: number, status: string, handledBy?: number): Promise<schema.CafeOrder>;
   updateCafeOrderPaymentStatus(id: number, paymentStatus: string, updatedBy: number): Promise<schema.CafeOrder>;
-  createCafeOrderOnBehalf(order: schema.InsertCafeOrder, items: schema.InsertCafeOrderItem[], createdBy: number): Promise<any>;
+  createCafeOrderOnBehalf(order: schema.InsertCafeOrder, items: Partial<schema.InsertCafeOrderItem>[], createdBy: number): Promise<any>;
   
   // Meeting Rooms
   getMeetingRooms(site?: string): Promise<schema.MeetingRoom[]>;
@@ -75,7 +75,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsersByRole(role: string): Promise<schema.User[]> {
-    return await db.select().from(schema.users).where(eq(schema.users.role, role));
+    return await db.select().from(schema.users).where(eq(schema.users.role, role as any));
   }
 
   async createUser(user: schema.InsertUser): Promise<schema.User> {
@@ -127,7 +127,7 @@ export class DatabaseStorage implements IStorage {
   async getOrganizations(site?: string): Promise<schema.Organization[]> {
     if (site && site !== 'all') {
       return await db.select().from(schema.organizations)
-        .where(eq(schema.organizations.site, site))
+        .where(eq(schema.organizations.site, site as any))
         .orderBy(asc(schema.organizations.name));
     } else {
       return await db.select().from(schema.organizations)
@@ -294,7 +294,7 @@ export class DatabaseStorage implements IStorage {
       orders = await baseQuery.where(eq(schema.cafe_orders.org_id, orgId))
         .orderBy(desc(schema.cafe_orders.created_at));
     } else if (site && site !== 'all') {
-      orders = await baseQuery.where(eq(schema.cafe_orders.site, site))
+      orders = await baseQuery.where(eq(schema.cafe_orders.site, site as any))
         .orderBy(desc(schema.cafe_orders.created_at));
     } else {
       orders = await baseQuery.orderBy(desc(schema.cafe_orders.created_at));
@@ -398,7 +398,7 @@ export class DatabaseStorage implements IStorage {
     return order;
   }
 
-  async createCafeOrderOnBehalf(order: schema.InsertCafeOrder, items: schema.InsertCafeOrderItem[], createdBy: number): Promise<any> {
+  async createCafeOrderOnBehalf(order: schema.InsertCafeOrder, items: Partial<schema.InsertCafeOrderItem>[], createdBy: number): Promise<any> {
     // Create order with created_by field
     const [newOrder] = await db.insert(schema.cafe_orders)
       .values({
@@ -495,14 +495,17 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(schema.meeting_bookings.org_id, orgId));
     }
     if (site && site !== 'all') {
-      conditions.push(eq(schema.meeting_rooms.site, site));
+      conditions.push(eq(schema.meeting_rooms.site, site as any));
     }
 
+    let finalQuery = query;
     if (conditions.length > 0) {
-      query = query.where(conditions.length === 1 ? conditions[0] : and(...conditions));
+      finalQuery = query.where(conditions.length === 1 ? conditions[0] : and(...conditions));
     }
 
-    return await query.orderBy(desc(schema.meeting_bookings.created_at));
+    return await finalQuery.orderBy(desc(schema.meeting_bookings.created_at));
+
+
   }
 
   async getMeetingBookingById(id: number): Promise<any> {
@@ -608,7 +611,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAnnouncement(announcement: schema.InsertAnnouncement): Promise<schema.Announcement> {
-    const [newAnnouncement] = await db.insert(schema.announcements).values(announcement).returning();
+    const [newAnnouncement] = await db.insert(schema.announcements).values([announcement]).returning();
     return newAnnouncement;
   }
 
