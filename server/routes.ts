@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
+
 import bcrypt from "bcrypt";
 import session from "express-session";
 import passport from "passport";
@@ -195,111 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded images
   app.use('/uploads', express.static(uploadsDir));
 
-  // WebSocket setup - use dedicated path to avoid Vite conflicts
-  console.log('🌐 Creating WebSocket server on path: /api/ws');
-  const wss = new WebSocketServer({ 
-    server: httpServer,
-    path: '/api/ws'
-  });
 
-  // WebSocket connection handling with size limit
-  const clients = new Map<number, WebSocket>();
-  const MAX_CLIENTS = 500; // Prevent unbounded growth
-  
-  // Real-time metrics tracking
-  // DISABLED: Metrics tracking was consuming excessive compute units
-  // Only enable for debugging purposes, not in production
-  // const METRICS = {
-  //   startTime: new Date(),
-  //   wsConnections: 0,
-  //   pushSubs: pushSubscriptions.size,
-  //   memory: 0,
-  //   reconnects: 0,
-  //   apiCalls: 0,
-  //   authFailures: 0,
-  //   cpu: 0
-  // };
-  
-  wss.on('connection', (ws: WebSocket, req) => {
-    console.log('🔗 ✅ NEW WebSocket connection established from:', req.socket.remoteAddress);
-    console.log('🔗 Request URL:', req.url);
-    console.log('🔗 Request headers:', req.headers.upgrade, req.headers.connection);
-    // DISABLED: METRICS.wsConnections++;
-    
-    ws.on('message', (message: string) => {
-      try {
-        const data = JSON.parse(message);
-        if (data.type === 'authenticate' && data.userId) {
-          // Enforce client limit to prevent memory leaks
-          if (clients.size >= MAX_CLIENTS) {
-            console.warn(`WebSocket client limit reached (${MAX_CLIENTS}), rejecting new connection`);
-            ws.close(1000, 'Server at capacity');
-            return;
-          }
-          clients.set(data.userId, ws);
-          console.log(`User ${data.userId} connected via WebSocket`);
-        }
-      } catch (error) {
-        console.error('WebSocket message error:', error);
-      }
-    });
-
-    ws.on('close', () => {
-      // DISABLED: METRICS.wsConnections--;
-      // Efficient cleanup - find and remove without creating new arrays
-      for (const [userId, client] of clients.entries()) {
-        if (client === ws) {
-          clients.delete(userId);
-          console.log(`User ${userId} disconnected from WebSocket`);
-          break;
-        }
-      }
-    });
-  });
-
-  // Broadcast function for real-time updates
-  const broadcast = (userId: number, message: any) => {
-    const client = clients.get(userId);
-    if (client && client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(message));
-    }
-  };
-
-  // Broadcast to all cafe managers  
-  const broadcastToCafeManagers = async (message: any) => {
-    try {
-      console.log('🔥🔥🔥 BROADCAST FUNCTION CALLED:', message.type);
-      console.log('🔥 Message data:', JSON.stringify(message));
-      console.log('🔥 Clients Map size:', clients.size);
-      console.log('🔥 Clients Map contents:', Array.from(clients.keys()));
-      
-      const cafeManagers = await storage.getUsersByRole('cafe_manager');
-      console.log(`📡 Found ${cafeManagers.length} cafe managers in database`);
-      console.log('📡 Cafe managers:', cafeManagers.map(m => `${m.id}: ${m.email}`));
-      
-      let sentCount = 0;
-      cafeManagers.forEach(manager => {
-        console.log(`\n👤 Processing cafe manager ${manager.id} (${manager.email})`);
-        const client = clients.get(manager.id);
-        
-        if (!client) {
-          console.log(`❌ No WebSocket client found for manager ${manager.id}`);
-        } else if (client.readyState !== WebSocket.OPEN) {
-          console.log(`❌ WebSocket not OPEN for manager ${manager.id}, state: ${client.readyState}`);
-        } else {
-          console.log(`✅ Sending message to manager ${manager.id}`);
-          client.send(JSON.stringify(message));
-          sentCount++;
-          console.log(`✅ Message sent successfully to ${manager.email}`);
-        }
-      });
-      
-      console.log(`\n🎯 BROADCAST COMPLETE: Sent to ${sentCount}/${cafeManagers.length} cafe managers`);
-    } catch (error) {
-      console.error('💥💥💥 ERROR broadcasting to cafe managers:', error);
-      console.error('Stack trace:', error.stack);
-    }
-  };
 
   // File upload endpoint
   app.post("/api/upload/profile-image", requireAuth, upload.single('image'), (req, res) => {
@@ -637,21 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Broadcast to cafe managers
       const orderWithDetails = await storage.getCafeOrderById(order.id);
       
-      // Broadcast new order to all cafe managers
-      console.log(`\n🚀🚀🚀 NEW ORDER CREATED: ${order.id}`);
-      console.log(`🚀 Order details:`, {
-        id: order.id,
-        user: user.email,
-        site: user.site,
-        total: order.total_amount
-      });
-      
-      console.log(`🚀 Starting broadcast to cafe managers...`);
-      await broadcastToCafeManagers({
-        type: 'NEW_ORDER',
-        order: orderWithDetails
-      });
-      console.log(`🚀 Broadcast complete for order ${order.id}`);
+      // Order created successfully - no real-time updates needed
       
       res.status(201).json(orderWithDetails);
     } catch (error) {
@@ -760,10 +642,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Broadcast update to user
       const orderWithDetails = await storage.getCafeOrderById(id);
       if (orderWithDetails) {
-        broadcast(orderWithDetails.user.id, {
-          type: "order_status_update",
-          order: orderWithDetails,
-        });
+        // Real-time updates removed
+        // broadcast(orderWithDetails.user.id, {
+        //   type: "order_status_update",
+        //   order: orderWithDetails,
+        // });
       }
       
       res.json(order);
@@ -785,10 +668,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Broadcast update to user
       const orderWithDetails = await storage.getCafeOrderById(id);
       if (orderWithDetails) {
-        broadcast(orderWithDetails.user.id, {
-          type: "order_payment_update",
-          order: orderWithDetails,
-        });
+        // Real-time updates removed
+        // broadcast(orderWithDetails.user.id, {
+        //   type: "order_payment_update",
+        //   order: orderWithDetails,
+        // });
       }
       
       res.json(order);
@@ -848,11 +732,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const order = await storage.createCafeOrderOnBehalf(orderData, orderItems, cafeManager.id);
       
       // Broadcast to user that order was created for them
-      broadcast(user_id, {
-        type: "order_created_on_behalf",
-        order: order,
-        created_by: cafeManager.first_name + " " + cafeManager.last_name,
-      });
+      // Real-time updates removed
+      // broadcast(user_id, {
+      //   type: "order_created_on_behalf",
+      //   order: order,
+      //   created_by: cafeManager.first_name + " " + cafeManager.last_name,
+      // });
       
       res.status(201).json(order);
     } catch (error) {
@@ -1862,32 +1747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   //   }
   // }, 30000);
 
-  // DEBUG: Test endpoint to manually trigger WebSocket broadcast
-  app.post("/api/debug/test-websocket", requireAuth, async (req, res) => {
-    try {
-      console.log('🧪🧪🧪 MANUAL WEBSOCKET TEST TRIGGERED');
-      console.log('🧪 Current user:', req.user?.email);
-      console.log('🧪 Connected clients:', clients.size);
-      console.log('🧪 Client IDs:', Array.from(clients.keys()));
-      
-      await broadcastToCafeManagers({
-        type: 'NEW_ORDER',
-        order: {
-          id: 999,
-          user_id: 1,
-          total_amount: "100.00",
-          status: "pending",
-          created_at: new Date().toISOString(),
-          test: true
-        }
-      });
-      
-      res.json({ message: 'WebSocket test broadcast sent', clients: clients.size });
-    } catch (error) {
-      console.error('🧪 Test broadcast error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
+
 
   return httpServer;
 }
