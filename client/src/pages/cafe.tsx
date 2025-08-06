@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useWebSocket } from "@/hooks/use-websocket";
+import { useSSE } from "@/hooks/use-sse";
 import { 
   ShoppingCart, 
   Coffee, 
@@ -71,16 +71,16 @@ export default function CafePage() {
     enabled: !!user,
   });
 
-  // WebSocket for real-time order updates
-  useWebSocket({
-    onMessage: (message) => {
-      if (message.type === 'ORDER_STATUS_UPDATE' && message.userId === user?.id) {
-        queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders"] });
-        toast({
-          title: "Order Update",
-          description: `Your order #${message.orderId} is now ${message.status}`,
-        });
-      }
+  // SSE for real-time order updates (for users)
+  useSSE({
+    endpoint: "/api/sse/user",
+    onOrderStatusUpdate: (order) => {
+      // Refresh orders list
+      queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders"] });
+    },
+    onPaymentStatusUpdate: (order) => {
+      // Refresh orders list
+      queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders"] });
     },
   });
 

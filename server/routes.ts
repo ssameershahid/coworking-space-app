@@ -16,6 +16,7 @@ import { emailService } from "./email-service";
 import webpush from "web-push";
 import { fileURLToPath } from 'url';
 import { getPakistanTime, parseDateInPakistanTime, convertToPakistanTime } from "./utils/pakistan-time.js";
+import { SSEManager } from "./sse";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -210,6 +211,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Profile image upload error:", error);
       res.status(500).json({ error: "Failed to upload image" });
     }
+  });
+
+  // Server-Sent Events endpoints for real-time updates
+  app.get("/api/sse/cafe-manager", requireAuth, requireRole(["cafe_manager", "calmkaaj_admin", "calmkaaj_team"]), (req, res) => {
+    const user = req.user as any;
+    console.log(`Cafe manager SSE connection established for user: ${user.id}`);
+    SSEManager.addConnection('cafe_manager', user.id.toString(), res);
+  });
+
+  app.get("/api/sse/user", requireAuth, (req, res) => {
+    const user = req.user as any;
+    console.log(`User SSE connection established for user: ${user.id}`);
+    SSEManager.addConnection('user', user.id.toString(), res);
+  });
+
+  // SSE connection stats for debugging
+  app.get("/api/sse/stats", requireAuth, requireRole(["calmkaaj_admin"]), (req, res) => {
+    res.json(SSEManager.getConnectionStats());
   });
 
   // Authentication routes
@@ -530,10 +549,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Broadcast to cafe managers
+      // Get full order details and notify cafe managers in real-time
       const orderWithDetails = await storage.getCafeOrderById(order.id);
       
-      // Order created successfully - no real-time updates needed
+      // Send real-time new order notification to cafe managers via SSE
+      if (orderWithDetails) {
+        SSEManager.notifyNewOrder(orderWithDetails, user.site);
+      }
       
       res.status(201).json(orderWithDetails);
     } catch (error) {
@@ -639,14 +661,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const order = await storage.updateCafeOrderStatus(id, status, user.id);
       
-      // Broadcast update to user
+      // Send real-time status update to user via SSE
       const orderWithDetails = await storage.getCafeOrderById(id);
       if (orderWithDetails) {
-        // Real-time updates removed
-        // broadcast(orderWithDetails.user.id, {
-        //   type: "order_status_update",
-        //   order: orderWithDetails,
-        // });
+        SSEManager.notifyOrderStatusUpdate(orderWithDetails.user.id, orderWithDetails);
       }
       
       res.json(order);
@@ -665,14 +683,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const order = await storage.updateCafeOrderPaymentStatus(id, payment_status, user.id);
       
-      // Broadcast update to user
+      // Send real-time payment update to user via SSE
       const orderWithDetails = await storage.getCafeOrderById(id);
       if (orderWithDetails) {
-        // Real-time updates removed
-        // broadcast(orderWithDetails.user.id, {
-        //   type: "order_payment_update",
-        //   order: orderWithDetails,
-        // });
+        SSEManager.notifyPaymentStatusUpdate(orderWithDetails.user.id, orderWithDetails);
       }
       
       res.json(order);
@@ -731,13 +745,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const order = await storage.createCafeOrderOnBehalf(orderData, orderItems, cafeManager.id);
       
-      // Broadcast to user that order was created for them
-      // Real-time updates removed
-      // broadcast(user_id, {
-      //   type: "order_created_on_behalf",
-      //   order: order,
-      //   created_by: cafeManager.first_name + " " + cafeManager.last_name,
-      // });
+      // Send real-time notification to cafe managers about new order
+      if (order) {
+        SSEManager.notifyNewOrder(order, cafeManager.site);
+      }
       
       res.status(201).json(order);
     } catch (error) {

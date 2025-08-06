@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+import { useSSE } from "@/hooks/use-sse";
 
 
 
@@ -66,7 +67,19 @@ export default function CafeManagerDashboard() {
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<CafeOrder | null>(null);
 
-  // Real-time updates removed - using different approach
+  // SSE for real-time order updates (cafe manager endpoint)
+  useSSE({
+    endpoint: "/api/sse/cafe-manager",
+    onNewOrder: (order) => {
+      console.log('New order received in cafe manager dashboard:', order);
+      // Refresh orders list immediately
+      queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+    },
+    onOrderStatusUpdate: (order) => {
+      // Refresh orders list when status changes
+      queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+    },
+  });
 
 
   
