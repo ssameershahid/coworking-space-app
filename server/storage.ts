@@ -301,30 +301,36 @@ export class DatabaseStorage implements IStorage {
       orders = await baseQuery.orderBy(desc(schema.cafe_orders.created_at));
     }
 
-    // Get order items for each order
-    const ordersWithItems = await Promise.all(
-      orders.map(async (order) => {
-        const items = await db
-          .select({
-            id: schema.cafe_order_items.id,
-            quantity: schema.cafe_order_items.quantity,
-            price: schema.cafe_order_items.price,
-            menu_item: {
-              id: schema.menu_items.id,
-              name: schema.menu_items.name,
-              description: schema.menu_items.description,
-            },
-          })
-          .from(schema.cafe_order_items)
-          .leftJoin(schema.menu_items, eq(schema.cafe_order_items.menu_item_id, schema.menu_items.id))
-          .where(eq(schema.cafe_order_items.order_id, order.id));
-
-        return {
-          ...order,
-          items,
-        };
+    // Get order items for all orders in a single query to avoid connection pooling issues
+    const orderIds = orders.map(o => o.id);
+    const allItems = orderIds.length > 0 ? await db
+      .select({
+        order_id: schema.cafe_order_items.order_id,
+        id: schema.cafe_order_items.id,
+        quantity: schema.cafe_order_items.quantity,
+        price: schema.cafe_order_items.price,
+        menu_item: {
+          id: schema.menu_items.id,
+          name: schema.menu_items.name,
+          description: schema.menu_items.description,
+        },
       })
-    );
+      .from(schema.cafe_order_items)
+      .leftJoin(schema.menu_items, eq(schema.cafe_order_items.menu_item_id, schema.menu_items.id))
+      .where(sql`${schema.cafe_order_items.order_id} IN (${orderIds.join(',')})`) : [];
+
+    // Group items by order_id
+    const itemsByOrderId = allItems.reduce((acc, item) => {
+      if (!acc[item.order_id]) acc[item.order_id] = [];
+      acc[item.order_id].push(item);
+      return acc;
+    }, {} as Record<number, any[]>);
+
+    // Attach items to orders
+    const ordersWithItems = orders.map(order => ({
+      ...order,
+      items: itemsByOrderId[order.id] || []
+    }));
 
     return ordersWithItems;
   }

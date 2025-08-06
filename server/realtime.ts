@@ -80,7 +80,7 @@ class LocalBroadcaster implements IBroadcaster {
     });
 
     let successCount = 0;
-    connections.forEach(res => {
+    for (const res of Array.from(connections)) {
       try {
         if (!res.destroyed) {
           res.write(`data: ${message}\n\n`);
@@ -90,7 +90,7 @@ class LocalBroadcaster implements IBroadcaster {
         console.error(`❌ Failed to broadcast to cafe ${cafeId}:`, error);
         connections.delete(res);
       }
-    });
+    }
 
     broadcastCount++;
     console.log(`🔔 NEW ORDER broadcasted to cafe ${cafeId}: ${successCount}/${connections.size} connections`);
@@ -109,7 +109,7 @@ class LocalBroadcaster implements IBroadcaster {
     // Broadcast to user
     const userConnections = users.get(userId);
     if (userConnections && userConnections.size > 0) {
-      userConnections.forEach(res => {
+      for (const res of Array.from(userConnections)) {
         try {
           if (!res.destroyed) {
             res.write(`data: ${message}\n\n`);
@@ -120,14 +120,14 @@ class LocalBroadcaster implements IBroadcaster {
           userConnections.delete(res);
         }
         totalAttempts++;
-      });
+      }
     }
 
     // Optionally broadcast to cafe
     if (cafeId) {
       const cafeConnections = cafes.get(cafeId);
       if (cafeConnections && cafeConnections.size > 0) {
-        cafeConnections.forEach(res => {
+        for (const res of Array.from(cafeConnections)) {
           try {
             if (!res.destroyed) {
               res.write(`data: ${message}\n\n`);
@@ -138,7 +138,7 @@ class LocalBroadcaster implements IBroadcaster {
             cafeConnections.delete(res);
           }
           totalAttempts++;
-        });
+        }
       }
     }
 
@@ -222,7 +222,7 @@ setInterval(() => {
   
   // Clean up destroyed connections
   for (const [cafeId, connections] of Array.from(cafes.entries())) {
-    const activeConnections = new Set([...connections].filter(res => !res.destroyed));
+    const activeConnections = new Set(Array.from(connections).filter(res => !res.destroyed));
     if (activeConnections.size !== connections.size) {
       cafes.set(cafeId, activeConnections);
       console.log(`🧹 Cleaned up dead connections for cafe ${cafeId}`);
@@ -230,7 +230,7 @@ setInterval(() => {
   }
 
   for (const [userId, connections] of Array.from(users.entries())) {
-    const activeConnections = new Set([...connections].filter(res => !res.destroyed));
+    const activeConnections = new Set(Array.from(connections).filter(res => !res.destroyed));
     if (activeConnections.size !== connections.size) {
       users.set(userId, activeConnections);
       console.log(`🧹 Cleaned up dead connections for user ${userId}`);
