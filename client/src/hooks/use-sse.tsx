@@ -31,7 +31,7 @@ export function useSSE({
   const { toast } = useToast();
 
   const connect = useCallback(() => {
-    if (eventSourceRef.current) {
+    if (eventSourceRef.current && eventSourceRef.current.readyState !== EventSource.CLOSED) {
       eventSourceRef.current.close();
     }
 
@@ -116,14 +116,12 @@ export function useSSE({
       setIsConnected(false);
       setConnectionError('Connection lost');
       
-      eventSource.close();
-      
-      // Auto-reconnect after 3 seconds if enabled
-      if (autoReconnect) {
-        console.log('Attempting to reconnect SSE in 3 seconds...');
+      // Only reconnect if the connection was previously established and auto-reconnect is enabled
+      if (autoReconnect && eventSource.readyState === EventSource.CLOSED) {
+        console.log('Attempting to reconnect SSE in 5 seconds...');
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
-        }, 3000);
+        }, 5000);
       }
     };
   }, [endpoint, onMessage, onNewOrder, onOrderStatusUpdate, onPaymentStatusUpdate, autoReconnect, toast]);

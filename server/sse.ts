@@ -8,12 +8,6 @@ export class SSEManager {
   static addConnection(type: 'cafe_manager' | 'user', userId: string, res: Response) {
     const key = `${type}_${userId}`;
     
-    if (!connections.has(key)) {
-      connections.set(key, []);
-    }
-    
-    connections.get(key)!.push(res);
-    
     // Setup SSE headers
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -23,6 +17,14 @@ export class SSEManager {
       'Access-Control-Allow-Headers': 'Cache-Control'
     });
 
+    // Store connection
+    if (!connections.has(key)) {
+      connections.set(key, []);
+    }
+    connections.get(key)!.push(res);
+    
+    console.log(`SSE connection added: ${key}`);
+
     // Send initial connection confirmation
     res.write(`data: ${JSON.stringify({ type: 'connected', timestamp: new Date().toISOString() })}\n\n`);
 
@@ -31,7 +33,11 @@ export class SSEManager {
       this.removeConnection(type, userId, res);
     });
 
-    console.log(`SSE connection added: ${key}`);
+    // Handle errors
+    res.on('error', (error) => {
+      console.error(`SSE error for ${key}:`, error);
+      this.removeConnection(type, userId, res);
+    });
   }
 
   // Remove a specific SSE connection
@@ -54,24 +60,36 @@ export class SSEManager {
 
   // Send new order notification to all cafe managers
   static notifyNewOrder(orderData: any, site?: string) {
-    console.log('Notifying cafe managers of new order:', orderData.id);
+    console.log('🔔 SENDING NEW ORDER NOTIFICATION TO CAFE MANAGERS - Order ID:', orderData.id);
+    console.log('📊 Current SSE connections:', Object.fromEntries(connections.entries()));
+    
+    let notificationsSent = 0;
     
     // Find all cafe manager connections
     for (const [key, conns] of connections.entries()) {
       if (key.startsWith('cafe_manager_')) {
-        conns.forEach(res => {
+        console.log(`📡 Sending to ${key}, active connections: ${conns.length}`);
+        conns.forEach((res, index) => {
           try {
-            res.write(`data: ${JSON.stringify({
-              type: 'new_order',
-              order: orderData,
-              timestamp: new Date().toISOString()
-            })}\n\n`);
+            if (!res.destroyed) {
+              res.write(`data: ${JSON.stringify({
+                type: 'new_order',
+                order: orderData,
+                timestamp: new Date().toISOString()
+              })}\n\n`);
+              notificationsSent++;
+              console.log(`✅ Notification sent to ${key} connection ${index}`);
+            } else {
+              console.log(`❌ Connection ${key}[${index}] is destroyed, skipping`);
+            }
           } catch (error) {
-            console.error('Error sending SSE message:', error);
+            console.error(`❌ Error sending SSE message to ${key}:`, error);
           }
         });
       }
     }
+    
+    console.log(`📈 Total new order notifications sent: ${notificationsSent}`);
   }
 
   // Send order status update to specific user
