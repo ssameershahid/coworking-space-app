@@ -34,10 +34,16 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
 
   const placeOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
+      console.log("🚨 FRONTEND: About to make API call to /api/cafe/orders");
+      console.log("📦 FRONTEND: Order data:", orderData);
+      console.log("⏰ FRONTEND: Timestamp:", new Date().toISOString());
+      
       const response = await apiRequest("POST", "/api/cafe/orders", orderData);
+      console.log("✅ FRONTEND: API call completed, response:", response.status);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("🎉 FRONTEND: Order mutation SUCCESS:", data);
       toast({
         title: "Order Placed",
         description: "Your order has been placed successfully",
@@ -47,6 +53,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders"] });
     },
     onError: (error: any) => {
+      console.error("❌ FRONTEND: Order mutation ERROR:", error);
       toast({
         title: "Order Failed",
         description: error.message || "Failed to place order",
