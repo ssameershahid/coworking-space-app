@@ -265,7 +265,14 @@ export default function CafeManagerDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Café Manager Dashboard</h1>
-        <p className="text-gray-600">Manage orders and monitor café operations</p>
+        <div className="flex items-center gap-4">
+          <p className="text-gray-600">Manage orders and monitor café operations</p>
+          {user?.site && (
+            <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+              📍 {user.site.replace('_', ' ').toUpperCase()}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-6">

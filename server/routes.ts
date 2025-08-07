@@ -593,7 +593,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let orders;
       if (user.role === "member_organization_admin" && org_id) {
         orders = await storage.getCafeOrders(undefined, org_id as string);
-      } else if (user.role === "cafe_manager" || user.role === "calmkaaj_admin") {
+      } else if (user.role === "cafe_manager") {
+        // Cafe managers only see orders from their location
+        orders = await storage.getCafeOrders(undefined, undefined, user.site);
+      } else if (user.role === "calmkaaj_admin") {
+        // Admins can see all orders
         orders = await storage.getCafeOrders();
       } else {
         orders = await storage.getCafeOrders(user.id);
