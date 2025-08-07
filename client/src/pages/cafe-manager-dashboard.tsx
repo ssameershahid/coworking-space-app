@@ -190,14 +190,15 @@ export default function CafeManagerDashboard() {
           
           {order.delivery_location && (
             <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-black">{order.delivery_location}</span>
+              <Truck className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {order.delivery_location}
+              </span>
             </div>
           )}
           
           {order.items && order.items.length > 0 && (
             <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-blue-600" />
               <span className="text-sm text-black font-medium">
                 {order.items.map((item, index) => (
                   <span key={item.id}>
