@@ -325,21 +325,21 @@ export default function CafePage() {
             <div className="space-y-4">
               {myOrders.slice(0, 3).map((order) => (
                 <div key={order.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                  <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
                     {order.items && order.items.some(item => 
                       item.menu_item.name.toLowerCase().includes('coffee') || 
                       item.menu_item.name.toLowerCase().includes('tea')
                     ) ? (
-                      <Coffee className="h-6 w-6 text-accent" />
+                      <Coffee className="h-5 w-5 text-accent" />
                     ) : (
-                      <Utensils className="h-6 w-6 text-accent" />
+                      <Utensils className="h-5 w-5 text-accent" />
                     )}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-semibold text-lg">Order #{order.id}</h3>
                       <div className="text-right">
-                        <p className="font-semibold text-lg">{formatPriceWithCurrency(order.total_amount)}</p>
+                        <p className="font-semibold text-lg">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
                         <Badge 
                           variant={
                             order.status === 'delivered' ? 'default' :
@@ -366,6 +366,9 @@ export default function CafePage() {
                         'Order details'
                       }
                     </p>
+                    {order.created_by && (
+                      <p className="text-xs text-blue-600 mt-1">Created by café staff</p>
+                    )}
                   </div>
                 </div>
               ))}
