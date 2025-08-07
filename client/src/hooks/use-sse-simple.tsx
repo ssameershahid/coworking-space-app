@@ -106,7 +106,7 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
         eventSourceRef.current = null;
       }
     };
-  }, [endpoint, onNewOrder, onOrderStatusUpdate, onPaymentStatusUpdate, toast]);
+  }, [endpoint]); // Only depend on endpoint to prevent constant reconnections
 
   return { eventSource: eventSourceRef.current };
 }
