@@ -478,16 +478,20 @@ export default function CafePage() {
                 </div>
               )}
 
-              {/* Office Location */}
+              {/* Delivery Location */}
               <div className="space-y-2">
-                <Label htmlFor="delivery-location" className="text-sm font-medium">Office Location</Label>
+                <Label htmlFor="delivery-location" className="text-sm font-medium">
+                  Delivery Location <span className="text-red-500">*</span>
+                </Label>
                 <select 
                   id="delivery-location"
-                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full h-10 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                    !deliveryLocation ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                   value={deliveryLocation}
                   onChange={(e) => setDeliveryLocation(e.target.value)}
                 >
-                  <option value="">Select office location for delivery</option>
+                  <option value="">Select delivery location (Required)</option>
                   <option value="Reception">Reception</option>
                   <option value="Conference Room A">Conference Room A</option>
                   <option value="Conference Room B">Conference Room B</option>
@@ -499,6 +503,9 @@ export default function CafePage() {
                   <option value="Private Office 2">Private Office 2</option>
                   <option value="Cafeteria">Cafeteria</option>
                 </select>
+                {!deliveryLocation && (
+                  <p className="text-red-500 text-xs">Please select a delivery location to continue</p>
+                )}
               </div>
 
               {/* Order Notes */}
@@ -532,7 +539,7 @@ export default function CafePage() {
               <Button 
                 className="w-full h-12 text-lg"
                 onClick={handlePlaceOrder}
-                disabled={cart.length === 0 || placeOrderMutation.isPending}
+                disabled={cart.length === 0 || placeOrderMutation.isPending || !deliveryLocation}
               >
                 {placeOrderMutation.isPending ? (
                   <div className="flex items-center gap-2">
