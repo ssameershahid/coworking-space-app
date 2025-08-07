@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery } from "@tanstack/react-query";
 
 interface MenuItemEditProps {
@@ -21,7 +22,7 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
   const [price, setPrice] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [site, setSite] = useState("blue_area");
+  const [selectedSites, setSelectedSites] = useState<string[]>(["blue_area"]);
   const [isAvailable, setIsAvailable] = useState(true);
   const [isDailySpecial, setIsDailySpecial] = useState(false);
 
@@ -37,7 +38,14 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
       setPrice(item.price?.toString() || "");
       setImageUrl(item.image_url || "");
       setCategoryId(item.category_id?.toString() || "");
-      setSite(item.site || "blue_area"); // Don't allow "both" for editing existing items
+      
+      // Convert site value to selectedSites array
+      if (item.site === "both") {
+        setSelectedSites(["blue_area", "i_10"]);
+      } else {
+        setSelectedSites([item.site || "blue_area"]);
+      }
+      
       setIsAvailable(item.is_available ?? true);
       setIsDailySpecial(item.is_daily_special ?? false);
     } else {
@@ -46,14 +54,29 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
       setPrice("");
       setImageUrl("");
       setCategoryId("");
-      setSite("blue_area");
+      setSelectedSites(["blue_area"]);
       setIsAvailable(true);
       setIsDailySpecial(false);
     }
   }, [item, isOpen]);
 
   const handleSave = () => {
-    const data = {
+    // Validate that at least one site is selected
+    if (selectedSites.length === 0) {
+      return; // Don't save if no sites selected
+    }
+    
+    // Convert selectedSites array back to site string for backend compatibility
+    let site: string;
+    if (selectedSites.length === 2 && selectedSites.includes("blue_area") && selectedSites.includes("i_10")) {
+      site = "both";
+    } else if (selectedSites.length === 1) {
+      site = selectedSites[0];
+    } else {
+      site = "blue_area"; // fallback
+    }
+    
+    const data: any = {
       name,
       description,
       price: price, // Keep as string for decimal validation
@@ -70,6 +93,14 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
     
     onSave(data);
     onClose();
+  };
+
+  const handleSiteToggle = (siteValue: string, checked: boolean) => {
+    if (checked) {
+      setSelectedSites(prev => [...prev, siteValue]);
+    } else {
+      setSelectedSites(prev => prev.filter(s => s !== siteValue));
+    }
   };
 
   return (
@@ -137,17 +168,35 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
           </div>
 
           <div>
-            <Label htmlFor="site">Site</Label>
-            <Select value={site} onValueChange={setSite}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="blue_area">Blue Area</SelectItem>
-                <SelectItem value="i_10">I-10</SelectItem>
-                <SelectItem value="both">Both Sites</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>Available at Sites</Label>
+            <div className="space-y-3 mt-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="site-blue-area"
+                  checked={selectedSites.includes("blue_area")}
+                  onCheckedChange={(checked) => handleSiteToggle("blue_area", checked as boolean)}
+                />
+                <Label htmlFor="site-blue-area" className="font-normal">Blue Area</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="site-i10"
+                  checked={selectedSites.includes("i_10")}
+                  onCheckedChange={(checked) => handleSiteToggle("i_10", checked as boolean)}
+                />
+                <Label htmlFor="site-i10" className="font-normal">I-10</Label>
+              </div>
+              {selectedSites.length === 2 && (
+                <div className="text-sm text-green-600 bg-green-50 p-2 rounded-md">
+                  ✓ This item will be available at both sites
+                </div>
+              )}
+              {selectedSites.length === 0 && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded-md">
+                  ⚠ Please select at least one site
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
