@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt, inArray } from "drizzle-orm";
 import * as schema from "@shared/schema";
 
 const sql_client = neon(process.env.DATABASE_URL!);
@@ -317,7 +317,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(schema.cafe_order_items)
       .leftJoin(schema.menu_items, eq(schema.cafe_order_items.menu_item_id, schema.menu_items.id))
-      .where(sql`${schema.cafe_order_items.order_id} IN (${orderIds.join(',')})`) : [];
+      .where(inArray(schema.cafe_order_items.order_id, orderIds)) : [];
 
     // Group items by order_id
     const itemsByOrderId = allItems.reduce((acc, item) => {

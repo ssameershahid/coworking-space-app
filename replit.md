@@ -34,6 +34,7 @@ Preferred communication style: Simple, everyday language.
 ### Key Components & Features
 - **Authentication & Authorization**: Multi-role system, session-based authentication, role-based access, organization-level permissions.
 - **Café Management**: Menu management, shopping cart, order placement (personal/organization billing), real-time order status, daily specials, cash-only order creation.
+- **Real-time Order System**: Server-Sent Events (SSE) with single `/events` endpoint for live order notifications. Broadcasts `order.new` to cafe managers and `order.update` to users. Includes heartbeat monitoring and automatic connection cleanup.
 - **Meeting Room System**: Booking with date/time, credit-based pricing, availability checks, amenity tracking, organization billing integration, 5-minute cancellation policy.
 - **Organization Management**: Employee permission management, billing controls, invoice generation, multi-site support (Blue Area, I-10).
 - **Admin Dashboard**: User management, menu item CRUD, room configuration, system analytics.
