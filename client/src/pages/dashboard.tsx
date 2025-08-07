@@ -449,7 +449,16 @@ export default function Dashboard() {
                         <p className="text-sm text-gray-500">
                           {new Date(order.created_at).toLocaleDateString()} • {new Date(order.created_at).toLocaleTimeString()}
                         </p>
-                        <p className="text-xs text-gray-400">{order.items?.length || 0} items</p>
+                        <p className="text-xs text-gray-400">
+                          {order.items && order.items.length > 0 
+                            ? order.items.map(item => 
+                                item.quantity > 1 
+                                  ? `${item.menu_item?.name} x${item.quantity}`
+                                  : item.menu_item?.name
+                              ).join(', ')
+                            : 'No items'
+                          }
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
