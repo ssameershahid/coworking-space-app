@@ -544,7 +544,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/cafe/orders", requireAuth, async (req, res) => {
     console.log("🚨🚨🚨 /api/cafe/orders POST endpoint HIT! 🚨🚨🚨");
     console.log(`🔍 Request body:`, req.body);
-    console.log(`👤 User:`, (req.user as any)?.email);
+    console.log(`👤 User:`, (req.user as any)?.email, `(ID: ${(req.user as any)?.id})`);
+    console.log(`📍 User site:`, (req.user as any)?.site);
     console.log(`⏰ Timestamp:`, new Date().toISOString());
     
     try {

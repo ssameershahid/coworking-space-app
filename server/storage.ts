@@ -250,7 +250,9 @@ export class DatabaseStorage implements IStorage {
     console.log("⏰ DB TIMESTAMP:", new Date().toISOString());
     console.log("📍 CALL STACK:", new Error().stack?.split('\n').slice(1, 6));
     
+    console.log("🗄️ ABOUT TO INSERT INTO DATABASE NOW!");
     const [newOrder] = await db.insert(schema.cafe_orders).values(order).returning();
+    console.log("🗄️ DATABASE INSERT COMPLETED!");
     
     console.log("✅ DATABASE: Order created with ID:", newOrder.id);
     return newOrder;
