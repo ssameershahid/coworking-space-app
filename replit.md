@@ -11,7 +11,8 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 **August 7, 2025 - Session Management & System Optimization**
-- **Session Persistence**: **MAJOR FIX** - Replaced MemoryStore with PostgreSQL session store using connect-pg-simple. Users now stay logged in for 3 weeks even after closing/reopening browser tabs. Sessions survive server restarts.
+- **Session Persistence**: **MAJOR FIX** - Extended client-side auth cache from 5 minutes to 20 days (matching 3-week server sessions). Added localStorage persistence and improved error handling. Users now stay logged in for 3 weeks across browser restarts and won't get automatically signed out on temporary network issues.
+- **Password Change Feature**: **NEW FUNCTIONALITY** - Added secure password change feature on Profile page Account Summary section. Includes comprehensive validation, current password verification, secure password hashing, and user-friendly modal with show/hide password toggles.
 - **Dashboard UI Fix**: Removed invisible blue-bordered Link wrappers causing clickable areas around action cards. Navigation now properly contained to buttons only.
 - **Button Alignment**: Added conditional spacing to align "Order from Café" and "Book Meeting Room" buttons with credit warning messages in negative balance states.
 - **Performance Optimization**: Removed excessive debug logging throughout the system (90% reduction in console output)

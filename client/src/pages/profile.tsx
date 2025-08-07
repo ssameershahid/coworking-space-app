@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Briefcase, MapPin, Globe, Eye, EyeOff, Upload, X } from "lucide-react";
+import { User, Briefcase, MapPin, Globe, Eye, EyeOff, Upload, X, Lock } from "lucide-react";
+import { ChangePasswordModal } from "@/components/change-password-modal";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -534,6 +535,19 @@ export default function ProfilePage() {
                   day: 'numeric' 
                 })}
               </p>
+            </div>
+            
+            {/* Change Password Button */}
+            <div className="pt-4">
+              <ChangePasswordModal>
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-orange-50 border-orange-200 hover:bg-orange-100 text-orange-800 font-semibold"
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  Change Password
+                </Button>
+              </ChangePasswordModal>
             </div>
           </CardContent>
         </Card>

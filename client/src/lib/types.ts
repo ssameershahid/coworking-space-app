@@ -14,6 +14,14 @@ export interface User {
   can_charge_room_to_org: boolean;
   onboarding_completed: boolean;
   created_at?: string;
+  // Profile information
+  bio?: string;
+  linkedin_url?: string;
+  profile_image?: string;
+  job_title?: string;
+  company?: string;
+  community_visible?: boolean;
+  email_visible?: boolean;
 }
 
 export interface CartItem {
