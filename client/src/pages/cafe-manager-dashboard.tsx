@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { useSSESimple } from "@/hooks/use-sse-simple";
+import { formatPrice, formatPriceWithCurrency } from "@/lib/format-price";
 
 
 
@@ -77,7 +78,7 @@ export default function CafeManagerDashboard() {
       
       toast({
         title: "NEW ORDER RECEIVED!",
-        description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${order.total_amount}`,
+        description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${formatPrice(order.total_amount)}`,
         duration: 20000,
         variant: "destructive",
       });
@@ -163,7 +164,7 @@ export default function CafeManagerDashboard() {
               <Icon className="h-3 w-3 mr-1" />
               {config.label}
             </Badge>
-            <div className="font-bold text-lg">Rs. {order.total_amount}</div>
+            <div className="font-bold text-lg">{formatPriceWithCurrency(order.total_amount)}</div>
           </div>
           <div className="text-right text-sm text-muted-foreground">
             #{order.id} • {format(new Date(order.created_at), 'h:mm a')}
@@ -313,7 +314,7 @@ export default function CafeManagerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">Rs. {todaysRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-gray-900">{formatPriceWithCurrency(todaysRevenue)}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <DollarSign className="h-6 w-6 text-green-600" />

@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { SimpleMenuEdit } from "@/components/simple-menu-edit";
+import { formatPriceWithCurrency } from "@/lib/format-price";
 
 export default function MenuManagement() {
   const { user } = useAuth();
@@ -210,7 +211,7 @@ export default function MenuManagement() {
                           <p className="text-sm text-gray-500">{item.description}</p>
                         </div>
                       </TableCell>
-                      <TableCell>Rs. {item.price}</TableCell>
+                      <TableCell>{formatPriceWithCurrency(item.price)}</TableCell>
                       <TableCell className="capitalize">
                         {categories.find((cat: any) => cat.id == item.category_id)?.name || "Uncategorized"}
                       </TableCell>

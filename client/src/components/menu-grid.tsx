@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, Coffee, Star } from "lucide-react";
+import { formatPriceWithCurrency } from "@/lib/format-price";
 
 interface MenuItem {
   id: number;
@@ -62,7 +63,7 @@ export function MenuGrid({ items, cart, onAddToCart, onUpdateQuantity, onRemoveF
             <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">{item.description}</p>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm sm:text-lg font-bold text-green-600">Rs. {item.price}</span>
+              <span className="text-sm sm:text-lg font-bold text-green-600">{formatPriceWithCurrency(item.price)}</span>
               
               <div className="flex items-center space-x-1 sm:space-x-2">
                 {cart.find(cartItem => cartItem.id === item.id) ? (

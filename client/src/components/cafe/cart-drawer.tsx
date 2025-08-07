@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Minus, Plus, X } from "lucide-react";
+import { formatPriceWithCurrency } from "@/lib/format-price";
 
 interface CartDrawerProps {
   open: boolean;
@@ -101,7 +102,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                 <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium">{item.name}</h4>
-                    <p className="text-sm text-gray-500">Rs. {item.price}</p>
+                    <p className="text-sm text-gray-500">{formatPriceWithCurrency(item.price)}</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
@@ -161,7 +162,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
               
               <div className="flex items-center justify-between font-semibold">
                 <span>Total</span>
-                <span>Rs. {totalAmount.toFixed(2)}</span>
+                <span>{formatPriceWithCurrency(totalAmount)}</span>
               </div>
               
               <Button

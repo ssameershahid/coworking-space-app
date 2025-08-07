@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { Coffee } from "lucide-react";
+import { formatPriceWithCurrency } from "@/lib/format-price";
 
 interface MenuItemProps {
   item: {
@@ -50,7 +51,7 @@ export default function MenuItem({ item }: MenuItemProps) {
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-          <span className="text-lg font-bold text-primary">Rs. {item.price}</span>
+          <span className="text-lg font-bold text-primary">{formatPriceWithCurrency(item.price)}</span>
         </div>
         <p className="text-gray-600 text-sm mb-4">{item.description}</p>
         <Button

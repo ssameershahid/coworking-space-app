@@ -7,6 +7,7 @@ import { Users, TrendingUp, ShoppingCart, Calendar } from "lucide-react";
 import UserManagement from "@/components/admin/user-management";
 import MenuManagement from "@/components/admin/menu-management";
 import RoomManagement from "@/components/admin/room-management";
+import { formatPriceWithCurrency } from "@/lib/format-price";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -91,7 +92,7 @@ export default function AdminPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Daily Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">Rs. {todaysRevenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatPriceWithCurrency(todaysRevenue)}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="h-6 w-6 text-green-600" />

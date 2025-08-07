@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { formatPriceWithCurrency } from "@/lib/format-price";
 
 interface CheckoutModalProps {
   open: boolean;
@@ -96,13 +97,13 @@ export default function CheckoutModal({ open, onClose }: CheckoutModalProps) {
               {cart.map((item) => (
                 <div key={item.id} className="flex justify-between">
                   <span>{item.name} x{item.quantity}</span>
-                  <span>Rs. {(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+                  <span>{formatPriceWithCurrency(parseFloat(item.price) * item.quantity)}</span>
                 </div>
               ))}
               <div className="border-t pt-2 font-semibold">
                 <div className="flex justify-between">
                   <span>Total</span>
-                  <span>Rs. {totalAmount.toFixed(2)}</span>
+                  <span>{formatPriceWithCurrency(totalAmount)}</span>
                 </div>
               </div>
             </div>
