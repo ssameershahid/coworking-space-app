@@ -31,7 +31,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Receipt,
-  DollarSign
+  DollarSign,
+  Utensils,
+  CheckCircle
 } from "lucide-react";
 import { CafeOrder, MeetingBooking, Announcement } from "@/lib/types";
 import { CreditAnimation, useCreditAnimation } from "@/components/ui/credit-animation";
@@ -269,28 +271,53 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {recentOrders.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {recentOrders.slice(0, 3).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Order #{order.id}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </p>
-                      {order.created_by && (
-                        <p className="text-xs text-blue-600">Created by café staff</p>
+                  <div key={order.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                    <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
+                      {order.items && order.items.some(item => 
+                        item.menu_item.name.toLowerCase().includes('coffee') || 
+                        item.menu_item.name.toLowerCase().includes('tea')
+                      ) ? (
+                        <Coffee className="h-6 w-6 text-accent" />
+                      ) : (
+                        <Utensils className="h-6 w-6 text-accent" />
                       )}
                     </div>
-                    <div className="text-right space-y-1">
-                      <p className="font-semibold">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
-                      <div className="flex gap-1 flex-col">
-                        <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
-                          {order.status}
-                        </Badge>
-                        <Badge variant={order.payment_status === 'paid' ? 'default' : 'destructive'} className="text-xs">
-                          {order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
-                        </Badge>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold text-lg">Order #{order.id}</h3>
+                        <div className="text-right">
+                          <p className="font-semibold text-lg">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
+                          <Badge 
+                            variant={
+                              order.status === 'delivered' ? 'default' :
+                              order.status === 'ready' ? 'default' :
+                              order.status === 'preparing' ? 'secondary' : 'outline'
+                            }
+                            className={
+                              order.status === 'ready' ? 'bg-green-100 text-green-800' :
+                              order.status === 'preparing' ? 'bg-blue-100 text-blue-800' : ''
+                            }
+                          >
+                            {order.status === 'ready' && <CheckCircle className="h-3 w-3 mr-1" />}
+                            {order.status === 'preparing' && <Clock className="h-3 w-3 mr-1" />}
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </Badge>
+                        </div>
                       </div>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {new Date(order.created_at).toLocaleDateString()} • {new Date(order.created_at).toLocaleTimeString()}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {order.items ? 
+                          order.items.map(item => `${item.menu_item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''}`).join(', ') :
+                          'Order details'
+                        }
+                      </p>
+                      {order.created_by && (
+                        <p className="text-xs text-blue-600 mt-1">Created by café staff</p>
+                      )}
                     </div>
                   </div>
                 ))}

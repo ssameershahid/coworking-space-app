@@ -34,9 +34,11 @@ import {
   Trash2,
   CheckCircle,
   AlertCircle,
-  Package
+  Package,
+  Utensils
 } from "lucide-react";
 import { MenuItem as MenuItemType, CafeOrder } from "@/lib/types";
+import { formatPriceWithCurrency } from "@/lib/format-price";
 import calmkaajLogo from "@assets/calmkaaj-logo.png";
 
 export default function CafePage() {
@@ -322,35 +324,48 @@ export default function CafePage() {
           <CardContent>
             <div className="space-y-4">
               {myOrders.slice(0, 3).map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Order #{order.id}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(order.created_at).toLocaleString()}
+                <div key={order.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                  <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
+                    {order.items && order.items.some(item => 
+                      item.menu_item.name.toLowerCase().includes('coffee') || 
+                      item.menu_item.name.toLowerCase().includes('tea')
+                    ) ? (
+                      <Coffee className="h-6 w-6 text-accent" />
+                    ) : (
+                      <Utensils className="h-6 w-6 text-accent" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-lg">Order #{order.id}</h3>
+                      <div className="text-right">
+                        <p className="font-semibold text-lg">{formatPriceWithCurrency(order.total_amount)}</p>
+                        <Badge 
+                          variant={
+                            order.status === 'delivered' ? 'default' :
+                            order.status === 'ready' ? 'default' :
+                            order.status === 'preparing' ? 'secondary' : 'outline'
+                          }
+                          className={
+                            order.status === 'ready' ? 'bg-green-100 text-green-800' :
+                            order.status === 'preparing' ? 'bg-blue-100 text-blue-800' : ''
+                          }
+                        >
+                          {order.status === 'ready' && <CheckCircle className="h-3 w-3 mr-1" />}
+                          {order.status === 'preparing' && <Clock className="h-3 w-3 mr-1" />}
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-2">
+                      {new Date(order.created_at).toLocaleDateString()} • {new Date(order.created_at).toLocaleTimeString()}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {order.items?.length || 0} items • Rs. {order.total_amount}
+                      {order.items ? 
+                        order.items.map(item => `${item.menu_item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''}`).join(', ') :
+                        'Order details'
+                      }
                     </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge 
-                      variant={
-                        order.status === 'delivered' ? 'default' :
-                        order.status === 'ready' ? 'default' :
-                        order.status === 'preparing' ? 'secondary' : 'outline'
-                      }
-                      className={
-                        order.status === 'ready' ? 'bg-green-100 text-green-800' :
-                        order.status === 'preparing' ? 'bg-blue-100 text-blue-800' : ''
-                      }
-                    >
-                      {order.status === 'ready' && <CheckCircle className="h-3 w-3 mr-1" />}
-                      {order.status === 'preparing' && <Clock className="h-3 w-3 mr-1" />}
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </Badge>
-                    {order.status === 'ready' && (
-                      <p className="text-xs text-green-600 mt-1">Ready for pickup!</p>
-                    )}
                   </div>
                 </div>
               ))}
