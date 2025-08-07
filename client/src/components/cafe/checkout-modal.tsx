@@ -61,7 +61,15 @@ export default function CheckoutModal({ open, onClose }: CheckoutModalProps) {
   });
 
   const handlePlaceOrder = () => {
-    if (cart.length === 0) return;
+    console.log("🚨🚨🚨 CHECKOUT MODAL: handlePlaceOrder called!");
+    console.log("📦 Cart contents:", cart);
+    console.log("💳 Billing type:", billingType);
+    console.log("📝 Notes:", notes);
+    
+    if (cart.length === 0) {
+      console.log("❌ CHECKOUT MODAL: Cart is empty, returning early");
+      return;
+    }
 
     const orderData = {
       items: cart.map(item => ({
@@ -71,8 +79,12 @@ export default function CheckoutModal({ open, onClose }: CheckoutModalProps) {
       billed_to: billingType,
       notes,
     };
+    
+    console.log("📋 Order data prepared:", orderData);
+    console.log("🔄 About to call placeOrderMutation.mutate()");
 
     placeOrderMutation.mutate(orderData);
+    console.log("✅ placeOrderMutation.mutate() called");
   };
 
   return (

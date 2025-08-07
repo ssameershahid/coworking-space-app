@@ -63,7 +63,15 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
   });
 
   const handlePlaceOrder = () => {
-    if (cart.length === 0) return;
+    console.log("🚨🚨🚨 CART DRAWER: handlePlaceOrder called!");
+    console.log("📦 Cart contents:", cart);
+    console.log("💳 Billing type:", billingType);
+    console.log("📝 Notes:", notes);
+    
+    if (cart.length === 0) {
+      console.log("❌ CART DRAWER: Cart is empty, returning early");
+      return;
+    }
 
     const orderData = {
       items: cart.map(item => ({
@@ -73,8 +81,12 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
       billed_to: billingType,
       notes,
     };
+    
+    console.log("📋 Order data prepared:", orderData);
+    console.log("🔄 About to call placeOrderMutation.mutate()");
 
     placeOrderMutation.mutate(orderData);
+    console.log("✅ placeOrderMutation.mutate() called");
   };
 
   return (
