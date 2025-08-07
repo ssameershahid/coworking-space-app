@@ -14,11 +14,34 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // CRITICAL DEBUG: Log every API request
+  console.log("🌐 API REQUEST STARTING:", {
+    method,
+    url,
+    hasData: !!data,
+    timestamp: new Date().toISOString()
+  });
+  
+  if (method === 'POST') {
+    console.log("🚨🚨🚨 FRONTEND POST REQUEST:", {
+      url,
+      data,
+      stringifiedData: data ? JSON.stringify(data) : undefined
+    });
+  }
+  
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
+  });
+
+  console.log("✅ API REQUEST COMPLETED:", {
+    method,
+    url,
+    status: res.status,
+    ok: res.ok
   });
 
   await throwIfResNotOk(res);
