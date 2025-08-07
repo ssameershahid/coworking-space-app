@@ -174,8 +174,9 @@ export default function Dashboard() {
               Order from Café
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col">
             <p className="text-orange-700 text-sm mb-3">Fresh coffee, snacks & meals</p>
+            {isNegativeBalance && <div className="flex-1 mb-8"></div>}
             <Link href="/cafe">
               <Button className="w-full bg-orange-600 hover:bg-orange-700">
                 View Menu
@@ -191,8 +192,9 @@ export default function Dashboard() {
               Book Meeting Room
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col">
             <p className="text-green-700 text-sm mb-3">Private spaces for meetings</p>
+            {isNegativeBalance && <div className="flex-1 mb-8"></div>}
             <Link href="/rooms">
               <Button className="w-full bg-green-600 hover:bg-green-700">
                 Book Now
