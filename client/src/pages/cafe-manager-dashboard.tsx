@@ -159,15 +159,22 @@ export default function CafeManagerDashboard() {
       <Card className="mb-4 cursor-pointer hover:shadow-md transition-shadow" 
             onClick={() => setSelectedOrder(order)}>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between mb-2">
-            <Badge className={`${config.color} whitespace-nowrap`}>
-              <Icon className="h-3 w-3 mr-1" />
-              {config.label}
-            </Badge>
-            <div className="font-bold text-lg">{formatPriceWithCurrency(order.total_amount)}</div>
-          </div>
-          <div className="text-right text-sm text-muted-foreground">
-            #{order.id} • {format(new Date(order.created_at), 'h:mm a')}
+          <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-1">
+              <Badge className={`${config.color} whitespace-nowrap w-fit`}>
+                <Icon className="h-3 w-3 mr-1" />
+                {config.label}
+              </Badge>
+              <div className="text-sm text-muted-foreground">
+                #{order.id}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 items-end">
+              <div className="font-bold text-lg">{formatPriceWithCurrency(order.total_amount)}</div>
+              <div className="text-sm text-muted-foreground">
+                {format(new Date(order.created_at), 'h:mm a')}
+              </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0 space-y-3">
