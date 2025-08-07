@@ -58,6 +58,36 @@ export default function CafePage() {
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [currentOrder, setCurrentOrder] = useState<CafeOrder | null>(null);
 
+  // Location-specific delivery options
+  const deliveryLocationsBysite = {
+    blue_area: [
+      "Reception - Blue Area",
+      "Conference Room A",
+      "Conference Room B", 
+      "Executive Lounge",
+      "Kitchen - Blue Area",
+      "Workspace Floor 1",
+      "Workspace Floor 2",
+      "Private Office 1",
+      "Private Office 2",
+      "Cafeteria - Blue Area"
+    ],
+    i_10: [
+      "Reception - I-10",
+      "Meeting Room Alpha",
+      "Meeting Room Beta",
+      "Co-working Space",
+      "Kitchen - I-10", 
+      "Workspace East Wing",
+      "Workspace West Wing",
+      "Manager Office",
+      "Break Room",
+      "Cafeteria - I-10"
+    ]
+  };
+
+  const availableDeliveryLocations = deliveryLocationsBysite[user?.site as keyof typeof deliveryLocationsBysite] || [];
+
   const { data: categories = [] } = useQuery<{id: number, name: string}[]>({
     queryKey: ["/api/menu/categories"],
     enabled: !!user,
@@ -495,16 +525,9 @@ export default function CafePage() {
                   onChange={(e) => setDeliveryLocation(e.target.value)}
                 >
                   <option value="">Select delivery location (Required)</option>
-                  <option value="Reception">Reception</option>
-                  <option value="Conference Room A">Conference Room A</option>
-                  <option value="Conference Room B">Conference Room B</option>
-                  <option value="Lounge Area">Lounge Area</option>
-                  <option value="Kitchen">Kitchen</option>
-                  <option value="Workspace Floor 1">Workspace Floor 1</option>
-                  <option value="Workspace Floor 2">Workspace Floor 2</option>
-                  <option value="Private Office 1">Private Office 1</option>
-                  <option value="Private Office 2">Private Office 2</option>
-                  <option value="Cafeteria">Cafeteria</option>
+                  {availableDeliveryLocations.map((location) => (
+                    <option key={location} value={location}>{location}</option>
+                  ))}
                 </select>
                 {!deliveryLocation && (
                   <p className="text-red-500 text-xs">Please select a delivery location to continue</p>

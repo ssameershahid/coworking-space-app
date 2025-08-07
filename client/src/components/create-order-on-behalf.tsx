@@ -58,6 +58,38 @@ export default function CreateOrderOnBehalf() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Location-specific delivery options
+  const deliveryLocationsBysite = {
+    blue_area: [
+      "Reception - Blue Area",
+      "Conference Room A",
+      "Conference Room B", 
+      "Executive Lounge",
+      "Kitchen - Blue Area",
+      "Workspace Floor 1",
+      "Workspace Floor 2",
+      "Private Office 1",
+      "Private Office 2",
+      "Cafeteria - Blue Area"
+    ],
+    i_10: [
+      "Reception - I-10",
+      "Meeting Room Alpha",
+      "Meeting Room Beta",
+      "Co-working Space",
+      "Kitchen - I-10", 
+      "Workspace East Wing",
+      "Workspace West Wing",
+      "Manager Office",
+      "Break Room",
+      "Cafeteria - I-10"
+    ]
+  };
+
+  const availableDeliveryLocations = selectedUser 
+    ? deliveryLocationsBysite[selectedUser.site as keyof typeof deliveryLocationsBysite] || []
+    : [];
+
   // Fetch users
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/cafe/users'],
@@ -320,11 +352,16 @@ export default function CreateOrderOnBehalf() {
           {/* Delivery Location */}
           <div className="space-y-2">
             <Label>Delivery Location (Optional)</Label>
-            <Input
-              placeholder="e.g., Table 5, Meeting Room A"
-              value={deliveryLocation}
-              onChange={(e) => setDeliveryLocation(e.target.value)}
-            />
+            <Select value={deliveryLocation} onValueChange={setDeliveryLocation}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select delivery location" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableDeliveryLocations.map((location) => (
+                  <SelectItem key={location} value={location}>{location}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Notes */}
