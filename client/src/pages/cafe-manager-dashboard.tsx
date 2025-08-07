@@ -71,11 +71,14 @@ export default function CafeManagerDashboard() {
   useSSESimple({
     endpoint: "/events",
     onNewOrder: (order) => {
-      console.log('🔔 NEW ORDER ALERT! Order received in cafe manager dashboard:', order);
+      console.log('🚨 CAFE MANAGER: NEW ORDER ALERT!', order);
+      console.log('🔄 Refreshing orders list...');
       // Refresh orders list immediately
       queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+      console.log('✅ Query invalidation triggered');
     },
     onOrderStatusUpdate: (order) => {
+      console.log('📋 CAFE MANAGER: Order status update received:', order);
       // Refresh orders list when status changes  
       queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
     },

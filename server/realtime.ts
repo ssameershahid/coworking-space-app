@@ -67,11 +67,18 @@ class LocalBroadcaster implements IBroadcaster {
   }
 
   broadcastNewOrder(cafeId: string, orderData: any): void {
+    console.log(`🚀 ATTEMPTING TO BROADCAST ORDER TO CAFE: ${cafeId}`);
+    console.log(`📊 Available cafes:`, Array.from(cafes.keys()));
+    console.log(`🔢 Total connections: ${connectionCount}`);
+    
     const connections = cafes.get(cafeId);
     if (!connections || connections.size === 0) {
       console.log(`🚫 No cafe connections for ${cafeId} to broadcast new order`);
+      console.log(`📋 Debug - All cafe connections:`, Array.from(cafes.entries()).map(([id, conns]) => ({ id, count: conns.size })));
       return;
     }
+
+    console.log(`📡 Found ${connections.size} connections for cafe ${cafeId}, broadcasting order #${orderData?.id}`);
 
     const message = JSON.stringify({
       type: 'order.new',
@@ -85,6 +92,9 @@ class LocalBroadcaster implements IBroadcaster {
         if (!res.destroyed) {
           res.write(`data: ${message}\n\n`);
           successCount++;
+          console.log(`✅ Successfully sent order notification to connection`);
+        } else {
+          console.log(`❌ Connection is destroyed, skipping`);
         }
       } catch (error) {
         console.error(`❌ Failed to broadcast to cafe ${cafeId}:`, error);
@@ -93,7 +103,7 @@ class LocalBroadcaster implements IBroadcaster {
     }
 
     broadcastCount++;
-    console.log(`🔔 NEW ORDER broadcasted to cafe ${cafeId}: ${successCount}/${connections.size} connections`);
+    console.log(`🔔 NEW ORDER BROADCAST COMPLETE to cafe ${cafeId}: ${successCount}/${connections.size} connections successful`);
   }
 
   broadcastOrderUpdate(userId: number, orderData: any, cafeId?: string): void {

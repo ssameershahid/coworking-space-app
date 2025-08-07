@@ -36,14 +36,18 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
             break;
           
           case 'order.new':
-            console.log('🔔 NEW ORDER NOTIFICATION!', message.data);
+            console.log('🔔 NEW ORDER NOTIFICATION RECEIVED!', message.data);
+            console.log('🎯 Triggering onNewOrder callback...');
             if (onNewOrder && message.data) {
               onNewOrder(message.data);
               toast({
-                title: "🔔 New Order!",
-                description: `Order #${message.data.id} from ${message.data.user?.first_name} ${message.data.user?.last_name}`,
-                duration: 6000,
+                title: "🔔 New Order Received!",
+                description: `Order #${message.data.id} from ${message.data.user?.first_name} ${message.data.user?.last_name} - PKR ${message.data.total_amount}`,
+                duration: 8000,
               });
+              console.log('✅ Order notification processing complete');
+            } else {
+              console.log('❌ onNewOrder callback not found or no data');
             }
             break;
           
