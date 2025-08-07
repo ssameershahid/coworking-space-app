@@ -520,12 +520,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Cafe order routes
   app.post("/api/cafe/orders", requireAuth, async (req, res) => {
+    console.log("🚨 /api/cafe/orders POST endpoint hit!");
+    console.log(`🔍 Request body:`, req.body);
+    
     try {
       const user = req.user as schema.User;
       const { items, billed_to, notes } = req.body;
       
-      console.log(`Creating new cafe order for user ${user.id} (${user.email})`);
-      console.log('Order details:', { items, billed_to, notes });
+      console.log(`📝 Creating new cafe order for user ${user.id} (${user.email})`);
+      console.log('📋 Order details:', { items, billed_to, notes });
 
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Order must contain at least one item" });
@@ -569,23 +572,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.log(`✅ Order #${order.id} created successfully in database`);
+      
       // Get full order details and notify cafe managers in real-time
+      console.log(`🔍 Fetching full order details for order #${order.id}...`);
       const orderWithDetails = await storage.getCafeOrderById(order.id);
       
+      if (!orderWithDetails) {
+        console.log(`❌ CRITICAL ERROR: Could not get order details for order #${order.id}`);
+        res.status(201).json({ id: order.id, error: "Order created but details unavailable" });
+        return;
+      }
+      
+      console.log(`📦 Order details retrieved:`, {
+        id: orderWithDetails.id,
+        user_id: orderWithDetails.user_id,
+        site: orderWithDetails.site,
+        user_site: user.site
+      });
+      
       // Send real-time new order notification to cafe managers via SSE
-      if (orderWithDetails) {
-        const cafeId = user.site || 'default';
-        console.log(`📢 PREPARING TO BROADCAST NEW ORDER #${order.id} TO CAFE: ${cafeId}`);
-        console.log(`📍 Order from user at site: ${user.site}`);
+      const cafeId = user.site || 'default';
+      console.log(`📢 PREPARING TO BROADCAST NEW ORDER #${order.id} TO CAFE: ${cafeId}`);
+      console.log(`📍 Order from user at site: ${user.site}`);
+      
+      try {
         broadcaster.broadcastNewOrder(cafeId, orderWithDetails);
-      } else {
-        console.log(`❌ Could not get order details for order #${order.id}`);
+        console.log(`✅ Broadcast attempt completed for order #${order.id}`);
+      } catch (broadcastError) {
+        console.error(`❌ BROADCAST ERROR for order #${order.id}:`, broadcastError);
       }
       
       res.status(201).json(orderWithDetails);
     } catch (error) {
-      console.error("Error creating cafe order:", error);
-      res.status(500).json({ message: "Failed to create order" });
+      console.error("❌ CRITICAL ERROR creating cafe order:", error);
+      console.error("❌ Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ message: "Failed to create order", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
