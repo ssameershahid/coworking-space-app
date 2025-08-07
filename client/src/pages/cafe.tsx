@@ -101,6 +101,8 @@ export default function CafePage() {
   const { data: myOrders = [] } = useQuery<CafeOrder[]>({
     queryKey: ["/api/cafe/orders"],
     enabled: !!user,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache results
   });
 
   // Real-time order updates for users (use polling instead of SSE for efficiency)
@@ -354,7 +356,7 @@ export default function CafePage() {
           <CardContent>
             <div className="space-y-3">
               {myOrders.length > 0 ? (
-                myOrders.slice(0, 3).map((order) => (
+                myOrders.slice(0, 5).map((order) => (
                   <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <Coffee className="h-5 w-5 text-orange-600" />

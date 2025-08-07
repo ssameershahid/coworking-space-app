@@ -116,6 +116,8 @@ export default function Dashboard() {
   const { data: recentOrders = [] } = useQuery<CafeOrder[]>({
     queryKey: ["/api/cafe/orders"],
     enabled: !!user,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache results
   });
 
   const { data: recentBookings = [] } = useQuery<MeetingBooking[]>({
