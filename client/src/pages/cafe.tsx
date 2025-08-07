@@ -355,53 +355,54 @@ export default function CafePage() {
             {myOrders.length > 0 ? (
               <div className="space-y-4">
                 {myOrders.slice(0, 3).map((order) => (
-                  <div key={order.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                    <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
-                      {order.items && order.items.some(item => 
-                        item.menu_item.name.toLowerCase().includes('coffee') || 
-                        item.menu_item.name.toLowerCase().includes('tea')
-                      ) ? (
-                        <Coffee className="h-6 w-6 text-accent" />
-                      ) : (
-                        <Utensils className="h-6 w-6 text-accent" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-lg">Order #{order.id}</h3>
-                        <div className="text-right">
-                          <p className="font-semibold text-lg">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
+                  <Card key={order.id} className="mb-4">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          {order.items && order.items.some(item => 
+                            item.menu_item.name.toLowerCase().includes('coffee') || 
+                            item.menu_item.name.toLowerCase().includes('tea')
+                          ) ? (
+                            <Coffee className="h-4 w-4 text-accent" />
+                          ) : (
+                            <Utensils className="h-4 w-4 text-accent" />
+                          )}
                           <Badge 
                             variant={
                               order.status === 'delivered' ? 'default' :
                               order.status === 'ready' ? 'default' :
                               order.status === 'preparing' ? 'secondary' : 'outline'
                             }
-                            className={
+                            className={`whitespace-nowrap w-fit ${
                               order.status === 'ready' ? 'bg-green-100 text-green-800' :
                               order.status === 'preparing' ? 'bg-blue-100 text-blue-800' : ''
-                            }
+                            }`}
                           >
                             {order.status === 'ready' && <CheckCircle className="h-3 w-3 mr-1" />}
                             {order.status === 'preparing' && <Clock className="h-3 w-3 mr-1" />}
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </Badge>
                         </div>
+                        <div className="font-bold text-lg">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</div>
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">
-                        {new Date(order.created_at).toLocaleDateString()} • {new Date(order.created_at).toLocaleTimeString()}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
+                          Order #{order.id}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(order.created_at).toLocaleDateString()} • {new Date(order.created_at).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
                       <p className="text-sm text-gray-600">
                         {order.items ? 
                           order.items.map(item => `${item.menu_item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''}`).join(', ') :
                           'Order details'
                         }
                       </p>
-                      {order.created_by && (
-                        <p className="text-xs text-blue-600 mt-1">Created by café staff</p>
-                      )}
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             ) : (
