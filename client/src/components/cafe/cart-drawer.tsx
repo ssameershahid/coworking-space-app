@@ -34,16 +34,10 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
 
   const placeOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
-      console.log("🚨 FRONTEND: About to make API call to /api/cafe/orders");
-      console.log("📦 FRONTEND: Order data:", orderData);
-      console.log("⏰ FRONTEND: Timestamp:", new Date().toISOString());
-      
       const response = await apiRequest("POST", "/api/cafe/orders", orderData);
-      console.log("✅ FRONTEND: API call completed, response:", response.status);
       return response.json();
     },
     onSuccess: (data) => {
-      console.log("🎉 FRONTEND: Order mutation SUCCESS:", data);
       toast({
         title: "Order Placed",
         description: "Your order has been placed successfully",

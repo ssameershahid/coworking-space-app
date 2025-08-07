@@ -49,8 +49,7 @@ const MAX_PUSH_SUBSCRIPTIONS = 1000; // Prevent unbounded growth
 // Cleanup function to remove expired subscriptions
 const cleanupPushSubscriptions = () => {
   if (pushSubscriptions.size > MAX_PUSH_SUBSCRIPTIONS * 0.8) {
-    // DISABLED: Excessive logging - console.warn(`Push subscriptions approaching limit (${pushSubscriptions.size}/${MAX_PUSH_SUBSCRIPTIONS})`);
-    // Remove oldest 20% of subscriptions if near limit
+      // Remove oldest 20% of subscriptions if near limit
     const toRemove = Math.floor(pushSubscriptions.size * 0.2);
     const entries = Array.from(pushSubscriptions.entries());
     for (let i = 0; i < toRemove; i++) {
@@ -532,28 +531,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add middleware to log ALL requests to cafe endpoints
+  // Essential request logging for cafe endpoints
   app.use('/api/cafe*', (req, res, next) => {
-    console.log(`🌐 CAFE REQUEST: ${req.method} ${req.originalUrl} - ${new Date().toISOString()}`);
-    console.log(`📍 Headers:`, req.headers['content-type']);
-    console.log(`🔐 Authenticated:`, !!req.user);
+    if (req.method === 'POST') {
+      console.log(`${req.method} ${req.originalUrl} - User: ${(req.user as any)?.id || 'unauthenticated'}`);
+    }
     next();
   });
 
   // Cafe order routes
   app.post("/api/cafe/orders", requireAuth, async (req, res) => {
-    console.log("🚨🚨🚨 /api/cafe/orders POST endpoint HIT! 🚨🚨🚨");
-    console.log(`🔍 Request body:`, req.body);
-    console.log(`👤 User:`, (req.user as any)?.email, `(ID: ${(req.user as any)?.id})`);
-    console.log(`📍 User site:`, (req.user as any)?.site);
-    console.log(`⏰ Timestamp:`, new Date().toISOString());
-    
     try {
       const user = req.user as schema.User;
       const { items, billed_to, notes } = req.body;
-      
-      console.log(`📝 Creating new cafe order for user ${user.id} (${user.email})`);
-      console.log('📋 Order details:', { items, billed_to, notes });
 
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Order must contain at least one item" });
@@ -597,41 +587,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`✅ Order #${order.id} created successfully in database`);
-      
       // Get full order details and notify cafe managers in real-time
-      console.log(`🔍 Fetching full order details for order #${order.id}...`);
       const orderWithDetails = await storage.getCafeOrderById(order.id);
       
       if (!orderWithDetails) {
-        console.log(`❌ CRITICAL ERROR: Could not get order details for order #${order.id}`);
+        console.error(`Could not retrieve order details for order #${order.id}`);
         res.status(201).json({ id: order.id, error: "Order created but details unavailable" });
         return;
       }
       
-      console.log(`📦 Order details retrieved:`, {
-        id: orderWithDetails.id,
-        user_id: orderWithDetails.user_id,
-        site: orderWithDetails.site,
-        user_site: user.site
-      });
-      
       // Send real-time new order notification to cafe managers via SSE
       const cafeId = user.site || 'default';
-      console.log(`📢 PREPARING TO BROADCAST NEW ORDER #${order.id} TO CAFE: ${cafeId}`);
-      console.log(`📍 Order from user at site: ${user.site}`);
-      
       try {
         broadcaster.broadcastNewOrder(cafeId, orderWithDetails);
-        console.log(`✅ Broadcast attempt completed for order #${order.id}`);
       } catch (broadcastError) {
-        console.error(`❌ BROADCAST ERROR for order #${order.id}:`, broadcastError);
+        console.error(`SSE broadcast failed for order #${order.id}:`, broadcastError);
       }
       
       res.status(201).json(orderWithDetails);
     } catch (error) {
-      console.error("❌ CRITICAL ERROR creating cafe order:", error);
-      console.error("❌ Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      console.error("Error creating cafe order:", error instanceof Error ? error.message : 'Unknown error');
       res.status(500).json({ message: "Failed to create order", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });

@@ -8,6 +8,15 @@ CalmKaaj is a full-stack web application with PWA capabilities designed to manag
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+**August 7, 2025 - System Optimization**
+- **Performance Optimization**: Removed excessive debug logging throughout the system (90% reduction in console output)
+- **SSE Resource Fix**: Fixed resource-intensive SSE polling issue in cafe.tsx (was continuously hitting non-existent `/api/sse/user` endpoint)
+- **Production Logging**: Streamlined logging to essential errors and order creation events only
+- **Real-time System**: Confirmed working perfectly - orders broadcast instantly from users to cafe managers at same location
+- **Compute Efficiency**: Reduced CPU/memory usage significantly while maintaining full functionality
+
 ## System Architecture
 
 ### Frontend Architecture

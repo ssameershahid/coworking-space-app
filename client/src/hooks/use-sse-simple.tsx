@@ -15,8 +15,6 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
 
   useEffect(() => {
     const connectSSE = () => {
-      console.log(`🔌 Setting up SSE connection to ${endpoint}`);
-      
       // Clean up any existing connection
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
@@ -28,39 +26,24 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
 
       eventSourceRef.current = eventSource;
 
-      eventSource.onopen = () => {
-        console.log('✅ SSE connection opened successfully');
-      };
-
       eventSource.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          console.log('📨 SSE message received:', message);
 
           switch (message.type) {
-            case 'connected':
-              console.log('🤝 SSE connection confirmed');
-              break;
-            
             case 'order.new':
-              console.log('🔔 NEW ORDER NOTIFICATION RECEIVED!', message.data);
-              console.log('🎯 Triggering onNewOrder callback...');
               if (onNewOrder && message.data) {
                 onNewOrder(message.data);
                 toast({
-                  title: "🚨 NEW CAFE ORDER! 🚨",
+                  title: "NEW CAFE ORDER!",
                   description: `Order #${message.data.id} from ${message.data.user?.first_name} ${message.data.user?.last_name} - PKR ${message.data.total_amount}`,
                   duration: 15000,
-                  variant: "destructive", // Makes it red and more prominent
+                  variant: "destructive",
                 });
-                console.log('✅ Order notification processing complete');
-              } else {
-                console.log('❌ onNewOrder callback not found or no data');
               }
               break;
             
             case 'order.update':
-              console.log('📋 Order status update:', message.data);
               if (onOrderStatusUpdate && message.data) {
                 onOrderStatusUpdate(message.data);
                 toast({
@@ -72,8 +55,7 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
               break;
             
             case 'heartbeat':
-              // Just log heartbeat quietly
-              console.log('💓 SSE heartbeat received');
+              // Heartbeat - no action needed
               break;
           }
         } catch (error) {

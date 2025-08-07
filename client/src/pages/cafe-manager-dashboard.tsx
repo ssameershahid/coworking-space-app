@@ -68,30 +68,21 @@ export default function CafeManagerDashboard() {
   const [selectedOrder, setSelectedOrder] = useState<CafeOrder | null>(null);
 
   // SSE for real-time order updates (simplified)
-  // SSE for real-time order updates
+  // Real-time order notifications for cafe managers
   useSSESimple({
     endpoint: "/events",
     onNewOrder: (order) => {
-      console.log('🚨 CAFE MANAGER: NEW ORDER ALERT!', order);
-      console.log('🔄 Refreshing orders list...');
       // Refresh orders list immediately
       queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
       
-      // Show a VERY prominent toast notification
       toast({
-        title: "🚨 NEW ORDER RECEIVED! 🚨",
+        title: "NEW ORDER RECEIVED!",
         description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${order.total_amount}`,
         duration: 20000,
-        variant: "destructive", // Red background for high visibility
+        variant: "destructive",
       });
-      
-      // Log to ensure it's being called
-      console.log('🎯 TOAST NOTIFICATION TRIGGERED FOR ORDER:', order.id);
-      
-      console.log('✅ Query invalidation and toast triggered');
     },
     onOrderStatusUpdate: (order) => {
-      console.log('📋 CAFE MANAGER: Order status update received:', order);
       // Refresh orders list when status changes  
       queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
     },

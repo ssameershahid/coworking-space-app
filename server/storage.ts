@@ -245,16 +245,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCafeOrder(order: schema.InsertCafeOrder): Promise<schema.CafeOrder> {
-    console.log("🗄️🚨🚨🚨 DATABASE LEVEL: createCafeOrder called!");
-    console.log("📦 DB ORDER DATA:", order);
-    console.log("⏰ DB TIMESTAMP:", new Date().toISOString());
-    console.log("📍 CALL STACK:", new Error().stack?.split('\n').slice(1, 6));
-    
-    console.log("🗄️ ABOUT TO INSERT INTO DATABASE NOW!");
     const [newOrder] = await db.insert(schema.cafe_orders).values(order).returning();
-    console.log("🗄️ DATABASE INSERT COMPLETED!");
-    
-    console.log("✅ DATABASE: Order created with ID:", newOrder.id);
+    console.log(`Order #${newOrder.id} created for user ${order.user_id}`);
     return newOrder;
   }
 
