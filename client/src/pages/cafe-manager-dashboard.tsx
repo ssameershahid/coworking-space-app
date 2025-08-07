@@ -68,6 +68,7 @@ export default function CafeManagerDashboard() {
   const [selectedOrder, setSelectedOrder] = useState<CafeOrder | null>(null);
 
   // SSE for real-time order updates (simplified)
+  // SSE for real-time order updates
   useSSESimple({
     endpoint: "/events",
     onNewOrder: (order) => {
@@ -75,7 +76,15 @@ export default function CafeManagerDashboard() {
       console.log('🔄 Refreshing orders list...');
       // Refresh orders list immediately
       queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
-      console.log('✅ Query invalidation triggered');
+      
+      // Also show a more prominent toast
+      toast({
+        title: "🔔 NEW ORDER!",
+        description: `Order #${order.id} - ${order.user?.first_name} ${order.user?.last_name}`,
+        duration: 10000,
+      });
+      
+      console.log('✅ Query invalidation and toast triggered');
     },
     onOrderStatusUpdate: (order) => {
       console.log('📋 CAFE MANAGER: Order status update received:', order);

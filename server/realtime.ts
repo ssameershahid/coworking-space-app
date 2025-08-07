@@ -27,6 +27,7 @@ class LocalBroadcaster implements IBroadcaster {
     cafes.get(cafeId)!.add(res);
     connectionCount++;
     console.log(`📡 Cafe connection added for ${cafeId}, total: ${cafes.get(cafeId)!.size}`);
+    console.log(`🗺️ Active cafe locations:`, Array.from(cafes.keys()));
   }
 
   addUserConnection(userId: number, res: Response): void {
@@ -186,9 +187,12 @@ export function handleSSEConnection(user: User, res: Response) {
   })}\n\n`);
 
   // Add connection based on user role
+  console.log(`🔌 SSE connection established for user: ${user.id} (${user.role})`);
+  
   if (user.role === 'cafe_manager' || user.role === 'calmkaaj_admin') {
     // For cafe managers, use their site as cafeId
     const cafeId = user.site || 'default';
+    console.log(`📍 Adding cafe manager to location channel: ${cafeId}`);
     broadcaster.addCafeConnection(cafeId, res);
   } else {
     // For regular users, add to user connections

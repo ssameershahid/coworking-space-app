@@ -575,7 +575,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send real-time new order notification to cafe managers via SSE
       if (orderWithDetails) {
         const cafeId = user.site || 'default';
+        console.log(`📢 PREPARING TO BROADCAST NEW ORDER #${order.id} TO CAFE: ${cafeId}`);
+        console.log(`📍 Order from user at site: ${user.site}`);
         broadcaster.broadcastNewOrder(cafeId, orderWithDetails);
+      } else {
+        console.log(`❌ Could not get order details for order #${order.id}`);
       }
       
       res.status(201).json(orderWithDetails);
