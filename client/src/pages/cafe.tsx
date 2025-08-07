@@ -352,66 +352,50 @@ export default function CafePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {myOrders.length > 0 ? (
-              <div className="space-y-4">
-                {myOrders.slice(0, 3).map((order) => (
-                  <Card key={order.id} className="mb-4">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {order.items && order.items.some(item => 
-                            item.menu_item.name.toLowerCase().includes('coffee') || 
-                            item.menu_item.name.toLowerCase().includes('tea')
-                          ) ? (
-                            <Coffee className="h-4 w-4 text-accent" />
-                          ) : (
-                            <Utensils className="h-4 w-4 text-accent" />
-                          )}
-                          <Badge 
-                            variant={
-                              order.status === 'delivered' ? 'default' :
-                              order.status === 'ready' ? 'default' :
-                              order.status === 'preparing' ? 'secondary' : 'outline'
-                            }
-                            className={`whitespace-nowrap w-fit ${
-                              order.status === 'ready' ? 'bg-green-100 text-green-800' :
-                              order.status === 'preparing' ? 'bg-blue-100 text-blue-800' : ''
-                            }`}
-                          >
-                            {order.status === 'ready' && <CheckCircle className="h-3 w-3 mr-1" />}
-                            {order.status === 'preparing' && <Clock className="h-3 w-3 mr-1" />}
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                          </Badge>
-                        </div>
-                        <div className="font-bold text-lg">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">
-                          Order #{order.id}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
+            <div className="space-y-3">
+              {myOrders.length > 0 ? (
+                myOrders.slice(0, 3).map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Coffee className="h-5 w-5 text-orange-600" />
+                      <div>
+                        <p className="font-medium">Order #{order.id}</p>
+                        <p className="text-sm text-gray-500">
                           {new Date(order.created_at).toLocaleDateString()} • {new Date(order.created_at).toLocaleTimeString()}
-                        </div>
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {order.items && order.items.length > 0 
+                            ? order.items.map(item => 
+                                item.quantity > 1 
+                                  ? `${item.menu_item?.name} x${item.quantity}`
+                                  : item.menu_item?.name
+                              ).join(', ')
+                            : 'No items'
+                          }
+                        </p>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600">
-                        {order.items ? 
-                          order.items.map(item => `${item.menu_item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''}`).join(', ') :
-                          'Order details'
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
+                      <Badge 
+                        variant={order.status === 'delivered' ? 'default' : 'secondary'}
+                        className={
+                          order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                          order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                          order.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
                         }
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Coffee className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 mb-2">No recent orders</p>
-                <p className="text-sm text-gray-400">Your café orders will appear here</p>
-              </div>
-            )}
+                      >
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No recent orders
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
