@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 
 import bcrypt from "bcrypt";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import multer from "multer";
@@ -21,8 +22,18 @@ import { broadcaster, handleSSEConnection } from './realtime';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Session configuration - Extended for PWA usage
+// Create PostgreSQL session store for persistent sessions
+const PgSession = connectPgSimple(session);
+
+// Session configuration - Extended for PWA usage with PostgreSQL persistence
 const sessionConfig = {
+  store: new PgSession({
+    conObject: {
+      connectionString: process.env.DATABASE_URL,
+    },
+    createTableIfMissing: true, // Automatically create sessions table if it doesn't exist
+    tableName: 'user_sessions', // Custom table name for sessions
+  }),
   secret: process.env.SESSION_SECRET || "your-secret-key-here",
   resave: false,
   saveUninitialized: false,

@@ -10,7 +10,10 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-**August 7, 2025 - System Optimization**
+**August 7, 2025 - Session Management & System Optimization**
+- **Session Persistence**: **MAJOR FIX** - Replaced MemoryStore with PostgreSQL session store using connect-pg-simple. Users now stay logged in for 3 weeks even after closing/reopening browser tabs. Sessions survive server restarts.
+- **Dashboard UI Fix**: Removed invisible blue-bordered Link wrappers causing clickable areas around action cards. Navigation now properly contained to buttons only.
+- **Button Alignment**: Added conditional spacing to align "Order from Café" and "Book Meeting Room" buttons with credit warning messages in negative balance states.
 - **Performance Optimization**: Removed excessive debug logging throughout the system (90% reduction in console output)
 - **SSE Resource Fix**: Fixed resource-intensive SSE polling issue in cafe.tsx (was continuously hitting non-existent `/api/sse/user` endpoint)
 - **Production Logging**: Streamlined logging to essential errors and order creation events only
