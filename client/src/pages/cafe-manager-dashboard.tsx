@@ -198,15 +198,12 @@ export default function CafeManagerDashboard() {
           )}
           
           {order.items && order.items.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-black font-medium">
-                {order.items.map((item, index) => (
-                  <span key={item.id}>
-                    {item.quantity}x {item.menu_item.name}
-                    {index < order.items!.length - 1 && ", "}
-                  </span>
-                ))}
-              </span>
+            <div className="space-y-1">
+              {order.items.map((item) => (
+                <div key={item.id} className="text-sm text-black font-medium">
+                  {item.quantity}x {item.menu_item.name}
+                </div>
+              ))}
             </div>
           )}
           
