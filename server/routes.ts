@@ -431,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/menu/items", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      const items = await storage.getMenuItems(user?.site);
+      const items = await storage.getAllMenuItems(user?.site);
       res.json(items);
     } catch (error) {
       console.error("Error fetching menu items:", error);
