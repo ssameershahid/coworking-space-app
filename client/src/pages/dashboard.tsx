@@ -167,39 +167,39 @@ export default function Dashboard() {
 
       {/* Quick Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Link href="/cafe">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-orange-800">
-                <Coffee className="h-5 w-5" />
-                Order from Café
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-orange-700 text-sm mb-3">Fresh coffee, snacks & meals</p>
+        <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-orange-800">
+              <Coffee className="h-5 w-5" />
+              Order from Café
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-orange-700 text-sm mb-3">Fresh coffee, snacks & meals</p>
+            <Link href="/cafe">
               <Button className="w-full bg-orange-600 hover:bg-orange-700">
                 View Menu
               </Button>
-            </CardContent>
-          </Card>
-        </Link>
+            </Link>
+          </CardContent>
+        </Card>
 
-        <Link href="/rooms">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-green-800">
-                <Calendar className="h-5 w-5" />
-                Book Meeting Room
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-green-700 text-sm mb-3">Private spaces for meetings</p>
+        <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-green-800">
+              <Calendar className="h-5 w-5" />
+              Book Meeting Room
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-green-700 text-sm mb-3">Private spaces for meetings</p>
+            <Link href="/rooms">
               <Button className="w-full bg-green-600 hover:bg-green-700">
                 Book Now
               </Button>
-            </CardContent>
-          </Card>
-        </Link>
+            </Link>
+          </CardContent>
+        </Card>
 
         {/* Credits Widget */}
         <Card className={`bg-gradient-to-br ${isNegativeBalance ? 'from-red-50 to-orange-50 border-red-200' : 'from-green-50 to-emerald-50 border-green-200'}`}>
