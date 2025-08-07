@@ -150,10 +150,7 @@ export default function Navigation() {
           </nav>
           
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5 text-gray-400" />
-              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
-            </Button>
+            
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
