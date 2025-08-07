@@ -518,10 +518,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add middleware to log ALL requests to cafe endpoints
+  app.use('/api/cafe*', (req, res, next) => {
+    console.log(`🌐 CAFE REQUEST: ${req.method} ${req.originalUrl} - ${new Date().toISOString()}`);
+    console.log(`📍 Headers:`, req.headers['content-type']);
+    console.log(`🔐 Authenticated:`, !!req.user);
+    next();
+  });
+
   // Cafe order routes
   app.post("/api/cafe/orders", requireAuth, async (req, res) => {
-    console.log("🚨 /api/cafe/orders POST endpoint hit!");
+    console.log("🚨🚨🚨 /api/cafe/orders POST endpoint HIT! 🚨🚨🚨");
     console.log(`🔍 Request body:`, req.body);
+    console.log(`👤 User:`, (req.user as any)?.email);
+    console.log(`⏰ Timestamp:`, new Date().toISOString());
     
     try {
       const user = req.user as schema.User;
