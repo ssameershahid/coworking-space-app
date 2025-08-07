@@ -22,10 +22,18 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Try to restore user from localStorage on initial load
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
   const queryClient = useQueryClient();
 
-  const { data: userData, isLoading } = useQuery({
+  const { data: userData, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
       try {
@@ -36,20 +44,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const data = await response.json();
           return data.user;
         }
-        return null;
+        // Only return null for explicit auth failures (401/403)
+        if (response.status === 401 || response.status === 403) {
+          return null;
+        }
+        // For other errors (500, network issues), keep current state
+        throw new Error(`Auth check failed with status: ${response.status}`);
       } catch (error) {
         console.error("Auth check failed:", error);
-        return null;
+        // Don't immediately log out user on network errors
+        throw error;
       }
     },
-    retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on explicit auth failures (401/403)
+      if (error?.message?.includes('401') || error?.message?.includes('403')) {
+        return false;
+      }
+      // Retry network errors up to 3 times
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 20 * 24 * 60 * 60 * 1000, // 20 days (close to 3-week session)
+    gcTime: 21 * 24 * 60 * 60 * 1000, // 21 days (match server session)
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    refetchOnReconnect: true, // Only refetch when network reconnects
   });
 
   useEffect(() => {
-    setUser(userData || null);
+    // Only update user state if we have explicit data (success or explicit auth failure)
+    if (userData !== undefined) {
+      setUser(userData);
+      // Persist user state to localStorage
+      if (userData) {
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+      } else {
+        localStorage.removeItem('currentUser');
+      }
+    }
+    // If there's an error but no userData, keep current user state (don't log out on network errors)
   }, [userData]);
 
   const loginMutation = useMutation({
@@ -59,6 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: (data) => {
       setUser(data.user);
+      // Persist successful login to localStorage
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
   });
@@ -70,6 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: (data) => {
       setUser(data.user);
+      // Persist successful registration to localStorage
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
   });
@@ -88,6 +126,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       credentials: "include",
     }).then(() => {
       setUser(null);
+      // Clear localStorage on logout
+      localStorage.removeItem('currentUser');
       queryClient.clear();
       window.location.href = "/";
     });
