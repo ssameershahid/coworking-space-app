@@ -86,10 +86,18 @@ export default function CafePage() {
 
   const placeOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
-      return apiRequest('POST', '/api/cafe/orders', orderData);
+      console.log("🚨🚨🚨 CAFE PAGE: About to make API call to /api/cafe/orders");
+      console.log("📦 CAFE PAGE: Order data:", orderData);
+      console.log("⏰ CAFE PAGE: Timestamp:", new Date().toISOString());
+      
+      const response = await apiRequest('POST', '/api/cafe/orders', orderData);
+      console.log("✅ CAFE PAGE: API call completed, response:", response.status);
+      return response;
     },
     onSuccess: async (response) => {
+      console.log("🎉 CAFE PAGE: Order mutation SUCCESS:", response.status);
       const order = await response.json();
+      console.log("📋 CAFE PAGE: Order created:", order);
       setCurrentOrder(order);
       clearCart();
       setIsCheckingOut(false);
@@ -99,7 +107,8 @@ export default function CafePage() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders"] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("❌ CAFE PAGE: Order mutation ERROR:", error);
       toast({
         title: "Order Failed",
         description: "There was an error placing your order. Please try again.",
@@ -128,7 +137,16 @@ export default function CafePage() {
   const totalAmount = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
 
   const handlePlaceOrder = () => {
-    if (cart.length === 0) return;
+    console.log("🚨🚨🚨 CAFE PAGE: handlePlaceOrder called!");
+    console.log("📦 Cart contents:", cart);
+    console.log("💳 Billing type:", billingType);
+    console.log("📝 Order notes:", orderNotes);
+    console.log("📍 Delivery location:", deliveryLocation);
+    
+    if (cart.length === 0) {
+      console.log("❌ CAFE PAGE: Cart is empty, returning early");
+      return;
+    }
 
     const orderData = {
       items: cart.map(item => ({
@@ -144,7 +162,10 @@ export default function CafePage() {
       site: user?.site,
     };
 
+    console.log("📋 Order data prepared:", orderData);
+    console.log("🔄 About to call placeOrderMutation.mutate()");
     placeOrderMutation.mutate(orderData);
+    console.log("✅ placeOrderMutation.mutate() called");
   };
 
   const canChargeToOrg = user?.can_charge_cafe_to_org && user?.organization_id;
