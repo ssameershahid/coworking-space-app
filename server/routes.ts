@@ -779,7 +779,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send real-time notification to cafe managers about new order
       if (order) {
         const cafeId = cafeManager.site || 'default';
+        console.log(`📢 PREPARING TO BROADCAST NEW ORDER #${order.id} TO CAFE: ${cafeId} (created on behalf)`);
+        console.log(`📍 Order created on behalf by cafe manager at site: ${cafeManager.site}`);
+        console.log(`🔄 Target user site: ${targetUser.site}, Order user: ${order.user?.first_name} ${order.user?.last_name}`);
         broadcaster.broadcastNewOrder(cafeId, order);
+      } else {
+        console.log(`❌ Could not broadcast order - order creation failed`);
       }
       
       res.status(201).json(order);

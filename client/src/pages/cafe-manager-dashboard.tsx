@@ -85,15 +85,8 @@ export default function CafeManagerDashboard() {
         variant: "destructive", // Red background for high visibility
       });
       
-      // Also show a browser alert for debugging
-      if (typeof window !== 'undefined') {
-        setTimeout(() => {
-          alert(`🔔 NEW ORDER ALERT!\nOrder #${order.id}\nFrom: ${order.user?.first_name} ${order.user?.last_name}\nAmount: PKR ${order.total_amount}`);
-        }, 100);
-      }
-      
       // Log to ensure it's being called
-      console.log('🎯 TOAST AND ALERT TRIGGERED FOR ORDER:', order.id);
+      console.log('🎯 TOAST NOTIFICATION TRIGGERED FOR ORDER:', order.id);
       
       console.log('✅ Query invalidation and toast triggered');
     },
