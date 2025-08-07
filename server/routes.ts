@@ -159,20 +159,21 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // CRITICAL DEBUG: Log ALL POST requests to find missing cafe orders
+  // Create HTTP server first to ensure WebSocket works with Vite
+  const httpServer = createServer(app);
+  
+  // CRITICAL DEBUG: Log ALL requests FIRST, before any other middleware
   app.use('*', (req, res, next) => {
+    console.log(`🌍 ALL REQUESTS: ${req.method} ${req.originalUrl} at ${new Date().toISOString()}`);
     if (req.method === 'POST') {
-      console.log(`🚨 GLOBAL POST REQUEST: ${req.method} ${req.originalUrl}`);
+      console.log(`🚨🚨🚨 POST REQUEST DETECTED: ${req.originalUrl}`);
       console.log(`🔍 Body:`, req.body);
       console.log(`🔐 Auth:`, !!req.user);
-      console.log(`⏰ Time:`, new Date().toISOString());
       console.log(`📍 Headers:`, req.headers['content-type']);
     }
     next();
   });
   
-  // Create HTTP server first to ensure WebSocket works with Vite
-  const httpServer = createServer(app);
   // CORS middleware to handle cross-origin requests
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', req.headers.origin || '*');

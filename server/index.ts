@@ -3,6 +3,26 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// CRITICAL DEBUG: Log ALL requests at the very beginning
+app.use('*', (req, res, next) => {
+  console.log(`🌍 RAW REQUEST: ${req.method} ${req.url} at ${new Date().toISOString()}`);
+  if (req.method === 'POST') {
+    console.log(`🚨 RAW POST DETECTED: ${req.url}`);
+    console.log(`📝 Raw body type:`, typeof req.body);
+    
+    // Log raw body data if available
+    let bodyLog = '';
+    req.on('data', chunk => {
+      bodyLog += chunk;
+    });
+    req.on('end', () => {
+      if (bodyLog) console.log(`📦 Raw POST data:`, bodyLog);
+    });
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
