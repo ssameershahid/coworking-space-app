@@ -77,12 +77,23 @@ export default function CafeManagerDashboard() {
       // Refresh orders list immediately
       queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
       
-      // Also show a more prominent toast
+      // Show a VERY prominent toast notification
       toast({
-        title: "🔔 NEW ORDER!",
-        description: `Order #${order.id} - ${order.user?.first_name} ${order.user?.last_name}`,
-        duration: 10000,
+        title: "🚨 NEW ORDER RECEIVED! 🚨",
+        description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${order.total_amount}`,
+        duration: 20000,
+        variant: "destructive", // Red background for high visibility
       });
+      
+      // Also show a browser alert for debugging
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          alert(`🔔 NEW ORDER ALERT!\nOrder #${order.id}\nFrom: ${order.user?.first_name} ${order.user?.last_name}\nAmount: PKR ${order.total_amount}`);
+        }, 100);
+      }
+      
+      // Log to ensure it's being called
+      console.log('🎯 TOAST AND ALERT TRIGGERED FOR ORDER:', order.id);
       
       console.log('✅ Query invalidation and toast triggered');
     },
@@ -98,9 +109,16 @@ export default function CafeManagerDashboard() {
 
 
   // Fetch all orders for the cafe manager
-  const { data: orders = [], isLoading } = useQuery<CafeOrder[]>({
+  const { data: orders = [], isLoading, dataUpdatedAt } = useQuery<CafeOrder[]>({
     queryKey: ['/api/cafe/orders/all'],
     enabled: !!user && user.role === 'cafe_manager'
+  });
+  
+  // Log orders data when it changes for debugging
+  console.log('📊 ORDERS DATA UPDATED:', {
+    ordersCount: orders.length,
+    lastUpdated: new Date(dataUpdatedAt).toLocaleTimeString(),
+    latestOrder: orders[0] ? `#${orders[0].id}` : 'none'
   });
 
 

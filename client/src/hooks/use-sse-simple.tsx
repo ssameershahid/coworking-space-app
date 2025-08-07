@@ -48,9 +48,10 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
               if (onNewOrder && message.data) {
                 onNewOrder(message.data);
                 toast({
-                  title: "🔔 New Order Received!",
+                  title: "🚨 NEW CAFE ORDER! 🚨",
                   description: `Order #${message.data.id} from ${message.data.user?.first_name} ${message.data.user?.last_name} - PKR ${message.data.total_amount}`,
-                  duration: 8000,
+                  duration: 15000,
+                  variant: "destructive", // Makes it red and more prominent
                 });
                 console.log('✅ Order notification processing complete');
               } else {
