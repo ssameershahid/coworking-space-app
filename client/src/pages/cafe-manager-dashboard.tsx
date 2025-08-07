@@ -160,7 +160,7 @@ export default function CafeManagerDashboard() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Badge className={config.color}>
+              <Badge className={`${config.color} whitespace-nowrap`}>
                 <Icon className="h-3 w-3 mr-1" />
                 {config.label}
               </Badge>
@@ -169,9 +169,9 @@ export default function CafeManagerDashboard() {
               </span>
             </div>
             <div className="text-right">
-              <div className="font-semibold">Rs. {order.total_amount}</div>
+              <div className="font-semibold whitespace-nowrap">Rs. {order.total_amount}</div>
               <div className="text-xs text-muted-foreground">
-                {format(new Date(order.created_at), 'HH:mm')}
+                {format(new Date(order.created_at), 'h:mm a')}
               </div>
             </div>
           </div>
@@ -179,7 +179,7 @@ export default function CafeManagerDashboard() {
         <CardContent className="pt-0">
           <div className="flex items-center gap-2 mb-2">
             <User className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">
+            <span className="text-sm text-muted-foreground">
               {order.user?.first_name} {order.user?.last_name}
             </span>
             {order.billed_to === 'organization' && (
@@ -190,20 +190,20 @@ export default function CafeManagerDashboard() {
           </div>
           
           {order.items && order.items.length > 0 && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-black font-medium">
               {order.items.map((item, index) => (
-                <div key={item.id}>
+                <span key={item.id}>
                   {item.quantity}x {item.menu_item.name}
                   {index < order.items!.length - 1 && ", "}
-                </div>
+                </span>
               ))}
             </div>
           )}
           
           {order.delivery_location && (
-            <div className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
+            <div className="mt-2 text-sm text-black flex items-center gap-1">
               <Package className="h-3 w-3" />
-              Deliver to: {order.delivery_location}
+              <span className="font-medium">Deliver to: {order.delivery_location}</span>
             </div>
           )}
           
