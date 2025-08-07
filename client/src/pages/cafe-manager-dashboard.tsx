@@ -166,7 +166,7 @@ export default function CafeManagerDashboard() {
                 {config.label}
               </Badge>
               <div className="text-sm text-muted-foreground">
-                #{order.id}
+                Order #{order.id}
               </div>
             </div>
             <div className="flex flex-col gap-1 items-end">
