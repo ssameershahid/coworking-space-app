@@ -27,6 +27,7 @@ import MobileNav from "@/components/layout/mobile-nav";
 import Footer from "@/components/layout/footer";
 import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
 import OnboardingManager from "@/components/onboarding/onboarding-manager";
+import FloatingProfileWidget from "@/components/ui/floating-profile-widget";
 import { useAuth } from "@/hooks/use-auth";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -51,6 +52,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </main>
       {!isCafeManager && <Footer />}
       <MobileNav />
+      <FloatingProfileWidget />
       <OnboardingManager />
     </div>
   );
