@@ -1206,6 +1206,18 @@ export default function AdminDashboard() {
           </Select>
         </div>
         <div>
+          <Label htmlFor="edit_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
           <Label htmlFor="edit_rfid_number">RFID Number</Label>
           <Input
             id="edit_rfid_number"
@@ -1213,9 +1225,6 @@ export default function AdminDashboard() {
             value={formData.rfid_number}
             onChange={(e) => setFormData({...formData, rfid_number: e.target.value})}
           />
-          <p className="text-sm text-muted-foreground mt-1">
-            Door access card RFID number for building entry
-          </p>
         </div>
         <div>
           <Label htmlFor="edit_member_type">Member Type</Label>
@@ -1478,6 +1487,18 @@ export default function AdminDashboard() {
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
           />
+        </div>
+        <div>
+          <Label htmlFor="site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label htmlFor="site">Site</Label>
