@@ -1194,6 +1194,18 @@ export default function AdminDashboard() {
           />
         </div>
         <div>
+          <Label htmlFor="edit_site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
           <Label htmlFor="edit_rfid_number">RFID Number</Label>
           <Input
             id="edit_rfid_number"
@@ -1258,18 +1270,6 @@ export default function AdminDashboard() {
               <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
               <SelectItem value="calmkaaj_team">CalmKaaj Team</SelectItem>
               <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="edit_site">Site</Label>
-          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blue_area">Blue Area</SelectItem>
-              <SelectItem value="i_10">I-10</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1480,6 +1480,18 @@ export default function AdminDashboard() {
           />
         </div>
         <div>
+          <Label htmlFor="site">Site</Label>
+          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
           <Label htmlFor="rfid_number">RFID Number</Label>
           <Input
             id="rfid_number"
@@ -1541,9 +1553,6 @@ export default function AdminDashboard() {
               <SelectItem value="private_office">Private Office</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-sm text-muted-foreground mt-1">
-            <strong>Note:</strong> Hot Desk is implemented as a Shared Office type in the system
-          </p>
         </div>
         {(formData.role === 'member_individual' || formData.role === 'cafe_manager' || formData.role === 'calmkaaj_admin') && (
           <>
@@ -1654,18 +1663,6 @@ export default function AdminDashboard() {
             onChange={(e) => setFormData({...formData, notes: e.target.value})}
             className="resize-none"
           />
-        </div>
-        <div>
-          <Label htmlFor="site">Site</Label>
-          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blue_area">Blue Area</SelectItem>
-              <SelectItem value="i_10">I-10</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         <Button type="submit" disabled={createUser.isPending}>
