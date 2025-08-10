@@ -1122,7 +1122,8 @@ export default function AdminDashboard() {
       linkedin_url: user.linkedin_url || '',
       profile_image: user.profile_image || '',
       job_title: user.job_title || '',
-      company: user.company || ''
+      company: user.company || '',
+      rfid_number: user.rfid_number || ''
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -1137,7 +1138,8 @@ export default function AdminDashboard() {
         linkedin_url: formData.linkedin_url || null,
         profile_image: formData.profile_image || null,
         job_title: formData.job_title || null,
-        company: formData.company || null
+        company: formData.company || null,
+        rfid_number: formData.rfid_number || null
       };
       
       try {
@@ -1190,6 +1192,18 @@ export default function AdminDashboard() {
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
           />
+        </div>
+        <div>
+          <Label htmlFor="edit_rfid_number">RFID Number</Label>
+          <Input
+            id="edit_rfid_number"
+            placeholder="Enter RFID door access card number"
+            value={formData.rfid_number}
+            onChange={(e) => setFormData({...formData, rfid_number: e.target.value})}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Door access card RFID number for building entry
+          </p>
         </div>
         <div>
           <Label htmlFor="edit_member_type">Member Type</Label>
@@ -1408,7 +1422,8 @@ export default function AdminDashboard() {
       linkedin_url: '',
       profile_image: '',
       job_title: '',
-      company: ''
+      company: '',
+      rfid_number: ''
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -1423,7 +1438,8 @@ export default function AdminDashboard() {
         linkedin_url: formData.linkedin_url || null,
         profile_image: formData.profile_image || null,
         job_title: formData.job_title || null,
-        company: formData.company || null
+        company: formData.company || null,
+        rfid_number: formData.rfid_number || null
       };
       createUser.mutate(submitData);
     };
@@ -1461,6 +1477,15 @@ export default function AdminDashboard() {
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
+          />
+        </div>
+        <div>
+          <Label htmlFor="rfid_number">RFID Number</Label>
+          <Input
+            id="rfid_number"
+            placeholder="Enter RFID door access card number"
+            value={formData.rfid_number}
+            onChange={(e) => setFormData({...formData, rfid_number: e.target.value})}
           />
         </div>
         <div>
