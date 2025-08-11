@@ -45,6 +45,15 @@ export interface MenuItem {
   created_at?: string;
 }
 
+export interface MenuCategory {
+  id: number;
+  name: string;
+  description?: string;
+  display_order?: number;
+  is_active: boolean;
+  site: string;
+}
+
 export interface MeetingRoom {
   id: number;
   name: string;

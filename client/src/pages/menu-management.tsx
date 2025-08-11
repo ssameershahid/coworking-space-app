@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { SimpleMenuEdit } from "@/components/simple-menu-edit";
 import { formatPriceWithCurrency } from "@/lib/format-price";
+import type { MenuItem, MenuCategory } from "shared/schema";
 
 export default function MenuManagement() {
   const { user } = useAuth();
@@ -26,14 +27,14 @@ export default function MenuManagement() {
   const apiEndpoint = (isAdmin || isCafeManager) ? '/api/admin/menu/items' : '/api/menu/items';
 
   // Fetch menu items
-  const { data: menuItems = [], isLoading } = useQuery({
+  const { data: menuItems = [], isLoading } = useQuery<MenuItem[]>({
     queryKey: [apiEndpoint],
     enabled: !!user && (isAdmin || isCafeManager)
   });
 
   // Fetch categories (admin and cafe managers get all categories to see both sites)
   const categoriesEndpoint = (isAdmin || isCafeManager) ? '/api/admin/menu/categories' : '/api/menu/categories';
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<MenuCategory[]>({
     queryKey: [categoriesEndpoint],
     enabled: !!user && (isAdmin || isCafeManager)
   });
@@ -203,7 +204,7 @@ export default function MenuManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {menuItems.map((item: any) => (
+                  {menuItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <div>
@@ -213,7 +214,7 @@ export default function MenuManagement() {
                       </TableCell>
                       <TableCell>{formatPriceWithCurrency(item.price)}</TableCell>
                       <TableCell className="capitalize">
-                        {categories.find((cat: any) => cat.id == item.category_id)?.name || "Uncategorized"}
+                        {categories.find((cat) => cat.id == item.category_id)?.name || "Uncategorized"}
                       </TableCell>
                       <TableCell>
                         <span className="capitalize">
