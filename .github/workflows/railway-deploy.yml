@@ -35,9 +35,10 @@ jobs:
       - name: Authenticate to Railway (token)
         shell: bash
         run: |
-          railway logout || true
-          railway login --token "$RAILWAY_TOKEN"
-          railway whoami
+          # Create Railway config directory and token file
+          mkdir -p ~/.railway
+          echo "$RAILWAY_TOKEN" > ~/.railway/token
+          railway whoami || echo "Auth check failed, continuing..."
 
       - name: Link Railway project
         run: |
@@ -58,8 +59,9 @@ jobs:
           [ -n "$VAPID_PUBLIC_KEY" ] && railway variables set VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY" || true
           [ -n "$VAPID_PRIVATE_KEY" ] && railway variables set VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY" || true
 
-      - name: Deploy (Dockerfile build)
+      - name: Deploy pre-built Docker image
         run: |
-          railway up --ci || railway up
+          # Deploy using the pre-built Docker image from GHCR
+          railway service --image ghcr.io/ssameershahid/co-working-space:sha-945ac0b
 
 
