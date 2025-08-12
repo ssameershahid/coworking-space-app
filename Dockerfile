@@ -35,8 +35,11 @@ RUN npm ci --omit=dev
 # Copy build artifacts
 COPY --from=builder /app/dist ./dist
 
-# Ensure uploads directory exists and is writable
-RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
+# Ensure uploads directory exists and is writable  
+RUN mkdir -p /app/uploads
+
+# Fix permissions for all copied files and uploads directory
+RUN chown -R node:node /app
 
 # Switch to non-root user
 USER node
