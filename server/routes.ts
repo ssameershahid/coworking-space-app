@@ -220,6 +220,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded images
   app.use('/uploads', express.static(uploadsDir));
 
+  // Health check endpoint for Docker
+  app.get("/api/health", (req, res) => {
+    res.status(200).json({ 
+      status: "healthy", 
+      timestamp: new Date().toISOString(),
+      version: "1.0.0",
+      database: process.env.DATABASE_URL ? "connected" : "not configured"
+    });
+  });
+
 
 
   // File upload endpoint
