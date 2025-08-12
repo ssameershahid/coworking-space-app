@@ -1,0 +1,900 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalmKaaj - Coworking Space Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563EB',
+                        secondary: '#0F172A',
+                        accent: '#10B981',
+                        warning: '#F59E0B',
+                        error: '#EF4444'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- @COMPONENT: AuthenticationScreen -->
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-primary text-white p-8 text-center">
+                <i class="fas fa-building text-4xl mb-4"></i>
+                <h1 class="text-2xl font-bold mb-2">CalmKaaj</h1>
+                <p class="text-blue-100">Your Coworking Space Hub</p>
+            </div>
+            
+            <div class="p-8">
+                <form data-implementation="Handle authentication with Supabase Auth">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="your@email.com" data-mock="true">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="••••••••" data-mock="true">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium" data-event="click:handleLogin">
+                        Sign In
+                    </button>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="#" class="text-sm text-primary hover:underline">Forgot password?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: AuthenticationScreen -->
+
+    <!-- @COMPONENT: MainApplication -->
+    <div id="main-app" class="hidden min-h-screen bg-gray-50">
+        <!-- @COMPONENT: NavigationHeader -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <i class="fas fa-building text-primary text-xl mr-3"></i>
+                        <h1 class="text-xl font-bold text-gray-900">CalmKaaj</h1>
+                    </div>
+                    
+                    <nav class="hidden md:flex space-x-8">
+                        <a href="#dashboard" class="text-primary border-b-2 border-primary pb-4 font-medium">Dashboard</a>
+                        <a href="#cafe" class="text-gray-500 hover:text-gray-700 pb-4">Café</a>
+                        <a href="#rooms" class="text-gray-500 hover:text-gray-700 pb-4">Rooms</a>
+                        <a href="#profile" class="text-gray-500 hover:text-gray-700 pb-4">Profile</a>
+                    </nav>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button class="relative p-2 text-gray-400 hover:text-gray-500">
+                            <i class="fas fa-bell"></i>
+                            <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                <span class="text-white text-sm font-medium" data-bind="user.initials" data-mock="true">JD</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900" data-bind="user.name" data-mock="true">John Doe</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: NavigationHeader -->
+
+        <!-- @COMPONENT: MemberDashboard -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Welcome Section -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome back, <span data-bind="user.firstName" data-mock="true">John</span>!</h2>
+                <p class="text-gray-600">Here's what's happening at CalmKaaj today.</p>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer" data-event="click:navigateToSteveCafe">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-coffee text-accent text-xl"></i>
+                        </div>
+                        <span class="text-sm text-gray-500">Order</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Café Menu</h3>
+                    <p class="text-sm text-gray-600">Quick bite or fresh coffee</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer" data-event="click:navigateToRoomBooking">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-door-open text-primary text-xl"></i>
+                        </div>
+                        <span class="text-sm text-gray-500">Book</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Meeting Room</h3>
+                    <p class="text-sm text-gray-600">Reserve your space</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-coins text-warning text-xl"></i>
+                        </div>
+                        <span class="text-sm text-gray-500">Credits</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2" data-bind="user.credits" data-mock="true">24</h3>
+                    <p class="text-sm text-gray-600">Available this month</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-purple-600 text-xl"></i>
+                        </div>
+                        <span class="text-sm text-gray-500">Next</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Conference A</h3>
+                    <p class="text-sm text-gray-600">2:00 PM - 3:00 PM</p>
+                </div>
+            </div>
+
+            <!-- Announcements -->
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 mb-8 text-white">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">What's New</h3>
+                        <p class="text-blue-100 mb-4" data-bind="announcement.body" data-mock="true">New high-speed internet upgrade completed! Enjoy blazing fast connections across all floors.</p>
+                        <button class="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-colors">
+                            Learn More
+                        </button>
+                    </div>
+                    <button class="text-white/60 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Orders</h3>
+                    <!-- @MAP: recentOrders.map(order => ( -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-coffee text-accent"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900" data-mock="true">Cappuccino & Sandwich</p>
+                                    <p class="text-sm text-gray-500" data-mock="true">Today, 10:30 AM</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-accent/10 text-accent rounded-full text-sm font-medium">Delivered</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-utensils text-primary"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900" data-mock="true">Caesar Salad</p>
+                                    <p class="text-sm text-gray-500" data-mock="true">Yesterday, 1:15 PM</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-accent/10 text-accent rounded-full text-sm font-medium">Delivered</span>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Bookings</h3>
+                    <!-- @MAP: upcomingBookings.map(booking => ( -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-door-open text-primary"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900" data-mock="true">Conference Room A</p>
+                                    <p class="text-sm text-gray-500" data-mock="true">Today, 2:00 PM - 3:00 PM</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-users text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900" data-mock="true">Team Meeting Room</p>
+                                    <p class="text-sm text-gray-500" data-mock="true">Tomorrow, 9:00 AM - 10:30 AM</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+        </main>
+        <!-- @END_COMPONENT: MemberDashboard -->
+
+        <!-- @COMPONENT: CafeOrderingInterface -->
+        <div id="cafe-screen" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Café Menu</h2>
+                <p class="text-gray-600">Order your favorite food and drinks</p>
+            </div>
+
+            <!-- Menu Categories -->
+            <div class="flex space-x-6 mb-8 overflow-x-auto">
+                <button class="whitespace-nowrap px-4 py-2 bg-primary text-white rounded-lg font-medium">All Items</button>
+                <button class="whitespace-nowrap px-4 py-2 text-gray-500 hover:text-gray-700">Beverages</button>
+                <button class="whitespace-nowrap px-4 py-2 text-gray-500 hover:text-gray-700">Snacks</button>
+                <button class="whitespace-nowrap px-4 py-2 text-gray-500 hover:text-gray-700">Meals</button>
+                <button class="whitespace-nowrap px-4 py-2 text-gray-500 hover:text-gray-700">Desserts</button>
+            </div>
+
+            <!-- Menu Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- @MAP: menuItems.map(item => ( -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <!-- A fresh cappuccino with latte art on a wooden table -->
+                    <img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Cappuccino" class="w-full h-48 object-cover" data-mock-image="true">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900" data-mock="true">Cappuccino</h3>
+                            <span class="text-lg font-bold text-primary" data-mock="true">Rs. 350</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Rich espresso with steamed milk and foam</p>
+                        <button class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors" data-event="click:addToCart">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <!-- A fresh chicken sandwich with lettuce and tomato on a plate -->
+                    <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Chicken Sandwich" class="w-full h-48 object-cover" data-mock-image="true">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900" data-mock="true">Grilled Chicken Sandwich</h3>
+                            <span class="text-lg font-bold text-primary" data-mock="true">Rs. 650</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Fresh grilled chicken with lettuce and tomato</p>
+                        <button class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors" data-event="click:addToCart">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <!-- A colorful fresh salad bowl with mixed greens and vegetables -->
+                    <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Caesar Salad" class="w-full h-48 object-cover" data-mock-image="true">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900" data-mock="true">Caesar Salad</h3>
+                            <span class="text-lg font-bold text-primary" data-mock="true">Rs. 450</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Crisp romaine lettuce with parmesan and croutons</p>
+                        <button class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors" data-event="click:addToCart">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="fixed bottom-4 right-4 bg-white rounded-xl shadow-lg p-4 border border-gray-200" data-implementation="Show only when cart has items">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-medium text-gray-900">Cart Total</span>
+                    <span class="font-bold text-primary" data-bind="cart.total" data-mock="true">Rs. 1,000</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                        View Cart (<span data-bind="cart.itemCount" data-mock="true">2</span>)
+                    </button>
+                    <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700" data-event="click:proceedToCheckout">
+                        Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: CafeOrderingInterface -->
+
+        <!-- @COMPONENT: MeetingRoomBooking -->
+        <div id="rooms-screen" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Meeting Rooms</h2>
+                <p class="text-gray-600">Book your perfect meeting space</p>
+            </div>
+
+            <!-- Date/Time Selector -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" data-mock="true">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                        <input type="time" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" data-mock="true">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" data-mock="true">
+                            <option>1 hour</option>
+                            <option>2 hours</option>
+                            <option>3 hours</option>
+                            <option>4 hours</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- @MAP: meetingRooms.map(room => ( -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <!-- A modern meeting room with glass walls and conference table -->
+                    <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Conference Room A" class="w-full h-48 object-cover" data-mock-image="true">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900" data-mock="true">Conference Room A</h3>
+                            <span class="text-sm font-medium text-primary" data-mock="true">5 Credits/hr</span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-users text-gray-400"></i>
+                                <span class="text-sm text-gray-600" data-mock="true">8 people</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-tv text-gray-400"></i>
+                                <span class="text-sm text-gray-600">Display</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs" data-mock="true">Whiteboard</span>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs" data-mock="true">Projector</span>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs" data-mock="true">AC</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-accent font-medium">Available</span>
+                            <button class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors" data-event="click:bookRoom">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <!-- A cozy team meeting room with comfortable seating -->
+                    <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" alt="Team Meeting Room" class="w-full h-48 object-cover" data-mock-image="true">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900" data-mock="true">Team Meeting Room</h3>
+                            <span class="text-sm font-medium text-primary" data-mock="true">3 Credits/hr</span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-users text-gray-400"></i>
+                                <span class="text-sm text-gray-600" data-mock="true">4 people</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-wifi text-gray-400"></i>
+                                <span class="text-sm text-gray-600">WiFi</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs" data-mock="true">Whiteboard</span>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs" data-mock="true">AC</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-warning font-medium">Busy until 3 PM</span>
+                            <button class="bg-gray-300 text-gray-500 py-2 px-4 rounded-lg cursor-not-allowed" disabled>
+                                Unavailable
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <!-- A spacious boardroom with large windows -->
+                    <img src="https://pixabay.com/get/g0456d3d25d5487c761df382130b27013e820081949340bbf3cafaf83968fb854149e84baae56afb91c80b8f927a56509067d1c930d8c173fff11d1f9f3d9d8b3_1280.jpg" alt="Executive Boardroom" class="w-full h-48 object-cover" data-mock-image="true">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900" data-mock="true">Executive Boardroom</h3>
+                            <span class="text-sm font-medium text-primary" data-mock="true">8 Credits/hr</span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-users text-gray-400"></i>
+                                <span class="text-sm text-gray-600" data-mock="true">12 people</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fas fa-video text-gray-400"></i>
+                                <span class="text-sm text-gray-600">Video Conf</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs" data-mock="true">Projector</span>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs" data-mock="true">Sound System</span>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs" data-mock="true">AC</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-accent font-medium">Available</span>
+                            <button class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors" data-event="click:bookRoom">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </div>
+        <!-- @END_COMPONENT: MeetingRoomBooking -->
+
+        <!-- @COMPONENT: OrganizationPortal -->
+        <div id="org-portal" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Organization Portal</h2>
+                <p class="text-gray-600">Manage your team's orders and bookings</p>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">This Month</p>
+                            <p class="text-2xl font-bold text-gray-900" data-bind="org.monthlyOrders" data-mock="true">127</p>
+                        </div>
+                        <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-shopping-cart text-accent"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Spent</p>
+                            <p class="text-2xl font-bold text-gray-900" data-bind="org.totalSpent" data-mock="true">Rs. 45,250</p>
+                        </div>
+                        <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-rupee-sign text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Room Bookings</p>
+                            <p class="text-2xl font-bold text-gray-900" data-bind="org.roomBookings" data-mock="true">34</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-door-open text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Active Members</p>
+                            <p class="text-2xl font-bold text-gray-900" data-bind="org.activeMembers" data-mock="true">12</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-orange-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Management -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Employee Permissions</h3>
+                    <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Add Employee
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-4 font-medium text-gray-900">Employee</th>
+                                <th class="text-left py-3 px-4 font-medium text-gray-900">Café Orders</th>
+                                <th class="text-left py-3 px-4 font-medium text-gray-900">Room Bookings</th>
+                                <th class="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- @MAP: employees.map(employee => ( -->
+                            <tr class="border-b border-gray-100">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                                            <span class="text-sm font-medium text-gray-600" data-mock="true">JD</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900" data-mock="true">John Doe</p>
+                                            <p class="text-sm text-gray-500" data-mock="true">john@company.com</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" class="form-checkbox h-5 w-5 text-primary" checked data-implementation="Toggle employee cafe permission">
+                                        <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                                    </label>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" class="form-checkbox h-5 w-5 text-primary" checked data-implementation="Toggle employee room permission">
+                                        <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                                    </label>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <button class="text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- @END_MAP )) -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Invoice Generation -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Monthly Invoices</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-medium text-gray-900">December 2024</h4>
+                            <span class="text-sm text-gray-500">Rs. 15,250</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">45 orders • 12 bookings</p>
+                        <button class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            Download PDF
+                        </button>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-medium text-gray-900">November 2024</h4>
+                            <span class="text-sm text-gray-500">Rs. 18,750</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">52 orders • 15 bookings</p>
+                        <button class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            Download PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: OrganizationPortal -->
+
+        <!-- @COMPONENT: AdminConsole -->
+        <div id="admin-console" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Enterprise Admin Console</h2>
+                <p class="text-gray-600">Manage all aspects of your coworking space</p>
+            </div>
+
+            <!-- Admin Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Users</p>
+                            <p class="text-2xl font-bold text-gray-900" data-mock="true">245</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Daily Revenue</p>
+                            <p class="text-2xl font-bold text-gray-900" data-mock="true">Rs. 32,500</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-chart-line text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Active Orders</p>
+                            <p class="text-2xl font-bold text-gray-900" data-mock="true">12</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-shopping-cart text-orange-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Room Utilization</p>
+                            <p class="text-2xl font-bold text-gray-900" data-mock="true">78%</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-door-open text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tabs -->
+            <div class="bg-white rounded-xl shadow-sm">
+                <div class="border-b border-gray-200">
+                    <nav class="flex space-x-8 px-6">
+                        <button class="py-4 px-1 border-b-2 border-primary text-primary font-medium">Users</button>
+                        <button class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">Menu</button>
+                        <button class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">Rooms</button>
+                        <button class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">Announcements</button>
+                        <button class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">Reports</button>
+                    </nav>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Users Management Tab -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">User Management</h3>
+                            <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                Add User
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">User</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">Role</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">Organization</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">Credits</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">Status</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- @MAP: users.map(user => ( -->
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                                                    <span class="text-sm font-medium text-gray-600" data-mock="true">JD</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-medium text-gray-900" data-mock="true">John Doe</p>
+                                                    <p class="text-sm text-gray-500" data-mock="true">john@company.com</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium" data-mock="true">Member</span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <span class="text-gray-900" data-mock="true">Tech Corp</span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <span class="text-gray-900" data-mock="true">24</span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Active</span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: AdminConsole -->
+
+        <!-- @COMPONENT: CheckoutModal -->
+        <div id="checkout-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl max-w-md w-full p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Checkout</h3>
+                    <button class="text-gray-400 hover:text-gray-600" data-event="click:closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="mb-6">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600" data-mock="true">Cappuccino x1</span>
+                            <span class="text-gray-900" data-mock="true">Rs. 350</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600" data-mock="true">Sandwich x1</span>
+                            <span class="text-gray-900" data-mock="true">Rs. 650</span>
+                        </div>
+                        <div class="border-t pt-3">
+                            <div class="flex items-center justify-between font-semibold">
+                                <span class="text-gray-900">Total</span>
+                                <span class="text-gray-900" data-mock="true">Rs. 1,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Billing Toggle -->
+                <div class="mb-6" data-implementation="Show only if user has org billing permission">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bill to:</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="billing" value="personal" class="form-radio h-4 w-4 text-primary" checked>
+                            <span class="ml-2 text-sm text-gray-700">Personal</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="billing" value="organization" class="form-radio h-4 w-4 text-primary">
+                            <span class="ml-2 text-sm text-gray-700">My Company</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium" data-event="click:placeOrder">
+                    Place Order
+                </button>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: CheckoutModal -->
+
+        <!-- Mobile Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
+            <div class="flex items-center justify-around py-2">
+                <button class="flex flex-col items-center py-2 px-3 text-primary" data-event="click:navigateTo" data-target="dashboard">
+                    <i class="fas fa-home text-xl mb-1"></i>
+                    <span class="text-xs">Home</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-3 text-gray-500" data-event="click:navigateTo" data-target="cafe">
+                    <i class="fas fa-coffee text-xl mb-1"></i>
+                    <span class="text-xs">Café</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-3 text-gray-500" data-event="click:navigateTo" data-target="rooms">
+                    <i class="fas fa-door-open text-xl mb-1"></i>
+                    <span class="text-xs">Rooms</span>
+                </button>
+                <button class="flex flex-col items-center py-2 px-3 text-gray-500" data-event="click:navigateTo" data-target="profile">
+                    <i class="fas fa-user text-xl mb-1"></i>
+                    <span class="text-xs">Profile</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: MainApplication -->
+
+    <script>
+        // TODO: Implement proper authentication, state management, and API integration
+        (function() {
+            // Demo navigation functionality
+            const screens = ['auth-screen', 'main-app', 'cafe-screen', 'rooms-screen', 'org-portal', 'admin-console'];
+            const modals = ['checkout-modal'];
+            
+            function hideAllScreens() {
+                screens.forEach(screen => {
+                    const element = document.getElementById(screen);
+                    if (element) element.classList.add('hidden');
+                });
+            }
+            
+            function showScreen(screenId) {
+                hideAllScreens();
+                const element = document.getElementById(screenId);
+                if (element) element.classList.remove('hidden');
+            }
+            
+            function toggleModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.toggle('hidden');
+                }
+            }
+            
+            // Initialize demo
+            setTimeout(() => {
+                showScreen('main-app');
+            }, 2000);
+            
+            // Demo event handlers
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('[data-event]');
+                if (!target) return;
+                
+                const event = target.getAttribute('data-event');
+                const eventTarget = target.getAttribute('data-target');
+                
+                switch(event) {
+                    case 'click:navigateTo':
+                        if (eventTarget === 'dashboard') showScreen('main-app');
+                        else if (eventTarget === 'cafe') showScreen('cafe-screen');
+                        else if (eventTarget === 'rooms') showScreen('rooms-screen');
+                        break;
+                    case 'click:navigateToSteveCafe':
+                        showScreen('cafe-screen');
+                        break;
+                    case 'click:navigateToRoomBooking':
+                        showScreen('rooms-screen');
+                        break;
+                    case 'click:proceedToCheckout':
+                        toggleModal('checkout-modal');
+                        break;
+                    case 'click:closeModal':
+                        toggleModal('checkout-modal');
+                        break;
+                    case 'click:placeOrder':
+                        toggleModal('checkout-modal');
+                        // TODO: Implement order placement
+                        break;
+                }
+            });
+            
+            // PWA Service Worker Registration
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            }
+        })();
+    </script>
+</body>
+</html>

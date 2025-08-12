@@ -1,34 +1,56 @@
-# Use Node.js 20 LTS as base image
-FROM node:20-alpine
+# syntax=docker/dockerfile:1.7-labs
 
-# Set working directory
+# -----------------------------
+# Builder: install full deps and build client+server
+# -----------------------------
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package files
+# Install OS deps needed for builds
+RUN apk add --no-cache python3 make g++
+
+# Install dependencies (full)
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy the rest of the application
+# Copy source
 COPY . .
 
-# Create uploads directory
-RUN mkdir -p uploads
-
-# Build the application
+# Build client and server to dist/
 RUN npm run build
 
-# Expose port 5000
+# -----------------------------
+# Runtime: copy only production deps and build output
+# -----------------------------
+FROM node:20-alpine AS runtime
+WORKDIR /app
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy build artifacts
+COPY --from=builder /app/dist ./dist
+
+# Ensure uploads directory exists and is writable
+RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
+
+# Switch to non-root user
+USER node
+
+# Expose port
 EXPOSE 5000
 
-# Set environment variables
+# Env
 ENV NODE_ENV=production
 ENV PORT=5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/api/health || exit 1
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -fsS http://localhost:5000/api/health || exit 1
 
-# Start the application
+# Start
 CMD ["npm", "start"]
