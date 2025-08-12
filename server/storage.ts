@@ -3,7 +3,36 @@ import { neon } from "@neondatabase/serverless";
 import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt, inArray } from "drizzle-orm";
 import * as schema from "@shared/schema";
 
-const sql_client = neon(process.env.DATABASE_URL!);
+// Get DATABASE_URL with proper error handling
+const getDatabaseUrl = () => {
+  const url = process.env.DATABASE_URL;
+  
+  if (!url) {
+    console.error("❌ DATABASE_URL environment variable is not set!");
+    console.error("🔧 Available environment variables:", Object.keys(process.env).filter(k => k.includes('DATA') || k.includes('POSTGRES') || k.includes('DB')));
+    
+    // Provide helpful error message
+    throw new Error(`
+❌ DATABASE_URL environment variable is required but not set.
+
+📋 To fix this in Railway:
+1. Go to your Railway project dashboard
+2. Click on your "co-working-space" service  
+3. Go to Variables tab
+4. Add: DATABASE_URL = (your PostgreSQL connection string)
+
+🔗 The URL should look like:
+postgresql://postgres:password@host:port/database
+
+💡 If you have a Postgres service in Railway, copy its DATABASE_URL variable.
+`);
+  }
+  
+  console.log("✅ DATABASE_URL found, connecting to database...");
+  return url;
+};
+
+const sql_client = neon(getDatabaseUrl());
 export const db = drizzle(sql_client, { schema });
 
 export interface IStorage {

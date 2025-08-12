@@ -74,13 +74,22 @@ jobs:
             echo "✅ DATABASE_URL set from secret"
           else
             echo "❌ DATABASE_URL not provided in GitHub secrets"
-            echo "🔗 Linking Railway Postgres service automatically..."
-            # Link the postgres service to get automatic DATABASE_URL
-            railway service --link postgres || echo "Failed to link postgres service"
+            echo "🔍 Checking for existing Railway Postgres service..."
             
-            # Alternative: Set a working Railway internal DATABASE_URL
-            echo "🔧 Setting Railway internal DATABASE_URL..."
-            railway variables set DATABASE_URL="postgresql://postgres:\${{PGPASSWORD}}@postgres.railway.internal:5432/railway"
+            # List all services to find postgres
+            railway services || echo "Failed to list services"
+            
+            # Try to get DATABASE_URL from postgres service
+            POSTGRES_DB_URL=$(railway variables --service postgres --json 2>/dev/null | grep -o '"DATABASE_URL":"[^"]*"' | cut -d'"' -f4 || echo "")
+            
+            if [ -n "$POSTGRES_DB_URL" ]; then
+              echo "✅ Found Postgres DATABASE_URL, setting it..."
+              railway variables set DATABASE_URL="$POSTGRES_DB_URL"
+            else
+              echo "⚠️ No Postgres service found. Setting a placeholder..."
+              echo "🚨 YOU MUST SET DATABASE_URL MANUALLY IN RAILWAY DASHBOARD!"
+              railway variables set DATABASE_URL="PLEASE_SET_DATABASE_URL_IN_RAILWAY_DASHBOARD"
+            fi
           fi
           
           # Set optional VAPID keys
