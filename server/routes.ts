@@ -1035,8 +1035,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const booking = await storage.createMeetingBooking({
         user_id: user.id,
         room_id,
-        start_time: startTime,
-        end_time: endTime,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
         credits_used: creditsNeeded.toString(),
         status: "confirmed",
         billed_to: billed_to || "personal",
