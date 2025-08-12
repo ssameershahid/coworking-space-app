@@ -78,12 +78,7 @@ class EmailService {
             text-align: center; 
             border-bottom: 1px solid #e2e8f0;
           }
-          .logo { 
-            max-width: 200px; 
-            height: auto; 
-            margin: 0 auto 20px; 
-            display: block; 
-          }
+
           .header h1 { margin: 0; font-size: 28px; font-weight: 700; color: #333; }
           .header p { margin: 10px 0 0; font-size: 16px; color: #666; }
           .content { padding: 40px 30px; }
