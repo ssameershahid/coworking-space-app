@@ -102,8 +102,18 @@ jobs:
       - name: Deploy using pre-built Docker image
         run: |
           echo "🚀 Deploying pre-built Docker image..."
-          # Use the latest built image from GHCR
-          railway service --image ghcr.io/ssameershahid/co-working-space:latest
-          echo "✅ Deployment complete!"
+          # Use the latest built image from GHCR - FORCE REBUILD
+          LATEST_SHA=$(git rev-parse HEAD)
+          echo "📦 Using commit SHA: $LATEST_SHA"
+          
+          # Force Railway to pull and deploy the latest image
+          railway up --ci --detach --image ghcr.io/ssameershahid/co-working-space:latest
+          echo "✅ Deployment triggered!"
+          
+          # Wait a moment for deployment to start
+          sleep 10
+          
+          # Check deployment status
+          railway status
 
 
