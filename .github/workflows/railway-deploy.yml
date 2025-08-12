@@ -35,16 +35,20 @@ jobs:
       - name: Authenticate to Railway (token)
         shell: bash
         run: |
-          # Create Railway config directory and token file
-          mkdir -p ~/.railway
-          echo "$RAILWAY_TOKEN" > ~/.railway/token
-          railway whoami || echo "Auth check failed, continuing..."
+          railway logout || true
+          railway login --token "$RAILWAY_TOKEN"
+          railway whoami
 
       - name: Link Railway project
         run: |
           railway link -p "$RAILWAY_PROJECT_ID"
 
-      - name: Configure environment variables (if provided)
+      - name: Show current Railway variables
+        run: |
+          echo "=== Current Railway Variables ==="
+          railway variables || echo "Failed to get variables"
+          
+      - name: Configure environment variables
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
@@ -52,16 +56,41 @@ jobs:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
         run: |
-          set -e
-          [ -n "$DATABASE_URL" ] && railway variables set DATABASE_URL="$DATABASE_URL" || true
-          [ -n "$SESSION_SECRET" ] && railway variables set SESSION_SECRET="$SESSION_SECRET" || true
-          [ -n "$RESEND_API_KEY" ] && railway variables set RESEND_API_KEY="$RESEND_API_KEY" || true
-          [ -n "$VAPID_PUBLIC_KEY" ] && railway variables set VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY" || true
-          [ -n "$VAPID_PRIVATE_KEY" ] && railway variables set VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY" || true
+          echo "=== Setting Railway Variables ==="
+          
+          # Always set RESEND_API_KEY 
+          railway variables set RESEND_API_KEY="re_W2uvh1cK_9DDTC1AShSxqEQGMPeo75N2o"
+          
+          # Set SESSION_SECRET if provided, otherwise use default
+          if [ -n "$SESSION_SECRET" ]; then
+            railway variables set SESSION_SECRET="$SESSION_SECRET"
+          else
+            railway variables set SESSION_SECRET="calmkaaj-super-secret-session-key-production-2025-$(date +%s)"
+          fi
+          
+          # Set DATABASE_URL if provided
+          if [ -n "$DATABASE_URL" ]; then
+            railway variables set DATABASE_URL="$DATABASE_URL"
+            echo "✅ DATABASE_URL set from secret"
+          else
+            echo "❌ DATABASE_URL not provided in GitHub secrets"
+            echo "🔍 Checking if Railway Postgres service exists..."
+            # Try to get DATABASE_URL from Railway Postgres service
+            railway variables --service postgres || echo "No postgres service found"
+          fi
+          
+          # Set optional VAPID keys
+          [ -n "$VAPID_PUBLIC_KEY" ] && railway variables set VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY" || echo "VAPID_PUBLIC_KEY not set"
+          [ -n "$VAPID_PRIVATE_KEY" ] && railway variables set VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY" || echo "VAPID_PRIVATE_KEY not set"
+          
+          echo "=== Final Railway Variables ==="
+          railway variables
 
-      - name: Deploy pre-built Docker image
+      - name: Deploy using pre-built Docker image
         run: |
-          # Deploy using the pre-built Docker image from GHCR
-          railway service --image ghcr.io/ssameershahid/co-working-space:sha-945ac0b
+          echo "🚀 Deploying pre-built Docker image..."
+          # Use the latest built image from GHCR
+          railway service --image ghcr.io/ssameershahid/co-working-space:latest
+          echo "✅ Deployment complete!"
 
 
