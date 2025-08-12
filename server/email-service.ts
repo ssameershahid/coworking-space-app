@@ -53,12 +53,24 @@ class EmailService {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
             line-height: 1.6; 
             color: #333; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            padding: 0; 
+            margin: 0; 
+            padding: 20px; 
             background-color: #f8fafc;
           }
-          .container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+          .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f8fafc;
+          }
+          .container { 
+            background: white; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+          }
           .header { 
             background: white; 
             color: #333; 
@@ -133,7 +145,8 @@ class EmailService {
         </style>
       </head>
       <body>
-        <div class="container">
+        <div class="email-wrapper">
+          <div class="container">
           <div class="header">
             <img src="https://app.calmkaaj.org/logo-main.png" alt="CalmKaaj Logo" class="logo">
             <h1>🎉 Welcome to CalmKaaj!</h1>
@@ -183,6 +196,7 @@ class EmailService {
             <p>© 2025 CalmKaaj. All rights reserved.</p>
             <p>This is an automated message, please do not reply directly to this email.</p>
           </div>
+        </div>
         </div>
       </body>
       </html>
