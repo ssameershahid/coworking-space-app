@@ -34,8 +34,11 @@ export function ImpersonationBanner() {
         title: "Impersonation ended",
         description: "You are now back in admin mode"
       });
-      // Reload to admin dashboard
-      window.location.href = '/admin-dashboard';
+      // Invalidate queries to refresh auth state and redirect to admin dashboard
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/impersonation-status'] });
+      // Redirect to the correct admin route
+      window.location.href = '/admin';
     },
     onError: () => {
       toast({
