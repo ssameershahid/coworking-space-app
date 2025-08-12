@@ -1464,8 +1464,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid input", errors: result.error.issues });
       }
 
-      // Generate a temporary password if not provided
-      const tempPassword = result.data.password || Math.random().toString(36).slice(-8);
+      // Always generate a random temporary password (ignore form password)
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4);
       
       // Hash the password
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
