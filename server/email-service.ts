@@ -20,7 +20,7 @@ class EmailService {
   async sendWelcomeEmail(userEmail: string, firstName: string, tempPassword: string): Promise<boolean> {
     try {
       const { data, error } = await this.resend.emails.send({
-        from: 'CalmKaaj <noreply@calmkaaj.org>',
+        from: 'CalmKaaj <noreply@mail.calmkaaj.org>',
         to: [userEmail],
         subject: 'Welcome to CalmKaaj - Your Account is Ready!',
         html: this.generateWelcomeEmailHTML(firstName, userEmail, tempPassword),
