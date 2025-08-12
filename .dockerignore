@@ -35,7 +35,7 @@ tmp
 temp
 *.tmp
 *.temp
-attached_assets
+
 calmkaaj_full_backup.sql
 DATABASE_MIGRATION_LOG.md
 *.md
