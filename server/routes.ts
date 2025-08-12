@@ -1476,22 +1476,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const user = await storage.createUser(finalUserData);
       
-      // Send welcome email with credentials (optional - only if email service is configured)
-      if (process.env.EMAIL_USER && (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD)) {
+      // Send welcome email with credentials using Resend
+      let emailSent = false;
+      if (process.env.RESEND_API_KEY) {
         try {
           const { emailService } = await import("./email-service");
-          await emailService.sendWelcomeEmail(user.email, user.first_name, tempPassword);
-          // DISABLED: Excessive logging - console.log(`Welcome email sent to ${user.email}`);
+          emailSent = await emailService.sendWelcomeEmail(user.email, user.first_name, tempPassword);
+          console.log(`Welcome email ${emailSent ? 'sent successfully' : 'failed'} to ${user.email}`);
         } catch (emailError) {
           console.warn("Failed to send welcome email:", emailError);
           // Don't fail user creation if email fails
+          emailSent = false;
         }
       }
       
       res.status(201).json({ 
         ...user, 
         tempPassword: tempPassword, // Return temp password for admin to share manually if needed
-        emailSent: !!(process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD)
+        emailSent: emailSent
       });
     } catch (error) {
       console.error("Error creating user:", error);
