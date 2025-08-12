@@ -60,13 +60,20 @@ class EmailService {
           }
           .container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
           .header { 
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
-            color: white; 
+            background: white; 
+            color: #333; 
             padding: 40px 30px; 
             text-align: center; 
+            border-bottom: 1px solid #e2e8f0;
           }
-          .header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-          .header p { margin: 10px 0 0; font-size: 16px; opacity: 0.9; }
+          .logo { 
+            max-width: 200px; 
+            height: auto; 
+            margin: 0 auto 20px; 
+            display: block; 
+          }
+          .header h1 { margin: 0; font-size: 28px; font-weight: 700; color: #333; }
+          .header p { margin: 10px 0 0; font-size: 16px; color: #666; }
           .content { padding: 40px 30px; }
           .credentials { 
             background: #f0f9ff; 
@@ -128,6 +135,7 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
+            <img src="https://app.calmkaaj.org/logo-main.png" alt="CalmKaaj Logo" class="logo">
             <h1>🎉 Welcome to CalmKaaj!</h1>
             <p>Your coworking space management account is ready</p>
           </div>
