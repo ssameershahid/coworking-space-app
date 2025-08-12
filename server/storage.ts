@@ -5,11 +5,20 @@ import * as schema from "@shared/schema";
 
 // Get DATABASE_URL with proper error handling
 const getDatabaseUrl = () => {
+  console.log("🔍 DEBUGGING DATABASE CONNECTION:");
+  console.log("📦 NODE_ENV:", process.env.NODE_ENV);
+  console.log("🌍 All environment variables containing 'DATA':", 
+    Object.keys(process.env).filter(k => k.toUpperCase().includes('DATA')));
+  console.log("🌍 All environment variables containing 'POSTGRES':", 
+    Object.keys(process.env).filter(k => k.toUpperCase().includes('POSTGRES')));
+  console.log("🌍 All environment variables containing 'DB':", 
+    Object.keys(process.env).filter(k => k.toUpperCase().includes('DB')));
+    
   const url = process.env.DATABASE_URL;
   
   if (!url) {
     console.error("❌ DATABASE_URL environment variable is not set!");
-    console.error("🔧 Available environment variables:", Object.keys(process.env).filter(k => k.includes('DATA') || k.includes('POSTGRES') || k.includes('DB')));
+    console.error("🔧 First 10 environment variables:", Object.keys(process.env).slice(0, 10));
     
     // Provide helpful error message
     throw new Error(`
@@ -20,6 +29,7 @@ const getDatabaseUrl = () => {
 2. Click on your "co-working-space" service  
 3. Go to Variables tab
 4. Add: DATABASE_URL = (your PostgreSQL connection string)
+5. Wait for automatic redeployment OR click "Deploy"
 
 🔗 The URL should look like:
 postgresql://postgres:password@host:port/database
@@ -28,7 +38,15 @@ postgresql://postgres:password@host:port/database
 `);
   }
   
-  console.log("✅ DATABASE_URL found, connecting to database...");
+  console.log("✅ DATABASE_URL found! Length:", url.length);
+  console.log("🔗 DATABASE_URL starts with:", url.substring(0, 20) + "...");
+  
+  // Validate URL format
+  if (!url.startsWith('postgresql://') && !url.startsWith('postgres://')) {
+    console.error("⚠️ DATABASE_URL doesn't start with postgresql:// or postgres://");
+    console.error("🔧 Current value starts with:", url.substring(0, 20));
+  }
+  
   return url;
 };
 
