@@ -1480,7 +1480,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let emailSent = false;
       if (process.env.RESEND_API_KEY) {
         try {
-          const { emailService } = await import("./email-service");
           emailSent = await emailService.sendWelcomeEmail(user.email, user.first_name, tempPassword);
           console.log(`Welcome email ${emailSent ? 'sent successfully' : 'failed'} to ${user.email}`);
         } catch (emailError) {
