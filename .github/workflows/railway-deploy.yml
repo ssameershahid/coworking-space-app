@@ -1,0 +1,57 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Link Railway project
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then echo "RAILWAY_TOKEN missing"; exit 1; fi
+          if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
+          railway link -p "$RAILWAY_PROJECT_ID"
+
+      - name: Configure environment variables (if provided)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: |
+          set -e
+          [ -n "$DATABASE_URL" ] && railway variables set DATABASE_URL="$DATABASE_URL" || true
+          [ -n "$SESSION_SECRET" ] && railway variables set SESSION_SECRET="$SESSION_SECRET" || true
+          [ -n "$RESEND_API_KEY" ] && railway variables set RESEND_API_KEY="$RESEND_API_KEY" || true
+          [ -n "$VAPID_PUBLIC_KEY" ] && railway variables set VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY" || true
+          [ -n "$VAPID_PRIVATE_KEY" ] && railway variables set VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY" || true
+
+      - name: Deploy (Dockerfile build)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway up --service "calmkaaj-app" || railway up
+
+
