@@ -148,7 +148,7 @@ class EmailService {
         <div class="email-wrapper">
           <div class="container">
           <div class="header">
-            <img src="https://app.calmkaaj.org/logo-main.png" alt="CalmKaaj Logo" class="logo">
+
             <h1>🎉 Welcome to CalmKaaj!</h1>
             <p>Your coworking space management account is ready</p>
           </div>
