@@ -1489,19 +1489,7 @@ export default function AdminDashboard() {
           />
         </div>
         <div>
-          <Label htmlFor="site">Site</Label>
-          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blue_area">Blue Area</SelectItem>
-              <SelectItem value="i_10">I-10</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="site">Site</Label>
+          <Label htmlFor="site">Site Location</Label>
           <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
             <SelectTrigger>
               <SelectValue />
