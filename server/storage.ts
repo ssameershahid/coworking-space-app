@@ -1,5 +1,5 @@
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt, inArray } from "drizzle-orm";
 import * as schema from "@shared/schema";
 
@@ -50,7 +50,10 @@ postgresql://postgres:password@host:port/database
   return url;
 };
 
-const sql_client = neon(getDatabaseUrl());
+const sql_client = postgres(getDatabaseUrl(), { 
+  ssl: process.env.NODE_ENV === 'production' ? 'require' : false,
+  max: 1,
+});
 export const db = drizzle(sql_client, { schema });
 
 export interface IStorage {
