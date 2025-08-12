@@ -46,6 +46,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 // import { SimpleMenuEdit } from "@/components/simple-menu-edit";
 import { format } from "date-fns";
+import { formatLargeCurrencyAmount } from "@/lib/format-price";
 
 interface AdminStats {
   totalUsers: number;
@@ -2656,7 +2657,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">Rs. {filteredStats.totalRevenue.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatLargeCurrencyAmount(filteredStats.totalRevenue)}</p>
                   <p className="text-xs text-green-600">{filteredStats.totalOrders} orders</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">

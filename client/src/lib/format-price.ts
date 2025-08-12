@@ -20,3 +20,17 @@ export function formatPrice(price: string | number): string {
 export function formatPriceWithCurrency(price: string | number): string {
   return `Rs. ${formatPrice(price)}`;
 }
+
+/**
+ * Format large currency amounts with commas and no decimals
+ * Examples: 5944229.25 → "Rs. 5,944,229", 1500 → "Rs. 1,500"
+ */
+export function formatLargeCurrencyAmount(amount: string | number): string {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  
+  // Round to whole number and add commas
+  const rounded = Math.round(numAmount);
+  const formatted = rounded.toLocaleString('en-US');
+  
+  return `Rs. ${formatted}`;
+}
