@@ -33,11 +33,18 @@ import {
   Receipt,
   DollarSign,
   Utensils,
-  CheckCircle
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { CafeOrder, MeetingBooking, Announcement } from "@/lib/types";
 import { CreditAnimation, useCreditAnimation } from "@/components/ui/credit-animation";
 import { formatPriceWithCurrency } from "@/lib/format-price";
+
+// Payment status configuration
+const paymentStatusConfig = {
+  paid: { label: "Paid", color: "bg-green-100 text-green-800", icon: CheckCircle },
+  unpaid: { label: "Unpaid", color: "bg-red-100 text-red-800", icon: AlertCircle }
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -387,16 +394,26 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
-                      <Badge 
-                        variant={order.status === 'delivered' ? 'default' : 'secondary'}
-                        className={
-                          order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                          order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                          order.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
-                        }
-                      >
-                        {order.status}
-                      </Badge>
+                      <div className="flex flex-col gap-1 items-end">
+                        <Badge 
+                          variant={order.status === 'delivered' ? 'default' : 'secondary'}
+                          className={
+                            order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                            order.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
+                          }
+                        >
+                          {order.status}
+                        </Badge>
+                        {order.payment_status && (
+                          <Badge 
+                            variant="secondary"
+                            className={paymentStatusConfig[order.payment_status]?.color || 'bg-gray-100 text-gray-800'}
+                          >
+                            {paymentStatusConfig[order.payment_status]?.label || order.payment_status}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
