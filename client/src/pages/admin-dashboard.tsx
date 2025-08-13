@@ -2645,7 +2645,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Only show Total Revenue for CalmKaaj Admin */}
+        {/* Only show Cafe Revenue for CalmKaaj Admin */}
         {user.role === 'calmkaaj_admin' && (
           <Card>
             <CardContent className="p-6">
