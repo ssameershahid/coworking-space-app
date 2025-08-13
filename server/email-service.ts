@@ -102,13 +102,17 @@ class EmailService {
           .button { 
             display: inline-block; 
             background: #C66A29; 
-            color: white; 
+            color: white !important; 
             padding: 14px 28px; 
             text-decoration: none; 
             border-radius: 8px; 
             font-weight: 600;
             font-size: 16px;
             box-shadow: 0 2px 8px rgba(198, 106, 41, 0.3);
+          }
+          a.button, a.button:visited, a.button:hover, a.button:active {
+            color: white !important;
+            text-decoration: none !important;
           }
           .features { margin: 32px 0; }
           .feature-list { list-style: none; padding: 0; }
@@ -180,7 +184,7 @@ class EmailService {
             </div>
 
             <div class="btn-center">
-              <a href="https://app.calmkaaj.org" class="button">Login to CalmKaaj</a>
+              <a href="https://app.calmkaaj.org" class="button" style="display: inline-block; background: #C66A29; color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Login to CalmKaaj</a>
             </div>
 
             <h3>Need Help?</h3>
