@@ -1,7 +1,6 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { type Server } from "http";
 
 export function log(message: string, source = "express") {
   // Use Pakistan time for all logs
@@ -17,17 +16,6 @@ export function log(message: string, source = "express") {
   });
 
   console.log(`${formattedTime} [${source}] ${message}`);
-}
-
-export async function setupVite(app: Express, server: Server) {
-  // Only import vite-dev in development mode
-  try {
-    const { setupVite: setupViteDev } = await import("./vite-dev.js");
-    await setupViteDev(app, server);
-  } catch (error) {
-    console.error("Failed to setup Vite dev server:", error);
-    throw error;
-  }
 }
 
 export function serveStatic(app: Express) {
@@ -46,3 +34,5 @@ export function serveStatic(app: Express) {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
+
+

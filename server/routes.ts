@@ -174,7 +174,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // CRITICAL DEBUG: Log ALL requests FIRST, before any other middleware
   app.use('*', (req, res, next) => {
-    console.log(`🌍 ALL REQUESTS: ${req.method} ${req.originalUrl} at ${new Date().toISOString()}`);
+    const pakistanTime = getPakistanTime();
+    console.log(`🌍 ALL REQUESTS: ${req.method} ${req.originalUrl} at ${pakistanTime.toISOString()} (PKT)`);
     if (req.method === 'POST') {
       console.log(`🚨🚨🚨 POST REQUEST DETECTED: ${req.originalUrl}`);
       console.log(`🔍 Body:`, req.body);
@@ -1006,15 +1007,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if booking is in the past - Use Pakistan time for comparison
       const nowPakistan = getPakistanTime();
       
-      // For debugging: log all time values
-      console.log(`🕐 Booking Time Check:
+      // For debugging: log all time values in Pakistan time format
+      console.log(`🕐 Booking Time Check (PKT):
         Frontend sent start_time: ${start_time}
-        Parsed startTime: ${startTime.toISOString()}
-        Pakistan time now: ${nowPakistan.toISOString()}
+        Parsed startTime: ${startTime.toISOString()} 
+        Pakistan time now: ${nowPakistan.toISOString()} (PKT)
         Start time < now?: ${startTime < nowPakistan}`);
       
       if (startTime < nowPakistan) {
-        console.log(`❌ Booking rejected - Start time: ${startTime.toISOString()}, Pakistan time now: ${nowPakistan.toISOString()}`);
+        console.log(`❌ Booking rejected (PKT) - Start time: ${startTime.toISOString()}, Pakistan time now: ${nowPakistan.toISOString()}`);
         return res.status(400).json({ message: "Cannot book a room for a time in the past" });
       }
       
