@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter, ChevronLeft, ChevronRight, Calendar, CalendarDays } from "lucide-react";
+import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter, ChevronLeft, ChevronRight, Calendar, CalendarDays, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format, startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, isToday, parseISO } from "date-fns";
@@ -170,6 +170,86 @@ export default function BillingTransactions() {
     } else if (filter === 'yesterday') {
       setSelectedDate(subDays(new Date(), 1));
     }
+  };
+
+  // CSV Export functionality
+  const generateCSV = () => {
+    const headers = [
+      'Order ID',
+      'Date',
+      'Time', 
+      'Customer Name',
+      'Email',
+      'Organization',
+      'Office Number',
+      'Items',
+      'Total Amount',
+      'Delivery Status',
+      'Payment Status',
+      'Billed To'
+    ];
+
+    const csvData = filteredOrders.map(order => [
+      order.id,
+      format(new Date(order.created_at), 'yyyy-MM-dd'),
+      format(new Date(order.created_at), 'HH:mm:ss'),
+      `${order.user?.first_name || ''} ${order.user?.last_name || ''}`.trim(),
+      order.user?.email || '',
+      order.organization?.name || '',
+      order.user?.office_number || '',
+      order.items?.map(item => `${item.quantity}x ${item.name}`).join('; ') || '',
+      `Rs. ${parseFloat(order.total_amount).toFixed(2)}`,
+      order.status || '',
+      order.payment_status || '',
+      order.billed_to || ''
+    ]);
+
+    // Combine headers and data
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    return csvContent;
+  };
+
+  const downloadCSV = () => {
+    const csvContent = generateCSV();
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    // Generate filename based on current filters
+    let filename = 'cafe-transactions';
+    
+    if (dateFilter === 'today' && isToday(selectedDate)) {
+      filename += `-today-${format(new Date(), 'yyyy-MM-dd')}`;
+    } else if (dateFilter === 'yesterday') {
+      filename += `-yesterday-${format(subDays(new Date(), 1), 'yyyy-MM-dd')}`;
+    } else if (dateFilter === 'week') {
+      filename += `-this-week-${format(new Date(), 'yyyy-MM-dd')}`;
+    } else if (dateFilter === 'custom' && customStartDate && customEndDate) {
+      filename += `-${customStartDate}-to-${customEndDate}`;
+    } else {
+      filename += `-${format(selectedDate, 'yyyy-MM-dd')}`;
+    }
+    
+    if (searchTerm) {
+      filename += `-search-${searchTerm.replace(/\s+/g, '-')}`;
+    }
+    
+    filename += '.csv';
+    
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export Successful",
+      description: `${filteredOrders.length} transactions exported to ${filename}`,
+    });
   };
 
   // Filter orders based on search, filters, and date range
@@ -454,17 +534,29 @@ export default function BillingTransactions() {
             </div>
           </div>
 
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setSearchTerm("");
-              setStatusFilter("all");
-              setPaymentFilter("all");
-              setBillingFilter("all");
-            }}
-          >
-            Clear Filters
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+                setPaymentFilter("all");
+                setBillingFilter("all");
+              }}
+            >
+              Clear Filters
+            </Button>
+            
+            <Button 
+              variant="default" 
+              onClick={downloadCSV}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={filteredOrders.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV ({filteredOrders.length} orders)
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
