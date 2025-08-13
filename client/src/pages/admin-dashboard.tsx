@@ -855,10 +855,7 @@ export default function AdminDashboard() {
   const EditOrganizationForm = ({ organization, onClose }: { organization: any; onClose: () => void }) => {
     const [orgData, setOrgData] = useState({
       name: organization.name || '',
-      email: organization.email || '',
       site: organization.site || 'blue_area',
-      phone: organization.phone || '',
-      address: organization.address || '',
       start_date: organization.start_date ? new Date(organization.start_date).toISOString().split('T')[0] : '',
       // Find admin details from users
       admin_first_name: '',
@@ -866,6 +863,7 @@ export default function AdminDashboard() {
       admin_email: '',
       team_members: [''],
       office_type: 'private_office',
+      office_number: '',
       monthly_credits: 10,
       monthly_fee: 5000,
       description: ''
@@ -888,10 +886,7 @@ export default function AdminDashboard() {
       e.preventDefault();
       const submitData = {
         name: orgData.name,
-        email: orgData.email,
         site: orgData.site,
-        phone: orgData.phone,
-        address: orgData.address,
         start_date: orgData.start_date || null,
       };
       
@@ -947,48 +942,7 @@ export default function AdminDashboard() {
             required
           />
         </div>
-        <div>
-          <Label htmlFor="edit_org_email">Organization Email</Label>
-          <Input
-            id="edit_org_email"
-            type="email"
-            placeholder="admin@acme.com"
-            value={orgData.email}
-            onChange={(e) => setOrgData({...orgData, email: e.target.value})}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="edit_org_phone">Phone Number</Label>
-          <Input
-            id="edit_org_phone"
-            placeholder="+92 300 1234567"
-            value={orgData.phone}
-            onChange={(e) => setOrgData({...orgData, phone: e.target.value})}
-          />
-        </div>
-        <div>
-          <Label htmlFor="edit_org_address">Address</Label>
-          <Textarea
-            id="edit_org_address"
-            placeholder="Complete business address..."
-            value={orgData.address}
-            onChange={(e) => setOrgData({...orgData, address: e.target.value})}
-            rows={2}
-          />
-        </div>
-        <div>
-          <Label htmlFor="edit_org_site">Site Location</Label>
-          <Select value={orgData.site} onValueChange={(value) => setOrgData({...orgData, site: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blue_area">Blue Area</SelectItem>
-              <SelectItem value="i_10">I-10</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="edit_admin_first_name">Admin First Name</Label>
@@ -1046,12 +1000,25 @@ export default function AdminDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="hot_desk">Hot Desk</SelectItem>
-              <SelectItem value="dedicated_desk">Dedicated Desk</SelectItem>
               <SelectItem value="private_office">Private Office</SelectItem>
+              <SelectItem value="shared_desk">Shared Desk</SelectItem>
+              <SelectItem value="hot_desk">Hot Desk</SelectItem>
+              <SelectItem value="virtual_office">Virtual Office</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        {orgData.office_type === 'private_office' && (
+          <div>
+            <Label htmlFor="edit_office_number">Office Number</Label>
+            <Input
+              id="edit_office_number"
+              placeholder="A-101"
+              value={orgData.office_number}
+              onChange={(e) => setOrgData({...orgData, office_number: e.target.value})}
+              required
+            />
+          </div>
+        )}
         <div>
           <Label htmlFor="edit_monthly_credits">Monthly Credits</Label>
           <Input
@@ -1113,6 +1080,7 @@ export default function AdminDashboard() {
       organization_id: user.organization_id || '',
       member_type: user.role === 'member_organization' || user.role === 'member_organization_admin' ? 'organization_employee' : 'individual',
       office_type: user.office_type || 'hot_desk',
+      office_number: user.office_number || '',
       monthly_credits: user.credits || 10,
       membership_fee: user.membership_fee || 0,
       start_date: user.start_date ? new Date(user.start_date).toISOString().split('T')[0] : '',
@@ -1207,18 +1175,6 @@ export default function AdminDashboard() {
           </Select>
         </div>
         <div>
-          <Label htmlFor="edit_site">Site</Label>
-          <Select value={formData.site} onValueChange={(value) => setFormData({...formData, site: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blue_area">Blue Area</SelectItem>
-              <SelectItem value="i_10">I-10</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
           <Label htmlFor="edit_rfid_number">RFID Number</Label>
           <Input
             id="edit_rfid_number"
@@ -1267,6 +1223,18 @@ export default function AdminDashboard() {
             </SelectContent>
           </Select>
         </div>
+        {formData.office_type === 'private_office' && (
+          <div>
+            <Label htmlFor="edit_office_number">Office Number</Label>
+            <Input
+              id="edit_office_number"
+              placeholder="A-101"
+              value={formData.office_number}
+              onChange={(e) => setFormData({...formData, office_number: e.target.value})}
+              required
+            />
+          </div>
+        )}
         <div>
           <Label htmlFor="edit_role">Role</Label>
           <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
@@ -1424,6 +1392,7 @@ export default function AdminDashboard() {
       organization_id: '',
       member_type: 'individual',
       office_type: 'hot_desk',
+      office_number: '',
       monthly_credits: 10,
       membership_fee: 0,
       start_date: new Date().toISOString().split('T')[0],
@@ -1564,6 +1533,18 @@ export default function AdminDashboard() {
             </SelectContent>
           </Select>
         </div>
+        {formData.office_type === 'private_office' && (
+          <div>
+            <Label htmlFor="office_number">Office Number</Label>
+            <Input
+              id="office_number"
+              placeholder="A-101"
+              value={formData.office_number}
+              onChange={(e) => setFormData({...formData, office_number: e.target.value})}
+              required
+            />
+          </div>
+        )}
         {(formData.role === 'member_individual' || formData.role === 'cafe_manager' || formData.role === 'calmkaaj_admin') && (
           <>
             <div>
@@ -1692,6 +1673,7 @@ export default function AdminDashboard() {
       admin_email: '',
       team_members: [''],
       office_type: 'private_office',
+      office_number: '',
       monthly_credits: 10,
       monthly_fee: 5000,
       description: '',
@@ -1801,6 +1783,19 @@ export default function AdminDashboard() {
             </SelectContent>
           </Select>
         </div>
+
+        {orgData.office_type === 'private_office' && (
+          <div>
+            <Label htmlFor="office_number">Office Number</Label>
+            <Input
+              id="office_number"
+              placeholder="A-101"
+              value={orgData.office_number}
+              onChange={(e) => setOrgData({...orgData, office_number: e.target.value})}
+              required
+            />
+          </div>
+        )}
 
         <div>
           <Label htmlFor="monthly_credits">Monthly Meeting Credits</Label>
