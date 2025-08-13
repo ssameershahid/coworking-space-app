@@ -41,7 +41,7 @@ export function RoomAvailabilityCalendar({
     
     for (let hour = 8; hour <= 20; hour++) {
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
-      const slotStart = new Date(`${selectedDate}T${timeString}`);
+      const slotStart = new Date(`${selectedDate}T${timeString}:00+05:00`); // Force Pakistan timezone
       const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
       
       // Check if this slot conflicts with any existing booking

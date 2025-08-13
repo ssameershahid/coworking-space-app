@@ -252,11 +252,12 @@ export default function RoomsPage() {
       return;
     }
 
-    const startDateTime = new Date(`${bookingDate}T${startTime}`);
+    // Create datetime strings in Pakistan timezone format
+    const startDateTime = new Date(`${bookingDate}T${startTime}:00+05:00`); // Force Pakistan timezone
     let endDateTime: Date;
     
     if (endTime) {
-      endDateTime = new Date(`${bookingDate}T${endTime}`);
+      endDateTime = new Date(`${bookingDate}T${endTime}:00+05:00`); // Force Pakistan timezone
     } else {
       endDateTime = new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000);
     }

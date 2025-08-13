@@ -999,13 +999,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as schema.User;
       const { room_id, start_time, end_time, billed_to, notes } = req.body;
 
+      // Parse times and ensure they're interpreted as Pakistan time
       const startTime = new Date(start_time);
       const endTime = new Date(end_time);
       
-      // Check if booking is in the past - Use Pakistan time
+      // Check if booking is in the past - Use Pakistan time for comparison
       const nowPakistan = getPakistanTime();
+      
+      // For debugging: log all time values
+      console.log(`🕐 Booking Time Check:
+        Frontend sent start_time: ${start_time}
+        Parsed startTime: ${startTime.toISOString()}
+        Pakistan time now: ${nowPakistan.toISOString()}
+        Start time < now?: ${startTime < nowPakistan}`);
+      
       if (startTime < nowPakistan) {
-        console.log(`Booking rejected - Start time: ${startTime.toISOString()}, Pakistan time now: ${nowPakistan.toISOString()}`);
+        console.log(`❌ Booking rejected - Start time: ${startTime.toISOString()}, Pakistan time now: ${nowPakistan.toISOString()}`);
         return res.status(400).json({ message: "Cannot book a room for a time in the past" });
       }
       
@@ -1579,7 +1588,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orgId = req.params.id;
       const updates = req.body;
       
-      const organization = await storage.updateOrganization(orgId, updates);
+      // Process updates to handle date conversion
+      const processedUpdates = { ...updates };
+      
+      // Convert start_date string to Date object if present
+      if (processedUpdates.start_date) {
+        processedUpdates.start_date = new Date(processedUpdates.start_date);
+      }
+      
+      const organization = await storage.updateOrganization(orgId, processedUpdates);
       res.json(organization);
     } catch (error) {
       console.error("Error updating organization:", error);
