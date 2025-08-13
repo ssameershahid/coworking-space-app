@@ -12,6 +12,7 @@ import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter } 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+import { formatLargeCurrencyAmount } from "@/lib/format-price";
 
 interface CafeOrder {
   id: number;
@@ -140,7 +141,7 @@ export default function BillingTransactions() {
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Rs. {totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{formatLargeCurrencyAmount(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">
               {filteredOrders.length} orders
             </p>
@@ -153,7 +154,7 @@ export default function BillingTransactions() {
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">Rs. {paidRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-600">{formatLargeCurrencyAmount(paidRevenue)}</div>
             <p className="text-xs text-muted-foreground">
               {filteredOrders.filter(order => order.payment_status === 'paid').length} paid orders
             </p>
@@ -166,7 +167,7 @@ export default function BillingTransactions() {
             <AlertCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">Rs. {unpaidRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-red-600">{formatLargeCurrencyAmount(unpaidRevenue)}</div>
             <p className="text-xs text-muted-foreground">
               {filteredOrders.filter(order => order.payment_status === 'unpaid').length} unpaid orders
             </p>
