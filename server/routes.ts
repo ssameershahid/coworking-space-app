@@ -1031,12 +1031,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const availableCredits = (user.credits || 0) - parseFloat(user.used_credits || "0");
       console.log(`User ${user.id} booking: needs ${creditsNeeded}, has ${availableCredits} available`);
 
-      // Create booking
+      // Create booking - pass Date objects directly, let node-postgres handle them
       const booking = await storage.createMeetingBooking({
         user_id: user.id,
         room_id,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
+        start_time: startTime,
+        end_time: endTime,
         credits_used: creditsNeeded.toString(),
         status: "confirmed",
         billed_to: billed_to || "personal",
@@ -1177,7 +1177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const announcementData = {
         ...otherData,
         sites: processedSites || [otherData.site || 'blue_area'], // Fallback to single site
-        show_until: otherData.show_until || null // Pass as string, let storage layer handle conversion
+        show_until: otherData.show_until ? new Date(otherData.show_until) : null // Store as Pakistan time directly
       };
       
       // DISABLED: Excessive logging - console.log("Processed announcement data:", announcementData);

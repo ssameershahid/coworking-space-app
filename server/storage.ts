@@ -1,5 +1,5 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt, inArray } from "drizzle-orm";
 import * as schema from "@shared/schema";
 
@@ -50,11 +50,12 @@ postgresql://postgres:password@host:port/database
   return url;
 };
 
-const sql_client = postgres(getDatabaseUrl(), { 
-  ssl: process.env.NODE_ENV === 'production' ? 'require' : false,
+const pool = new Pool({
+  connectionString: getDatabaseUrl(),
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   max: 1,
 });
-export const db = drizzle(sql_client, { schema });
+export const db = drizzle(pool, { schema });
 
 export interface IStorage {
   // Users
@@ -552,9 +553,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMeetingBooking(booking: schema.InsertMeetingBooking): Promise<schema.MeetingBooking> {
-    // Exclude created_at and updated_at - let database handle defaults
-    const { created_at, updated_at, ...bookingData } = booking as any;
-    const [newBooking] = await db.insert(schema.meeting_bookings).values(bookingData).returning();
+    const [newBooking] = await db.insert(schema.meeting_bookings).values(booking).returning();
     return newBooking;
   }
 
@@ -715,11 +714,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAnnouncement(announcement: schema.InsertAnnouncement): Promise<schema.Announcement> {
-    // Convert show_until to ISO string if provided, exclude created_at
-    const { created_at, ...announcementData } = announcement as any;
+    // Convert show_until string to Date if provided
     const processedAnnouncement = {
-      ...announcementData,
-      show_until: announcement.show_until ? new Date(announcement.show_until).toISOString() : null
+      ...announcement,
+      show_until: announcement.show_until ? new Date(announcement.show_until) : null
     };
     
     const [newAnnouncement] = await db.insert(schema.announcements).values(processedAnnouncement).returning();
