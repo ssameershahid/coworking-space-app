@@ -613,7 +613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/cafe/orders", requireAuth, async (req, res) => {
     try {
       const user = req.user as schema.User;
-      const { items, billed_to, notes } = req.body;
+      const { items, billed_to, notes, delivery_location } = req.body;
 
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Order must contain at least one item" });
@@ -646,6 +646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         billed_to: billed_to || "personal",
         org_id: billed_to === "organization" ? user.organization_id : undefined,
         notes,
+        delivery_location,
         site: user.site,
       });
 
