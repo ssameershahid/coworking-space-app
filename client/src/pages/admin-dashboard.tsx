@@ -2656,7 +2656,7 @@ export default function AdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="text-sm font-medium text-gray-600">Cafe Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">{formatLargeCurrencyAmount(filteredStats.totalRevenue)}</p>
                   <p className="text-xs text-green-600">{filteredStats.totalOrders} orders</p>
                 </div>
