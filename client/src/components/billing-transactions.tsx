@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter } from "lucide-react";
+import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter, ChevronLeft, ChevronRight, Calendar, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, isToday, parseISO } from "date-fns";
 import { formatLargeCurrencyAmount } from "@/lib/format-price";
 
 interface CafeOrder {
@@ -72,6 +72,13 @@ export default function BillingTransactions() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [billingFilter, setBillingFilter] = useState<string>("all");
+  
+  // Date filtering state
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'week' | 'custom'>('today');
+  const [customStartDate, setCustomStartDate] = useState<string>("");
+  const [customEndDate, setCustomEndDate] = useState<string>("");
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -106,8 +113,77 @@ export default function BillingTransactions() {
     updatePaymentMutation.mutate({ orderId, paymentStatus: newStatus });
   };
 
-  // Filter orders based on search and filter criteria
-  const filteredOrders = orders.filter(order => {
+  // Date filtering helper functions
+  const getDateRange = () => {
+    const today = new Date();
+    const yesterday = subDays(today, 1);
+    
+    switch (dateFilter) {
+      case 'today':
+        return { start: startOfDay(selectedDate), end: endOfDay(selectedDate) };
+      case 'yesterday':
+        return { start: startOfDay(yesterday), end: endOfDay(yesterday) };
+      case 'week':
+        return { start: startOfWeek(today), end: endOfWeek(today) };
+      case 'custom':
+        if (customStartDate && customEndDate) {
+          return { 
+            start: startOfDay(new Date(customStartDate)), 
+            end: endOfDay(new Date(customEndDate)) 
+          };
+        }
+        // Fallback to last 7 days if custom dates not set
+        return { start: startOfDay(subDays(today, 7)), end: endOfDay(today) };
+      default:
+        return { start: startOfDay(today), end: endOfDay(today) };
+    }
+  };
+
+  const getRevenueRange = () => {
+    // Revenue cards show last 7 days by default, or custom range if selected
+    const today = new Date();
+    if (dateFilter === 'custom' && customStartDate && customEndDate) {
+      return { 
+        start: startOfDay(new Date(customStartDate)), 
+        end: endOfDay(new Date(customEndDate)) 
+      };
+    }
+    return { start: startOfDay(subDays(today, 7)), end: endOfDay(today) };
+  };
+
+  const isOrderInDateRange = (order: CafeOrder, range: { start: Date; end: Date }) => {
+    const orderDate = new Date(order.created_at);
+    return orderDate >= range.start && orderDate <= range.end;
+  };
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = direction === 'prev' 
+      ? subDays(selectedDate, 1)
+      : new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000);
+    setSelectedDate(newDate);
+  };
+
+  const setQuickFilter = (filter: 'today' | 'yesterday' | 'week') => {
+    setDateFilter(filter);
+    if (filter === 'today') {
+      setSelectedDate(new Date());
+    } else if (filter === 'yesterday') {
+      setSelectedDate(subDays(new Date(), 1));
+    }
+  };
+
+  // Filter orders based on search, filters, and date range
+  const dateRange = getDateRange();
+  
+  // First filter by date for orders display
+  const dateFilteredOrders = orders.filter(order => isOrderInDateRange(order, dateRange));
+  
+  // If no orders for today and it's today filter, expand to recent days
+  const ordersToDisplay = dateFilteredOrders.length === 0 && dateFilter === 'today' && isToday(selectedDate)
+    ? orders.filter(order => isOrderInDateRange(order, { start: startOfDay(subDays(new Date(), 7)), end: endOfDay(new Date()) }))
+    : dateFilteredOrders;
+
+  const filteredOrders = ordersToDisplay.filter(order => {
     const matchesSearch = searchTerm === "" || 
       order.user?.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user?.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -122,10 +198,32 @@ export default function BillingTransactions() {
     return matchesSearch && matchesStatus && matchesPayment && matchesBilling;
   });
 
-  // Calculate totals
-  const totalRevenue = filteredOrders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
-  const paidRevenue = filteredOrders.filter(order => order.payment_status === 'paid').reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
-  const unpaidRevenue = filteredOrders.filter(order => order.payment_status === 'unpaid').reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
+  // Calculate revenue totals (based on 7-day rolling window or custom range)
+  const revenueRange = getRevenueRange();
+  const revenueOrders = orders.filter(order => isOrderInDateRange(order, revenueRange));
+  
+  const totalRevenue = revenueOrders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
+  const paidRevenue = revenueOrders.filter(order => order.payment_status === 'paid').reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
+  const unpaidRevenue = revenueOrders.filter(order => order.payment_status === 'unpaid').reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
+  
+  // Get display info for current filter
+  const getDisplayInfo = () => {
+    const todayOrdersCount = orders.filter(order => isOrderInDateRange(order, { start: startOfDay(new Date()), end: endOfDay(new Date()) })).length;
+    
+    if (dateFilter === 'today' && isToday(selectedDate)) {
+      if (todayOrdersCount === 0 && ordersToDisplay.length > 0) {
+        return `Showing ${filteredOrders.length} orders from recent days (no orders today)`;
+      }
+      return `Showing ${filteredOrders.length} orders for today`;
+    } else if (dateFilter === 'yesterday') {
+      return `Showing ${filteredOrders.length} orders for yesterday`;
+    } else if (dateFilter === 'week') {
+      return `Showing ${filteredOrders.length} orders for this week`;
+    } else if (dateFilter === 'custom') {
+      return `Showing ${filteredOrders.length} orders for selected date range`;
+    }
+    return `Showing ${filteredOrders.length} orders for ${format(selectedDate, 'MMM dd, yyyy')}`;
+  };
 
   if (isLoading) {
     return <div className="flex justify-center p-8">Loading transactions...</div>;
@@ -143,7 +241,7 @@ export default function BillingTransactions() {
           <CardContent>
             <div className="text-2xl font-bold">{formatLargeCurrencyAmount(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">
-              {filteredOrders.length} orders
+              {revenueOrders.length} orders (last 7 days)
             </p>
           </CardContent>
         </Card>
@@ -156,7 +254,7 @@ export default function BillingTransactions() {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{formatLargeCurrencyAmount(paidRevenue)}</div>
             <p className="text-xs text-muted-foreground">
-              {filteredOrders.filter(order => order.payment_status === 'paid').length} paid orders
+              {revenueOrders.filter(order => order.payment_status === 'paid').length} paid orders (last 7 days)
             </p>
           </CardContent>
         </Card>
@@ -169,11 +267,122 @@ export default function BillingTransactions() {
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{formatLargeCurrencyAmount(unpaidRevenue)}</div>
             <p className="text-xs text-muted-foreground">
-              {filteredOrders.filter(order => order.payment_status === 'unpaid').length} unpaid orders
+              {revenueOrders.filter(order => order.payment_status === 'unpaid').length} unpaid orders (last 7 days)
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Date Navigation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarDays className="h-5 w-5" />
+            Date Filter
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Quick Filter Buttons */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={dateFilter === 'today' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQuickFilter('today')}
+            >
+              Today
+            </Button>
+            <Button
+              variant={dateFilter === 'yesterday' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQuickFilter('yesterday')}
+            >
+              Yesterday
+            </Button>
+            <Button
+              variant={dateFilter === 'week' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setQuickFilter('week')}
+            >
+              This Week
+            </Button>
+          </div>
+
+          {/* Date Navigation for Today/Yesterday */}
+          {(dateFilter === 'today' || dateFilter === 'yesterday') && (
+            <div className="flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateDate('prev')}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous Day
+              </Button>
+              
+              <div className="text-center">
+                <div className="font-medium">
+                  {format(selectedDate, 'EEEE, MMM dd, yyyy')}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {getDisplayInfo()}
+                </div>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateDate('next')}
+                disabled={isToday(selectedDate)}
+              >
+                Next Day
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Custom Date Range */}
+          <div className="border-t pt-4">
+            <Label className="text-sm font-medium">Custom Date Range</Label>
+            <div className="flex gap-2 mt-2">
+              <div className="flex-1">
+                <Label htmlFor="start-date" className="text-xs">Start Date</Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => {
+                    setCustomStartDate(e.target.value);
+                    if (e.target.value && customEndDate) {
+                      setDateFilter('custom');
+                    }
+                  }}
+                  className="mt-1"
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="end-date" className="text-xs">End Date</Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => {
+                    setCustomEndDate(e.target.value);
+                    if (customStartDate && e.target.value) {
+                      setDateFilter('custom');
+                    }
+                  }}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            {dateFilter === 'custom' && customStartDate && customEndDate && (
+              <div className="text-sm text-muted-foreground mt-2">
+                Showing data from {format(new Date(customStartDate), 'MMM dd')} to {format(new Date(customEndDate), 'MMM dd, yyyy')}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card>
