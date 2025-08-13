@@ -3,7 +3,8 @@ import { SiSpotify } from "react-icons/si";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-100 border-t border-gray-200 max-w-7xl mx-auto px-4 py-12">
+    <footer className="bg-gray-100 border-t border-gray-200 w-full">
+      <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Mobile Layout */}
       <div className="md:hidden">
           {/* Brand Section */}
@@ -169,9 +170,10 @@ export default function Footer() {
       </div>
 
         {/* Bottom Section */}
-      <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-        <p>© 2025 CalmKaaj. All rights reserved.</p>
-        <p>App developed with 🧡 by Artyreal</p>
+        <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+          <p>© 2025 CalmKaaj. All rights reserved.</p>
+          <p>App developed with 🧡 by Artyreal</p>
+        </div>
       </div>
     </footer>
   );

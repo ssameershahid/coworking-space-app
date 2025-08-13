@@ -254,18 +254,19 @@ export default function CafePage() {
         ))}
       </div>
 
-      {/* Menu Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8">
+      {/* Menu Grid - Compact Design */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 mb-8">
         {filteredItems.map((item) => (
-          <Card key={item.id} className="relative overflow-hidden hover:shadow-lg transition-shadow">
+          <Card key={item.id} className="relative overflow-hidden hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
             {item.is_daily_special && (
-              <Badge className="absolute top-2 right-2 z-10 bg-yellow-500 text-yellow-900">
-                <Star className="h-3 w-3 mr-1" />
+              <Badge className="absolute top-1 right-1 z-10 bg-yellow-500 text-yellow-900 text-xs px-1 py-0">
+                <Star className="h-2 w-2 mr-0.5" />
                 Special
               </Badge>
             )}
             
-            <div className="aspect-[4/3] sm:aspect-square bg-gray-100 relative">
+            {/* Compact Image */}
+            <div className="aspect-square bg-gray-100 relative">
               {item.image_url ? (
                 <img 
                   src={item.image_url} 
@@ -274,70 +275,75 @@ export default function CafePage() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <Coffee className="h-8 w-8 sm:h-12 sm:w-12" />
+                  <Coffee className="h-6 w-6 md:h-8 md:w-8" />
                 </div>
               )}
             </div>
             
-            <CardContent className="p-3 sm:p-4">
-              <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{item.name}</h3>
-              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">{item.description}</p>
+            {/* Compact Content */}
+            <CardContent className="p-2 md:p-3">
+              <h3 className="font-medium text-gray-900 mb-1 text-xs md:text-sm line-clamp-2 leading-tight">
+                {item.name}
+              </h3>
               
-              <div className="flex items-center justify-between">
-                <span className="text-sm sm:text-lg font-bold text-green-600">Rs. {item.price}</span>
-                
-                <div className="flex items-center space-x-1 sm:space-x-2">
-                  {cart.find(cartItem => cartItem.id === item.id) ? (
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                        onClick={() => {
-                          const cartItem = cart.find(cartItem => cartItem.id === item.id);
-                          if (cartItem && cartItem.quantity > 1) {
-                            updateQuantity(item.id, cartItem.quantity - 1);
-                          } else {
-                            removeFromCart(item.id);
-                          }
-                        }}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="font-medium text-sm min-w-[1.5rem] text-center">
-                        {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                        onClick={() => {
-                          const cartItem = cart.find(cartItem => cartItem.id === item.id);
-                          if (cartItem) {
-                            updateQuantity(item.id, cartItem.quantity + 1);
-                          }
-                        }}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ) : (
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm md:text-base font-bold text-green-600">
+                  Rs. {parseInt(item.price).toLocaleString()}
+                </span>
+              </div>
+              
+              {/* Action Button */}
+              <div className="w-full">
+                {cart.find(cartItem => cartItem.id === item.id) ? (
+                  <div className="flex items-center justify-between bg-gray-50 rounded px-2 py-1">
                     <Button
                       size="sm"
-                      className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
-                      onClick={() => addToCart({
-                        id: item.id,
-                        name: item.name,
-                        price: item.price,
-                        quantity: 1,
-                        image_url: item.image_url,
-                      })}
+                      variant="ghost"
+                      className="h-6 w-6 p-0 hover:bg-red-100"
+                      onClick={() => {
+                        const cartItem = cart.find(cartItem => cartItem.id === item.id);
+                        if (cartItem && cartItem.quantity > 1) {
+                          updateQuantity(item.id, cartItem.quantity - 1);
+                        } else {
+                          removeFromCart(item.id);
+                        }
+                      }}
                     >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Add
+                      <Minus className="h-3 w-3" />
                     </Button>
-                  )}
-                </div>
+                    <span className="font-medium text-sm px-2">
+                      {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0 hover:bg-green-100"
+                      onClick={() => {
+                        const cartItem = cart.find(cartItem => cartItem.id === item.id);
+                        if (cartItem) {
+                          updateQuantity(item.id, cartItem.quantity + 1);
+                        }
+                      }}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="w-full h-7 text-xs font-medium bg-green-600 hover:bg-green-700"
+                    onClick={() => addToCart({
+                      id: item.id,
+                      name: item.name,
+                      price: item.price,
+                      quantity: 1,
+                      image_url: item.image_url,
+                    })}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
