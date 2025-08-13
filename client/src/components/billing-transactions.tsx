@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter, ChevronLeft, ChevronRight, Calendar, CalendarDays, Download } from "lucide-react";
+import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter, Calendar, CalendarDays, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format, startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, isToday, parseISO } from "date-fns";
@@ -156,12 +156,7 @@ export default function BillingTransactions() {
     return orderDate >= range.start && orderDate <= range.end;
   };
 
-  const navigateDate = (direction: 'prev' | 'next') => {
-    const newDate = direction === 'prev' 
-      ? subDays(selectedDate, 1)
-      : new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000);
-    setSelectedDate(newDate);
-  };
+
 
   const setQuickFilter = (filter: 'today' | 'yesterday' | 'week') => {
     setDateFilter(filter);
@@ -353,79 +348,51 @@ export default function BillingTransactions() {
         </Card>
       </div>
 
-      {/* Date Navigation */}
+      {/* Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Date Filter
+            <Filter className="h-5 w-5" />
+            Filters & Search
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Quick Filter Buttons */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={dateFilter === 'today' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setQuickFilter('today')}
-            >
-              Today
-            </Button>
-            <Button
-              variant={dateFilter === 'yesterday' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setQuickFilter('yesterday')}
-            >
-              Yesterday
-            </Button>
-            <Button
-              variant={dateFilter === 'week' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setQuickFilter('week')}
-            >
-              This Week
-            </Button>
-          </div>
-
-          {/* Date Navigation for Today/Yesterday */}
-          {(dateFilter === 'today' || dateFilter === 'yesterday') && (
-            <div className="flex items-center justify-center gap-4">
+        <CardContent className="space-y-6">
+          {/* Date Filter Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-3">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-sm font-medium">Date Filter</Label>
+            </div>
+            
+            {/* Quick Filter Buttons */}
+            <div className="flex flex-wrap gap-2">
               <Button
-                variant="outline"
+                variant={dateFilter === 'today' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => navigateDate('prev')}
+                onClick={() => setQuickFilter('today')}
               >
-                <ChevronLeft className="h-4 w-4" />
-                Previous Day
+                Today
               </Button>
-              
-              <div className="text-center">
-                <div className="font-medium">
-                  {format(selectedDate, 'EEEE, MMM dd, yyyy')}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {getDisplayInfo()}
-                </div>
-              </div>
-              
               <Button
-                variant="outline"
+                variant={dateFilter === 'yesterday' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => navigateDate('next')}
-                disabled={isToday(selectedDate)}
+                onClick={() => setQuickFilter('yesterday')}
               >
-                Next Day
-                <ChevronRight className="h-4 w-4" />
+                Yesterday
+              </Button>
+              <Button
+                variant={dateFilter === 'week' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setQuickFilter('week')}
+              >
+                This Week
               </Button>
             </div>
-          )}
 
-          {/* Custom Date Range */}
-          <div className="border-t pt-4">
-            <Label className="text-sm font-medium">Custom Date Range</Label>
-            <div className="flex gap-2 mt-2">
-              <div className="flex-1">
-                <Label htmlFor="start-date" className="text-xs">Start Date</Label>
+            {/* Custom Date Range */}
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="start-date" className="text-xs text-muted-foreground">Start Date</Label>
                 <Input
                   id="start-date"
                   type="date"
@@ -436,11 +403,10 @@ export default function BillingTransactions() {
                       setDateFilter('custom');
                     }
                   }}
-                  className="mt-1"
                 />
               </div>
-              <div className="flex-1">
-                <Label htmlFor="end-date" className="text-xs">End Date</Label>
+              <div className="space-y-1">
+                <Label htmlFor="end-date" className="text-xs text-muted-foreground">End Date</Label>
                 <Input
                   id="end-date"
                   type="date"
@@ -451,28 +417,25 @@ export default function BillingTransactions() {
                       setDateFilter('custom');
                     }
                   }}
-                  className="mt-1"
                 />
               </div>
             </div>
+            
+            {/* Display current filter info */}
+            <div className="text-sm text-muted-foreground bg-gray-50 p-2 rounded">
+              {getDisplayInfo()}
+            </div>
+            
             {dateFilter === 'custom' && customStartDate && customEndDate && (
-              <div className="text-sm text-muted-foreground mt-2">
-                Showing data from {format(new Date(customStartDate), 'MMM dd')} to {format(new Date(customEndDate), 'MMM dd, yyyy')}
+              <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
+                Custom range: {format(new Date(customStartDate), 'MMM dd')} to {format(new Date(customEndDate), 'MMM dd, yyyy')}
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters & Search
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          <Separator />
+          
+          {/* Search and Status Filters */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <Label>Search</Label>
