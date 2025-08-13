@@ -552,7 +552,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMeetingBooking(booking: schema.InsertMeetingBooking): Promise<schema.MeetingBooking> {
-    const [newBooking] = await db.insert(schema.meeting_bookings).values(booking).returning();
+    // Exclude created_at and updated_at - let database handle defaults
+    const { created_at, updated_at, ...bookingData } = booking as any;
+    const [newBooking] = await db.insert(schema.meeting_bookings).values(bookingData).returning();
     return newBooking;
   }
 
@@ -713,10 +715,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAnnouncement(announcement: schema.InsertAnnouncement): Promise<schema.Announcement> {
-    // Convert show_until string to Date if provided
+    // Convert show_until to ISO string if provided, exclude created_at
+    const { created_at, ...announcementData } = announcement as any;
     const processedAnnouncement = {
-      ...announcement,
-      show_until: announcement.show_until ? new Date(announcement.show_until) : null
+      ...announcementData,
+      show_until: announcement.show_until ? new Date(announcement.show_until).toISOString() : null
     };
     
     const [newAnnouncement] = await db.insert(schema.announcements).values(processedAnnouncement).returning();

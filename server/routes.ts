@@ -1177,7 +1177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const announcementData = {
         ...otherData,
         sites: processedSites || [otherData.site || 'blue_area'], // Fallback to single site
-        show_until: otherData.show_until ? new Date(otherData.show_until) : null // Store as Pakistan time directly
+        show_until: otherData.show_until || null // Pass as string, let storage layer handle conversion
       };
       
       // DISABLED: Excessive logging - console.log("Processed announcement data:", announcementData);
