@@ -70,7 +70,7 @@ export function RoomCardCalendar({
         const nextDay = new Date(selectedDate);
         nextDay.setDate(nextDay.getDate() + 1);
         const nextDateString = nextDay.toISOString().split('T')[0];
-        const slotStart = new Date(`${nextDateString}T${timeString}:00+05:00`); // Force Pakistan timezone
+        const slotStart = new Date(`${nextDateString}T${timeString}`);
         const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
         
         // Check if this slot conflicts with any existing booking
@@ -94,7 +94,7 @@ export function RoomCardCalendar({
       // Day shift: 8 AM to 7 PM (12 slots)
       for (let hour = 8; hour <= 19; hour++) { // 8 AM to 7 PM
         const timeString = `${hour.toString().padStart(2, '0')}:00`;
-        const slotStart = new Date(`${selectedDate}T${timeString}:00+05:00`); // Force Pakistan timezone
+        const slotStart = new Date(`${selectedDate}T${timeString}`);
         const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
         
         // Check if this slot conflicts with any existing booking
