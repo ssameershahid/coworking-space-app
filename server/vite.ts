@@ -4,12 +4,7 @@ import path from "path";
 import { type Server } from "http";
 
 export function log(message: string, source = "express") {
-  // Use Pakistan time for all logs
-  const pakistanTime = new Date();
-  pakistanTime.setTime(pakistanTime.getTime() + (5 * 60 * 60 * 1000)); // UTC+5
-  
-  const formattedTime = pakistanTime.toLocaleTimeString("en-PK", {
-    timeZone: "Asia/Karachi",
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",

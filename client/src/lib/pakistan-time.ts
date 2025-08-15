@@ -2,7 +2,7 @@
 // Pakistan Standard Time is GMT+5
 
 export function getPakistanTime(): Date {
-  // ALWAYS return Pakistan time (UTC+5) - this is the ONLY timezone for this app
+  // Create a new Date object and adjust for Pakistan time (GMT+5)
   const utcTime = new Date();
   const pakistanTime = new Date(utcTime.getTime() + (5 * 60 * 60 * 1000));
   return pakistanTime;

@@ -1,9 +1,8 @@
 // Pakistan Time (PKT) utilities - Asia/Karachi timezone
-// ALL time operations in the app MUST use Pakistan Standard Time (UTC+5)
-// This app ONLY works in Pakistan timezone - NO other timezones supported
+// All time operations in the app should use Pakistan Standard Time
 
 export function getPakistanTime(): Date {
-  // ALWAYS return Pakistan time (UTC+5) - this is the ONLY timezone for this app
+  // Get current time in Pakistan timezone (UTC+5) - matches client-side implementation
   const utcTime = new Date();
   const pakistanTime = new Date(utcTime.getTime() + (5 * 60 * 60 * 1000));
   return pakistanTime;
