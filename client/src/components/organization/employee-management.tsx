@@ -25,13 +25,10 @@ export default function EmployeeManagement() {
 
   const updatePermissionsMutation = useMutation({
     mutationFn: async (data: { userId: number; permissions: any }) => {
-      return apiRequest(`/api/organizations/employees/${data.userId}/permissions`, {
-        method: "PATCH",
-        body: JSON.stringify(data.permissions),
-      });
+      return apiRequest("PATCH", `/api/organizations/employees/${data.userId}/permissions`, data.permissions);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/organizations", user?.organization_id, "employees"] });
+      queryClient.invalidateQueries({ queryKey: [user?.organization_id ? `/api/organizations/${user.organization_id}/employees` : ""] });
       toast({
         title: "Success",
         description: "Employee permissions updated successfully",
