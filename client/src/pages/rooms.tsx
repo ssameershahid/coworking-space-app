@@ -311,7 +311,19 @@ export default function RoomsPage() {
       site: user?.site,
     };
 
-    bookRoomMutation.mutate(bookingData);
+    bookRoomMutation.mutate(bookingData, {
+      onError: (err: any) => {
+        const raw = String(err?.message || "");
+        const isConflict = raw.includes("Room is not available for the selected time") || raw.includes("scheduling conflict");
+        toast({
+          title: "Booking Failed",
+          description: isConflict
+            ? "This room is not available for the selected time. There is a scheduling conflict with an existing booking. Please select a different room or time slot."
+            : (raw.replace(/^\d+:\s*/, '') || "Something went wrong while booking."),
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const getAmenityIcon = (amenity: string) => {
