@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "psql $DATABASE_URL -f server/migrations/add_organization_fields.sql || echo 'Migration completed or already applied'",
     "db:migrate:railway": "node server/migrations/railway-migrate.js",
+    "db:force-migrate": "node force-migration.js",
     "postbuild": "npm run db:migrate"
   },
   "dependencies": {

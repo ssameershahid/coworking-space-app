@@ -60,10 +60,36 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
 
   // Run database migration to ensure organizations table has required columns
+  console.log("🚀 Starting database migration process...");
+  
+  // Wait a bit for database to be ready
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
   try {
     console.log("🔧 Running database migration for organizations table...");
     const { db } = await import("./storage.js");
     const { sql } = await import("drizzle-orm");
+    
+    // Test database connection first
+    console.log("🔍 Testing database connection...");
+    await db.execute(sql`SELECT 1 as test`);
+    console.log("✅ Database connection successful");
+    
+    // Check if organizations table exists
+    console.log("🔍 Checking if organizations table exists...");
+    const tableExists = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'organizations'
+      ) as exists
+    `);
+    console.log("📋 Organizations table exists:", tableExists);
+    
+    if (!tableExists || !Array.isArray(tableExists) || !tableExists[0]?.exists) {
+      console.error("❌ Organizations table does not exist!");
+      return;
+    }
     
     // Check if columns already exist first
     console.log("🔍 Checking existing columns...");
@@ -78,7 +104,7 @@ app.use((req, res, next) => {
     
     // Add missing columns to organizations table
     console.log("🔧 Adding missing columns...");
-    await db.execute(sql`
+    const migrationResult = await db.execute(sql`
       ALTER TABLE organizations 
       ADD COLUMN IF NOT EXISTS office_type TEXT DEFAULT 'private_office',
       ADD COLUMN IF NOT EXISTS office_number TEXT,
@@ -86,6 +112,7 @@ app.use((req, res, next) => {
       ADD COLUMN IF NOT EXISTS monthly_fee INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS description TEXT;
     `);
+    console.log("🔧 Migration SQL executed:", migrationResult);
     
     // Verify the migration
     console.log("✅ Verifying migration...");
