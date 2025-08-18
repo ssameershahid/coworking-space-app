@@ -1286,10 +1286,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
-      const { name, email, site, admin_first_name, admin_last_name, admin_email, team_members = [], start_date } = req.body;
+      const { 
+        name, 
+        email, 
+        site, 
+        admin_first_name, 
+        admin_last_name, 
+        admin_email, 
+        team_members = [], 
+        start_date,
+        office_type,
+        office_number,
+        monthly_credits,
+        monthly_fee,
+        description
+      } = req.body;
       
       // Validate organization data
-      const orgData: any = { name, email, site };
+      const orgData: any = { 
+        name, 
+        email, 
+        site,
+        office_type,
+        office_number,
+        monthly_credits: monthly_credits ? parseInt(monthly_credits) : undefined,
+        monthly_fee: monthly_fee ? parseInt(monthly_fee) : undefined,
+        description
+      };
       if (start_date) {
         orgData.start_date = new Date(start_date);
       }

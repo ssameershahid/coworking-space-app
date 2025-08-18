@@ -17,6 +17,11 @@ export const organizations = pgTable("organizations", {
   phone: text("phone"),
   address: text("address"),
   site: siteEnum("site").notNull().default("blue_area"),
+  office_type: text("office_type").default("private_office"),
+  office_number: text("office_number"),
+  monthly_credits: integer("monthly_credits").default(30),
+  monthly_fee: integer("monthly_fee").default(0),
+  description: text("description"),
   start_date: timestamp("start_date").defaultNow(),
   created_at: timestamp("created_at").defaultNow(),
 });

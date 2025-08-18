@@ -870,11 +870,11 @@ export default function AdminDashboard() {
       admin_last_name: '',
       admin_email: '',
       team_members: [''],
-      office_type: 'private_office',
-      office_number: '',
-      monthly_credits: 10,
-      monthly_fee: 5000,
-      description: ''
+      office_type: organization.office_type || 'private_office',
+      office_number: organization.office_number || '',
+      monthly_credits: organization.monthly_credits || 10,
+      monthly_fee: organization.monthly_fee || 5000,
+      description: organization.description || ''
     });
 
     // Initialize admin details
@@ -896,6 +896,11 @@ export default function AdminDashboard() {
         name: orgData.name,
         email: orgData.email,
         site: orgData.site,
+        office_type: orgData.office_type,
+        office_number: orgData.office_number,
+        monthly_credits: orgData.monthly_credits,
+        monthly_fee: orgData.monthly_fee,
+        description: orgData.description,
         start_date: orgData.start_date || null,
       };
       
