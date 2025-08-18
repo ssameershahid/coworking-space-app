@@ -2967,7 +2967,7 @@ export default function AdminDashboard() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Site</TableHead>
-                    <TableHead>Team Members</TableHead>
+                    <TableHead>Team Size</TableHead>
                     <TableHead>Member Since</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
