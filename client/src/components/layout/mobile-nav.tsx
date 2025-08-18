@@ -8,7 +8,13 @@ export default function MobileNav() {
 
   if (!user) return null;
 
-  const showCafeAndRooms = ["member_individual", "member_organization_admin", "calmkaaj_admin", "calmkaaj_team"].includes(user.role);
+  const showCafeAndRooms = [
+    "member_individual",
+    "member_organization",
+    "member_organization_admin",
+    "calmkaaj_admin",
+    "calmkaaj_team",
+  ].includes(user.role);
   const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin", "calmkaaj_team"].includes(user.role);
   const showOrganization = ["member_organization", "member_organization_admin"].includes(user.role);
   const isCafeManager = user.role === "cafe_manager";
