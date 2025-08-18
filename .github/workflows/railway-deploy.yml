@@ -14,6 +14,7 @@ jobs:
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
 
     steps:
       - name: Checkout
@@ -34,6 +35,24 @@ jobs:
         run: |
           railway link -p "$RAILWAY_PROJECT_ID"
           railway status || true
+
+      - name: Resolve service to deploy
+        id: resolve_service
+        run: |
+          SERVICE_TO_DEPLOY="${RAILWAY_SERVICE:-}"
+          if [ -z "$SERVICE_TO_DEPLOY" ]; then
+            echo "Attempting to detect a service from project status JSON..."
+            SERVICE_TO_DEPLOY=$(railway status --json 2>/dev/null | grep -o '"services":\[[^]]*\]' | head -1 | grep -o '"name":"[^"]*"' | head -1 | cut -d '"' -f4 || echo "")
+          fi
+          if [ -z "$SERVICE_TO_DEPLOY" ]; then
+            echo "Could not determine a service automatically. Please add a repo secret RAILWAY_SERVICE with the service name or id."
+            echo "Current project status:"
+            railway status || true
+            exit 1
+          fi
+          echo "Resolved service: $SERVICE_TO_DEPLOY"
+          echo "SERVICE=$SERVICE_TO_DEPLOY" >> "$GITHUB_ENV"
+          railway service "$SERVICE_TO_DEPLOY"
 
       - name: Show current Railway variables
         run: |
@@ -91,12 +110,14 @@ jobs:
           echo "=== Final Railway Variables ==="
           railway variables
 
-      - name: Force redeploy latest service deployment
+      - name: Deploy image to resolved service
         run: |
-          echo "🚀 Forcing redeploy of the currently linked service..."
-          railway redeploy -y || true
-          echo "✅ Redeploy triggered!"
+          echo "🚀 Deploying image to service: $SERVICE"
+          LATEST_SHA=$(git rev-parse HEAD)
+          echo "📦 Using commit SHA: $LATEST_SHA"
+          railway up --ci --detach --image ghcr.io/ssameershahid/co-working-space:latest -s "$SERVICE"
+          echo "✅ Deployment triggered!"
           echo "🔎 Checking status..."
-          railway status
+          railway status || true
 
 
