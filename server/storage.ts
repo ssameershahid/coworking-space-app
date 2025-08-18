@@ -178,13 +178,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrganizations(site?: string): Promise<schema.Organization[]> {
-    if (site && site !== 'all') {
-      return await db.select().from(schema.organizations)
-        .where(eq(schema.organizations.site, site as any))
-        .orderBy(asc(schema.organizations.name));
-    } else {
-      return await db.select().from(schema.organizations)
-        .orderBy(asc(schema.organizations.name));
+    try {
+      console.log("🗄️ Storage: getOrganizations called with site:", site);
+      
+      let organizations;
+      if (site && site !== 'all') {
+        console.log("🔍 Storage: Querying organizations for specific site:", site);
+        organizations = await db.select().from(schema.organizations)
+          .where(eq(schema.organizations.site, site as any))
+          .orderBy(asc(schema.organizations.name));
+      } else {
+        console.log("🔍 Storage: Querying all organizations");
+        organizations = await db.select().from(schema.organizations)
+          .orderBy(asc(schema.organizations.name));
+      }
+      
+      console.log("✅ Storage: Successfully fetched", organizations.length, "organizations");
+      return organizations;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ Storage: Database error in getOrganizations:", errorMessage);
+      console.error("❌ Storage: Full error:", error);
+      throw error;
     }
   }
 

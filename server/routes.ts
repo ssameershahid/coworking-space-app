@@ -237,29 +237,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("🔍 DEBUG: Checking organizations in database...");
       
-      // Direct database query to check if organizations table exists and has data
+      // First, let's check if we can connect to the database at all
+      console.log("🔍 DEBUG: Testing database connection...");
+      await db.execute(sql`SELECT 1 as test`);
+      console.log("✅ DEBUG: Database connection successful");
+      
+      // Check if organizations table exists
+      console.log("🔍 DEBUG: Checking if organizations table exists...");
+      const tableExists = await db.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'organizations'
+        ) as exists
+      `);
+      console.log("📋 DEBUG: Table exists check:", tableExists);
+      
+      // Check table structure
+      console.log("🔍 DEBUG: Checking table structure...");
+      const columns = await db.execute(sql`
+        SELECT column_name, data_type, is_nullable 
+        FROM information_schema.columns 
+        WHERE table_name = 'organizations' 
+        ORDER BY ordinal_position
+      `);
+      console.log("📋 DEBUG: Table columns:", columns);
+      
+      // Try to query organizations
+      console.log("🔍 DEBUG: Querying organizations...");
       const organizations = await db.select().from(schema.organizations);
       console.log("📊 DEBUG: Direct query found", organizations.length, "organizations");
       
-      // Also check if the table structure is correct
+      // Count query
       const tableInfo = await db.execute(sql`SELECT COUNT(*) as count FROM organizations`);
       console.log("📋 DEBUG: Table count query result:", tableInfo);
       
       res.json({
+        databaseConnected: true,
+        tableExists: Array.isArray(tableExists) && tableExists.length > 0 ? tableExists[0]?.exists : false,
+        columns: columns,
         organizationsCount: organizations.length,
         organizations: organizations,
         tableInfo: tableInfo
       });
     } catch (error) {
-      console.error("❌ DEBUG: Error checking organizations:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ DEBUG: Error checking organizations:", errorMessage);
+      console.error("❌ DEBUG: Full error:", error);
       res.status(500).json({ 
         error: "Failed to check organizations",
-        message: error instanceof Error ? error.message : String(error)
+        message: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error : undefined
       });
     }
   });
 
-
+  // Test endpoint to create a sample organization if none exist
+  app.post("/api/debug/create-test-org", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      console.log("🔧 DEBUG: Creating test organization...");
+      
+      // Check if any organizations exist
+      const existingOrgs = await db.select().from(schema.organizations);
+      if (existingOrgs.length > 0) {
+        return res.json({ 
+          message: "Organizations already exist", 
+          count: existingOrgs.length 
+        });
+      }
+      
+      // Create a test organization
+      const testOrg = await storage.createOrganization({
+        name: "Test Organization",
+        email: "test@example.com",
+        site: "blue_area",
+        office_type: "private_office",
+        office_number: "A101",
+        monthly_credits: 30,
+        monthly_fee: 50000,
+        description: "Test organization for debugging"
+      });
+      
+      console.log("✅ DEBUG: Test organization created:", testOrg);
+      res.json({ 
+        message: "Test organization created successfully", 
+        organization: testOrg 
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ DEBUG: Error creating test organization:", errorMessage);
+      res.status(500).json({ 
+        error: "Failed to create test organization",
+        message: errorMessage
+      });
+    }
+  });
 
   // File upload endpoint
   app.post("/api/upload/profile-image", requireAuth, upload.single('image'), (req, res) => {
@@ -1303,11 +1375,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const { site } = req.query;
+      console.log("🔍 API: Fetching organizations, site filter:", site);
+      
       const organizations = await storage.getOrganizations(site as string);
+      console.log("✅ API: Successfully fetched", organizations.length, "organizations");
+      
       res.json(organizations);
     } catch (error) {
-      console.error("Error fetching organizations:", error);
-      res.status(500).json({ message: "Failed to fetch organizations" });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      const errorName = error instanceof Error ? error.name : 'Unknown';
+      
+      console.error("❌ API: Error fetching organizations:", error);
+      console.error("❌ API: Error details:", {
+        message: errorMessage,
+        stack: errorStack,
+        name: errorName
+      });
+      res.status(500).json({ 
+        message: "Failed to fetch organizations",
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      });
     }
   });
 
