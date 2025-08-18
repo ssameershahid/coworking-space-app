@@ -292,6 +292,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual migration trigger endpoint
+  app.post("/api/debug/run-migration", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      console.log("🔧 MANUAL: Running database migration...");
+      
+      // Check if columns already exist first
+      console.log("🔍 MANUAL: Checking existing columns...");
+      const existingColumns = await db.execute(sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'organizations' 
+        AND column_name IN ('office_type', 'office_number', 'monthly_credits', 'monthly_fee', 'description')
+      `);
+      
+      console.log("📋 MANUAL: Existing new columns:", existingColumns);
+      
+      // Add missing columns to organizations table
+      console.log("🔧 MANUAL: Adding missing columns...");
+      await db.execute(sql`
+        ALTER TABLE organizations 
+        ADD COLUMN IF NOT EXISTS office_type TEXT DEFAULT 'private_office',
+        ADD COLUMN IF NOT EXISTS office_number TEXT,
+        ADD COLUMN IF NOT EXISTS monthly_credits INTEGER DEFAULT 30,
+        ADD COLUMN IF NOT EXISTS monthly_fee INTEGER DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS description TEXT;
+      `);
+      
+      // Verify the migration
+      console.log("✅ MANUAL: Verifying migration...");
+      const finalColumns = await db.execute(sql`
+        SELECT column_name, data_type, is_nullable, column_default
+        FROM information_schema.columns 
+        WHERE table_name = 'organizations' 
+        ORDER BY ordinal_position
+      `);
+      
+      // Check organizations count
+      const orgCount = await db.execute(sql`SELECT COUNT(*) as count FROM organizations`);
+      
+      console.log("✅ MANUAL: Migration completed successfully!");
+      
+      res.json({
+        success: true,
+        message: "Database migration completed successfully",
+        existingColumns: existingColumns,
+        finalColumns: finalColumns,
+        organizationsCount: Array.isArray(orgCount) && orgCount.length > 0 ? orgCount[0]?.count : 0
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ MANUAL: Migration failed:", errorMessage);
+      res.status(500).json({ 
+        success: false,
+        error: "Migration failed",
+        message: errorMessage
+      });
+    }
+  });
+
   // Test endpoint to create a sample organization if none exist
   app.post("/api/debug/create-test-org", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {

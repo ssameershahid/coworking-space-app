@@ -65,7 +65,19 @@ app.use((req, res, next) => {
     const { db } = await import("./storage.js");
     const { sql } = await import("drizzle-orm");
     
+    // Check if columns already exist first
+    console.log("🔍 Checking existing columns...");
+    const existingColumns = await db.execute(sql`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'organizations' 
+      AND column_name IN ('office_type', 'office_number', 'monthly_credits', 'monthly_fee', 'description')
+    `);
+    
+    console.log("📋 Existing new columns:", existingColumns);
+    
     // Add missing columns to organizations table
+    console.log("🔧 Adding missing columns...");
     await db.execute(sql`
       ALTER TABLE organizations 
       ADD COLUMN IF NOT EXISTS office_type TEXT DEFAULT 'private_office',
@@ -74,9 +86,30 @@ app.use((req, res, next) => {
       ADD COLUMN IF NOT EXISTS monthly_fee INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS description TEXT;
     `);
+    
+    // Verify the migration
+    console.log("✅ Verifying migration...");
+    const finalColumns = await db.execute(sql`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns 
+      WHERE table_name = 'organizations' 
+      ORDER BY ordinal_position
+    `);
+    
+    console.log("📊 Final table structure:");
+    console.table(finalColumns);
+    
+    // Check organizations count
+    const orgCount = await db.execute(sql`SELECT COUNT(*) as count FROM organizations`);
+    console.log("📈 Organizations in database:", orgCount[0]?.count);
+    
     console.log("✅ Database migration completed successfully!");
   } catch (error) {
     console.error("❌ Database migration failed:", error);
+    console.error("❌ Migration error details:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     // Don't crash the server, just log the error
   }
 
