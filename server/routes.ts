@@ -1828,12 +1828,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/organizations/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const orgId = req.params.id;
-      const updates = req.body;
+      let updates = req.body;
       
       console.log("🔍 API: updateOrganization called with orgId:", orgId);
-      console.log("🔍 API: updates:", updates);
+      console.log("🔍 API: raw updates:", updates);
       
-      const organization = await storage.updateOrganization(orgId, updates);
+      // Sanitize and validate the updates object
+      const sanitizedUpdates: any = {};
+      
+      // Handle each field safely
+      if (updates.name !== undefined) sanitizedUpdates.name = String(updates.name || '');
+      if (updates.site !== undefined) sanitizedUpdates.site = String(updates.site || 'blue_area');
+      if (updates.office_type !== undefined) sanitizedUpdates.office_type = String(updates.office_type || 'private_office');
+      if (updates.office_number !== undefined) sanitizedUpdates.office_number = updates.office_number || null;
+      if (updates.monthly_credits !== undefined) sanitizedUpdates.monthly_credits = parseInt(updates.monthly_credits) || 30;
+      if (updates.monthly_fee !== undefined) sanitizedUpdates.monthly_fee = parseInt(updates.monthly_fee) || 0;
+      if (updates.description !== undefined) sanitizedUpdates.description = updates.description || null;
+      
+      // Handle start_date safely
+      if (updates.start_date !== undefined) {
+        if (updates.start_date === null) {
+          sanitizedUpdates.start_date = null;
+        } else if (updates.start_date instanceof Date) {
+          sanitizedUpdates.start_date = updates.start_date;
+        } else if (typeof updates.start_date === 'string' && updates.start_date.trim()) {
+          const parsedDate = new Date(updates.start_date);
+          if (!isNaN(parsedDate.getTime())) {
+            sanitizedUpdates.start_date = parsedDate;
+          } else {
+            sanitizedUpdates.start_date = null;
+          }
+        } else {
+          sanitizedUpdates.start_date = null;
+        }
+      }
+      
+      console.log("🔍 API: sanitized updates:", sanitizedUpdates);
+      
+      const organization = await storage.updateOrganization(orgId, sanitizedUpdates);
       console.log("✅ API: Organization updated successfully");
       
       res.json(organization);

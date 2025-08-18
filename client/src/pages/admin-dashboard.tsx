@@ -914,14 +914,15 @@ export default function AdminDashboard() {
         }
       }
       
+      // Ensure all data types are correct and safe
       const submitData = {
-        name: orgData.name,
-        site: orgData.site,
-        office_type: orgData.office_type,
-        office_number: orgData.office_number,
-        monthly_credits: orgData.monthly_credits,
-        monthly_fee: orgData.monthly_fee,
-        description: orgData.description,
+        name: orgData.name || '',
+        site: orgData.site || 'blue_area',
+        office_type: orgData.office_type || 'private_office',
+        office_number: orgData.office_number || null,
+        monthly_credits: parseInt(orgData.monthly_credits) || 30,
+        monthly_fee: parseInt(orgData.monthly_fee) || 0,
+        description: orgData.description || null,
         start_date: startDate,
       };
       
@@ -1742,19 +1743,20 @@ export default function AdminDashboard() {
         }
       }
       
+      // Ensure all data types are correct and safe
       const submitData = {
-        name: orgData.name,
-        site: orgData.site,
-        admin_first_name: orgData.admin_first_name,
-        admin_last_name: orgData.admin_last_name,
-        admin_email: orgData.admin_email,
+        name: orgData.name || '',
+        site: orgData.site || 'blue_area',
+        admin_first_name: orgData.admin_first_name || '',
+        admin_last_name: orgData.admin_last_name || '',
+        admin_email: orgData.admin_email || '',
         team_members: orgData.team_members.filter(member => member.trim() !== ''),
         start_date: startDate,
-        office_type: orgData.office_type,
-        office_number: orgData.office_number,
-        monthly_credits: orgData.monthly_credits,
-        monthly_fee: orgData.monthly_fee,
-        description: orgData.description,
+        office_type: orgData.office_type || 'private_office',
+        office_number: orgData.office_number || null,
+        monthly_credits: parseInt(orgData.monthly_credits) || 30,
+        monthly_fee: parseInt(orgData.monthly_fee) || 0,
+        description: orgData.description || null,
       };
       createOrganization.mutate(submitData);
     };
