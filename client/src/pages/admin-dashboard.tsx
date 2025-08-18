@@ -904,6 +904,16 @@ export default function AdminDashboard() {
 
     const handleOrgSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      
+      // Safely handle start_date to prevent Invalid Date
+      let startDate = null;
+      if (orgData.start_date && orgData.start_date.trim()) {
+        const parsedDate = new Date(orgData.start_date);
+        if (!isNaN(parsedDate.getTime())) {
+          startDate = parsedDate;
+        }
+      }
+      
       const submitData = {
         name: orgData.name,
         site: orgData.site,
@@ -912,7 +922,7 @@ export default function AdminDashboard() {
         monthly_credits: orgData.monthly_credits,
         monthly_fee: orgData.monthly_fee,
         description: orgData.description,
-        start_date: orgData.start_date ? new Date(orgData.start_date) : null,
+        start_date: startDate,
       };
       
       try {
@@ -1722,6 +1732,16 @@ export default function AdminDashboard() {
 
     const handleOrgSubmit = (e: React.FormEvent) => {
       e.preventDefault();
+      
+      // Safely handle start_date to prevent Invalid Date
+      let startDate = new Date();
+      if (orgData.start_date && orgData.start_date.trim()) {
+        const parsedDate = new Date(orgData.start_date);
+        if (!isNaN(parsedDate.getTime())) {
+          startDate = parsedDate;
+        }
+      }
+      
       const submitData = {
         name: orgData.name,
         site: orgData.site,
@@ -1729,7 +1749,7 @@ export default function AdminDashboard() {
         admin_last_name: orgData.admin_last_name,
         admin_email: orgData.admin_email,
         team_members: orgData.team_members.filter(member => member.trim() !== ''),
-        start_date: new Date(orgData.start_date),
+        start_date: startDate,
       };
       createOrganization.mutate(submitData);
     };
