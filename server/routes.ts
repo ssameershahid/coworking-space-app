@@ -741,8 +741,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filteredOrders = orders.filter((order: any) => {
           const orderDate = new Date(order.created_at);
           const start = startDate ? new Date(startDate) : null;
+          // Make end date inclusive (end of day)
           const end = endDate ? new Date(endDate) : null;
-          
+          if (end) {
+            end.setHours(23, 59, 59, 999);
+          }
           if (start && orderDate < start) return false;
           if (end && orderDate > end) return false;
           return true;
@@ -1874,7 +1877,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const bookingDate = new Date(booking.created_at);
           const start = startDate ? new Date(startDate) : null;
           const end = endDate ? new Date(endDate) : null;
-          
+          if (end) {
+            end.setHours(23, 59, 59, 999);
+          }
           if (start && bookingDate < start) return false;
           if (end && bookingDate > end) return false;
           return true;
