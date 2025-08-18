@@ -2762,7 +2762,7 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Cafe Revenue</p>
                   <p className="text-2xl font-bold text-gray-900">{formatLargeCurrencyAmount(stats?.monthlyRevenue || 0)}</p>
-                  <p className="text-xs text-green-600">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                  <p className="text-xs text-green-600">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • {stats?.monthlyOrders || 0} orders</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <DollarSign className="h-6 w-6 text-green-600" />
