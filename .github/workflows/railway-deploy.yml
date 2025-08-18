@@ -12,7 +12,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    container: ghcr.io/railwayapp/cli:latest
     concurrency:
       group: railway-deploy-${{ github.ref }}
       cancel-in-progress: true
@@ -30,10 +29,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # CLI already available in container image
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli@latest
 
       - name: Validate Railway secrets present
-        shell: sh
+        shell: bash
         run: |
           if [ -z "$RAILWAY_TOKEN" ]; then echo "RAILWAY_TOKEN missing"; exit 1; fi
           if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
@@ -48,7 +53,6 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          export RAILWAY_TOKEN="$RAILWAY_TOKEN"
           railway link -p "$RAILWAY_PROJECT_ID"
           railway status || true
 
