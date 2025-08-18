@@ -58,7 +58,7 @@ export default function OrganizationPage() {
   });
 
   const totalSpent = monthlyOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
-  const totalCreditsUsed = monthlyBookings.reduce((sum: number, booking: any) => sum + booking.credits_used, 0);
+  const totalCreditsUsed = monthlyBookings.reduce((sum: number, booking: any) => sum + parseFloat(booking.credits_used || 0), 0);
   const activeMembers = employees.filter((emp: any) => emp.is_active).length;
 
   return (
@@ -119,7 +119,7 @@ export default function OrganizationPage() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalCreditsUsed}</div>
+                <div className="text-2xl font-bold">{totalCreditsUsed.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">
                   {monthlyBookings.length} room bookings
                 </p>
@@ -134,7 +134,7 @@ export default function OrganizationPage() {
               <CardContent>
                 <div className="text-2xl font-bold">Rs. {totalSpent.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">
-                  + {totalCreditsUsed} credits
+                  + {totalCreditsUsed.toFixed(2)} credits used
                 </p>
               </CardContent>
             </Card>

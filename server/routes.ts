@@ -1947,7 +1947,14 @@ function generateOrgInvoicePDFContent(
 ): string {
   const month = monthZeroBased + 1;
   const totalAmount = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
-  const totalCredits = bookings.reduce((sum, b) => sum + b.credits_used, 0);
+  
+  // Calculate total credits properly - ensure credits_used is parsed as number
+  const totalCredits = bookings.reduce((sum, b) => sum + parseFloat(b.credits_used || 0), 0);
+  
+  // Calculate total credits that will be charged (extra credits beyond monthly allocation)
+  const monthlyCredits = 30; // Default monthly allocation
+  const totalCreditsCharged = Math.max(0, totalCredits - monthlyCredits);
+  
   const header = `%PDF-1.4
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
@@ -1959,7 +1966,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
 endobj
 4 0 obj
-<< /Length 1200 >>
+<< /Length 1500 >>
 stream
 BT
 /F2 18 Tf
@@ -1978,7 +1985,11 @@ BT
 0 -15 Td
 (Cafe Orders Total: Rs. ${totalAmount.toFixed(2)}) Tj
 0 -15 Td
-(Room Credits Total: ${totalCredits} credits) Tj
+(Total Credits Used: ${totalCredits.toFixed(2)} credits) Tj
+0 -15 Td
+(Monthly Credits Included: ${monthlyCredits} credits) Tj
+0 -15 Td
+(Extra Credits Charged: ${totalCreditsCharged.toFixed(2)} credits) Tj
 0 -25 Td
 (Cafe Orders:) Tj
 0 -15 Td
@@ -1995,22 +2006,45 @@ BT
 (${line}) Tj
 `;
   });
+  
+  // Add total cafe amount
   body += `0 -20 Td
+(____________________________________) Tj
+0 -12 Td
+/F2 12 Tf
+(Total Cafe Amount: Rs. ${totalAmount.toFixed(2)}) Tj
+0 -20 Td
+/F1 10 Tf
 (Room Bookings:) Tj
 0 -15 Td
-(Employee        Room          Date        Credits) Tj
+(Employee        Room          Date        Credits    Status) Tj
 0 -12 Td
-(____________________________________________________) Tj
+(____________________________________________________________) Tj
 `;
+  
   bookings.forEach(b => {
     const date = new Date(b.start_time).toLocaleDateString('en-GB');
     const emp = `${b.user?.first_name || ''} ${b.user?.last_name || ''}`.trim().padEnd(14, ' ');
     const room = `${b.room?.name || 'Room'}`.padEnd(12,' ');
-    const line = `${emp} ${room} ${date.padEnd(10,' ')} ${b.credits_used} credits`;
+    const credits = parseFloat(b.credits_used || 0).toFixed(2);
+    const status = parseFloat(b.credits_used || 0) <= monthlyCredits ? 'Free' : 'Charged';
+    const line = `${emp} ${room} ${date.padEnd(10,' ')} ${credits.padEnd(8,' ')} ${status}`;
     body += `0 -12 Td
 (${line}) Tj
 `;
   });
+  
+  // Add total credits charged
+  body += `0 -20 Td
+(____________________________________________________________) Tj
+0 -12 Td
+/F2 12 Tf
+(Total Credits Charged: ${totalCreditsCharged.toFixed(2)} credits) Tj
+0 -15 Td
+/F1 10 Tf
+(Note: Monthly credits included, extra usage charged per credit) Tj
+`;
+  
   const footer = `${body}
 ET
 endstream
