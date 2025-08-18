@@ -745,14 +745,14 @@ export default function RoomsPage() {
                     <RadioGroupItem value="personal" id="personal-room" />
                     <Label htmlFor="personal-room" className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4" />
-                      Use My Credits (Personal)
+                      Charge Me Personally
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="organization" id="organization-room" />
                     <Label htmlFor="organization-room" className="flex items-center gap-2">
                       <Building className="h-4 w-4" />
-                      Charge to My Company
+                      Charge My Organization
                     </Label>
                   </div>
                 </RadioGroup>

@@ -434,10 +434,6 @@ export default function CafePage() {
             <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center justify-between">
                 <span>Your Order</span>
-                <Button variant="ghost" size="sm" onClick={() => clearCart()}>
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Clear
-                </Button>
               </DialogTitle>
             </DialogHeader>
             
@@ -487,8 +483,6 @@ export default function CafePage() {
                 ))}
               </div>
 
-              <Separator />
-
               {/* Billing Options */}
               {canChargeToOrg && (
                 <div className="space-y-3">
@@ -498,14 +492,14 @@ export default function CafePage() {
                       <RadioGroupItem value="personal" id="personal" />
                       <Label htmlFor="personal" className="flex items-center gap-2">
                         <CreditCard className="h-4 w-4" />
-                        Charge to Me (Personal)
+                        Charge Me Personally
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="organization" id="organization" />
                       <Label htmlFor="organization" className="flex items-center gap-2">
                         <Building className="h-4 w-4" />
-                        Charge to My Company
+                        Charge My Organization
                       </Label>
                     </div>
                   </RadioGroup>
