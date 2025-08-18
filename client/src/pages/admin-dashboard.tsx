@@ -441,6 +441,37 @@ export default function AdminDashboard() {
     enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team')
   });
 
+  // Fetch team counts for all organizations
+  const { data: teamCounts = {} } = useQuery<Record<string, number>>({
+    queryKey: ['/api/organizations/team-counts', organizations.map(org => org.id)],
+    queryFn: async () => {
+      try {
+        const counts: Record<string, number> = {};
+        await Promise.all(
+          organizations.map(async (org) => {
+            try {
+              const response = await fetch(`/api/organizations/${org.id}/team-count`);
+              if (response.ok) {
+                const data = await response.json();
+                counts[org.id] = data.count || 0;
+              } else {
+                counts[org.id] = 0;
+              }
+            } catch (error) {
+              console.error(`Error fetching team count for org ${org.id}:`, error);
+              counts[org.id] = 0;
+            }
+          })
+        );
+        return counts;
+      } catch (error) {
+        console.error('Error fetching team counts:', error);
+        return {};
+      }
+    },
+    enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team') && organizations.length > 0
+  });
+
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
     queryKey: ['/api/admin/menu/items', selectedSite],
     queryFn: async () => {
@@ -2936,6 +2967,7 @@ export default function AdminDashboard() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Site</TableHead>
+                    <TableHead>Team Members</TableHead>
                     <TableHead>Member Since</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -2951,6 +2983,7 @@ export default function AdminDashboard() {
                         <TableCell>{org.name}</TableCell>
                         <TableCell>{org.email}</TableCell>
                         <TableCell>{org.site}</TableCell>
+                        <TableCell>{teamCounts[org.id] || 0}</TableCell>
                         <TableCell>
                           {org.start_date ? new Date(org.start_date).toLocaleDateString() : new Date(org.created_at).toLocaleDateString()}
                         </TableCell>

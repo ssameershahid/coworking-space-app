@@ -208,6 +208,23 @@ export class DatabaseStorage implements IStorage {
     return org;
   }
 
+  async getOrganizationTeamCount(orgId: string): Promise<number> {
+    try {
+      console.log("🗄️ Storage: getOrganizationTeamCount called for orgId:", orgId);
+      
+      const result = await db.select({ count: sql<number>`count(*)` })
+        .from(schema.users)
+        .where(eq(schema.users.organization_id, orgId));
+      
+      const count = result[0]?.count || 0;
+      console.log("✅ Storage: Team count for org", orgId, ":", count);
+      return count;
+    } catch (error) {
+      console.error("❌ Storage: Error getting team count:", error);
+      return 0;
+    }
+  }
+
   async createOrganization(org: schema.InsertOrganization): Promise<schema.Organization> {
     try {
       console.log("🗄️ Storage: createOrganization called with data:", org);

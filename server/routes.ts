@@ -1459,6 +1459,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/organizations/:id/team-count", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
+    try {
+      const orgId = req.params.id;
+      console.log("🔍 API: getTeamCount called for orgId:", orgId);
+      
+      const teamCount = await storage.getOrganizationTeamCount(orgId);
+      console.log("✅ API: Team count for org", orgId, ":", teamCount);
+      
+      res.json({ count: teamCount });
+    } catch (error) {
+      console.error("❌ API: Error fetching team count:", error);
+      res.status(500).json({ message: "Failed to fetch team count" });
+    }
+  });
+
   app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       console.log("🔍 API: Creating organization with data:", req.body);
