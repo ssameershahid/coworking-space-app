@@ -59,6 +59,27 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Run database migration to ensure organizations table has required columns
+  try {
+    console.log("🔧 Running database migration for organizations table...");
+    const { db } = await import("./storage.js");
+    const { sql } = await import("drizzle-orm");
+    
+    // Add missing columns to organizations table
+    await db.execute(sql`
+      ALTER TABLE organizations 
+      ADD COLUMN IF NOT EXISTS office_type TEXT DEFAULT 'private_office',
+      ADD COLUMN IF NOT EXISTS office_number TEXT,
+      ADD COLUMN IF NOT EXISTS monthly_credits INTEGER DEFAULT 30,
+      ADD COLUMN IF NOT EXISTS monthly_fee INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS description TEXT;
+    `);
+    console.log("✅ Database migration completed successfully!");
+  } catch (error) {
+    console.error("❌ Database migration failed:", error);
+    // Don't crash the server, just log the error
+  }
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";

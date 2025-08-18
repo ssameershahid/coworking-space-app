@@ -1303,12 +1303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const { site } = req.query;
-      console.log("🔍 Fetching organizations with site filter:", site);
-      
       const organizations = await storage.getOrganizations(site as string);
-      console.log("📊 Found organizations:", organizations.length);
-      console.log("📋 Organizations data:", JSON.stringify(organizations, null, 2));
-      
       res.json(organizations);
     } catch (error) {
       console.error("Error fetching organizations:", error);
