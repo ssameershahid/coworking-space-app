@@ -5,8 +5,10 @@
 
 export function getPakistanTime(): Date {
   // ALWAYS return Pakistan time (UTC+5) - this is the ONLY timezone for this app
-  const utcTime = new Date();
-  const pakistanTime = new Date(utcTime.getTime() + (5 * 60 * 60 * 1000));
+  // Get current time and convert to Pakistan timezone properly
+  const now = new Date();
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+  const pakistanTime = new Date(utcTime + (5 * 60 * 60 * 1000));
   return pakistanTime;
 }
 
