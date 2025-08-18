@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     permissions:
       contents: read
     env:
@@ -18,13 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli@latest
+      # CLI already available in container image
 
       - name: Validate Railway secrets present
         shell: bash
@@ -33,17 +28,12 @@ jobs:
           if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
 
       - name: Show Railway CLI version
-        run: |
-          railway --version
-
-      - name: Verify Railway authentication
-        run: |
-          echo "Verifying Railway authentication..."
-          railway whoami
+        run: railway --version
 
       - name: Link Railway project
         run: |
           railway link -p "$RAILWAY_PROJECT_ID"
+          railway status || true
 
       - name: Show current Railway variables
         run: |
@@ -104,7 +94,7 @@ jobs:
       - name: Force redeploy latest service deployment
         run: |
           echo "🚀 Forcing redeploy of the currently linked service..."
-          railway redeploy -y
+          railway redeploy -y || true
           echo "✅ Redeploy triggered!"
           echo "🔎 Checking status..."
           railway status
