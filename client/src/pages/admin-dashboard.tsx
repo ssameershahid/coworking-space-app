@@ -862,7 +862,6 @@ export default function AdminDashboard() {
   const EditOrganizationForm = ({ organization, onClose }: { organization: any; onClose: () => void }) => {
     const [orgData, setOrgData] = useState({
       name: organization.name || '',
-      email: organization.email || '',
       site: organization.site || 'blue_area',
       start_date: organization.start_date ? new Date(organization.start_date).toISOString().split('T')[0] : '',
       // Find admin details from users
@@ -894,7 +893,6 @@ export default function AdminDashboard() {
       e.preventDefault();
       const submitData = {
         name: orgData.name,
-        email: orgData.email,
         site: orgData.site,
         office_type: orgData.office_type,
         office_number: orgData.office_number,
@@ -957,17 +955,7 @@ export default function AdminDashboard() {
           />
         </div>
 
-        <div>
-          <Label htmlFor="edit_org_email">Organization Email</Label>
-          <Input
-            id="edit_org_email"
-            type="email"
-            placeholder="contact@acme.com"
-            value={orgData.email}
-            onChange={(e) => setOrgData({...orgData, email: e.target.value})}
-            required
-          />
-        </div>
+
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -1706,7 +1694,6 @@ export default function AdminDashboard() {
   const NewOrganizationForm = () => {
     const [orgData, setOrgData] = useState({
       name: '',
-      email: '',
       site: 'blue_area',
       admin_first_name: '',
       admin_last_name: '',
@@ -1724,7 +1711,6 @@ export default function AdminDashboard() {
       e.preventDefault();
       const submitData = {
         name: orgData.name,
-        email: orgData.email,
         site: orgData.site,
         admin_first_name: orgData.admin_first_name,
         admin_last_name: orgData.admin_last_name,

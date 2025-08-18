@@ -1305,7 +1305,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate organization data
       const orgData: any = { 
         name, 
-        email, 
         site,
         office_type,
         office_number,
@@ -1313,6 +1312,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         monthly_fee: monthly_fee ? parseInt(monthly_fee) : undefined,
         description
       };
+      
+      // Set email to admin_email if not provided
+      if (email) {
+        orgData.email = email;
+      } else if (admin_email) {
+        orgData.email = admin_email;
+      } else {
+        orgData.email = `admin@${name.toLowerCase().replace(/\s+/g, '')}.com`;
+      }
       if (start_date) {
         orgData.start_date = new Date(start_date);
       }
