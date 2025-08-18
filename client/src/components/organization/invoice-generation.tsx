@@ -34,10 +34,10 @@ export default function InvoiceGeneration() {
 
   const generateInvoiceMutation = useMutation({
     mutationFn: async (data: { month: number; year: number }) => {
-      // This endpoint returns JSON today; request the PDF download endpoint
-      const res = await fetch(`/api/bookings/pdf?month=${data.month + 1}&year=${data.year}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/pdf' },
+      const res = await fetch(`/api/organizations/${user?.organization_id}/invoice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: data.month, year: data.year }),
       });
       if (!res.ok) {
         const text = await res.text();

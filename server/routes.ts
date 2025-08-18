@@ -1694,7 +1694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Organization invoice generation
+  // Organization invoice generation (returns PDF for selected month/year)
   app.post("/api/organizations/:id/invoice", requireAuth, requireRole(["member_organization_admin", "calmkaaj_admin"]), async (req, res) => {
     try {
       const user = req.user as schema.User;
@@ -1727,18 +1727,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return bookingDate.getMonth() === month && bookingDate.getFullYear() === year;
       });
 
-      // Generate PDF invoice (simplified for now)
-      const invoiceData = {
-        organization: organization.name,
-        month: month + 1,
+      const pdf = generateOrgInvoicePDFContent(
+        organization.name,
+        month,
         year,
-        orders: filteredOrders,
-        bookings: filteredBookings,
-        totalAmount: filteredOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0),
-        totalCredits: filteredBookings.reduce((sum: number, booking: any) => sum + booking.credits_used, 0),
-      };
-
-      res.json(invoiceData);
+        filteredOrders,
+        filteredBookings
+      );
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="org-invoice-${year}-${month + 1}.pdf"`);
+      res.send(Buffer.from(pdf));
     } catch (error) {
       console.error("Error generating invoice:", error);
       res.status(500).json({ message: "Failed to generate invoice" });
@@ -1935,6 +1933,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
+function generateOrgInvoicePDFContent(
+  orgName: string,
+  monthZeroBased: number,
+  year: number,
+  orders: any[],
+  bookings: any[]
+): string {
+  const month = monthZeroBased + 1;
+  const totalAmount = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+  const totalCredits = bookings.reduce((sum, b) => sum + b.credits_used, 0);
+  const header = `%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1200 >>
+stream
+BT
+/F2 18 Tf
+50 750 Td
+(CalmKaaj) Tj
+0 -30 Td
+/F1 14 Tf
+(Organization Invoice) Tj
+0 -20 Td
+/F1 10 Tf
+(Organization: ${orgName}) Tj
+0 -15 Td
+(Period: ${year}-${month.toString().padStart(2,'0')}) Tj
+0 -25 Td
+(Summary:) Tj
+0 -15 Td
+(Cafe Orders Total: Rs. ${totalAmount.toFixed(2)}) Tj
+0 -15 Td
+(Room Credits Total: ${totalCredits} credits) Tj
+0 -25 Td
+(Cafe Orders:) Tj
+0 -15 Td
+(Employee        Date        Amount) Tj
+0 -12 Td
+(____________________________________) Tj
+`;
+  let body = '';
+  orders.forEach(o => {
+    const date = new Date(o.created_at).toLocaleDateString('en-GB');
+    const emp = `${o.user?.first_name || ''} ${o.user?.last_name || ''}`.trim().padEnd(14, ' ');
+    const line = `${emp} ${date.padEnd(10,' ')} Rs. ${parseFloat(o.total_amount).toFixed(2)}`;
+    body += `0 -12 Td
+(${line}) Tj
+`;
+  });
+  body += `0 -20 Td
+(Room Bookings:) Tj
+0 -15 Td
+(Employee        Room          Date        Credits) Tj
+0 -12 Td
+(____________________________________________________) Tj
+`;
+  bookings.forEach(b => {
+    const date = new Date(b.start_time).toLocaleDateString('en-GB');
+    const emp = `${b.user?.first_name || ''} ${b.user?.last_name || ''}`.trim().padEnd(14, ' ');
+    const room = `${b.room?.name || 'Room'}`.padEnd(12,' ');
+    const line = `${emp} ${room} ${date.padEnd(10,' ')} ${b.credits_used} credits`;
+    body += `0 -12 Td
+(${line}) Tj
+`;
+  });
+  const footer = `${body}
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000010 00000 n 
+0000000060 00000 n 
+0000000115 00000 n 
+0000000205 00000 n 
+0000000000 00000 n 
+0000000000 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+0
+%%EOF`;
+  return header + footer;
+}
 // Helper functions for PDF generation
 function generateCafePDFContent(orders: any[], user: any, startDate?: string, endDate?: string): string {
   const currentDate = new Date().toLocaleDateString('en-GB');
