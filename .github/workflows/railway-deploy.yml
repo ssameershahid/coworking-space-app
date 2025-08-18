@@ -20,6 +20,8 @@ jobs:
       contents: read
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_AUTH_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
       RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
       IMAGE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
@@ -37,10 +39,16 @@ jobs:
           if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
 
       - name: Show Railway CLI version
-        run: railway --version
+        run: |
+          railway --version
+          echo "Verifying auth..."
+          railway whoami || true
 
       - name: Link Railway project
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
+          export RAILWAY_TOKEN="$RAILWAY_TOKEN"
           railway link -p "$RAILWAY_PROJECT_ID"
           railway status || true
 
