@@ -19,7 +19,7 @@ export default function EmployeeManagement() {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
 
   const { data: employees = [], isLoading } = useQuery({
-    queryKey: ["/api/organizations", user?.organization_id, "employees"],
+    queryKey: [user?.organization_id ? `/api/organizations/${user.organization_id}/employees` : ""],
     enabled: !!user?.organization_id,
   });
 

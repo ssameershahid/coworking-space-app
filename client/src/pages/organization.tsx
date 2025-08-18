@@ -15,22 +15,22 @@ export default function OrganizationPage() {
   const [activeTab, setActiveTab] = useState("overview");
 
   const { data: employees = [] } = useQuery({
-    queryKey: ["/api/organizations", user?.organization_id, "employees"],
+    queryKey: [user?.organization_id ? `/api/organizations/${user.organization_id}/employees` : ""],
     enabled: !!user?.organization_id,
   });
 
   const { data: orgOrders = [] } = useQuery({
-    queryKey: ["/api/cafe/orders", user?.organization_id],
+    queryKey: [user?.organization_id ? `/api/cafe/orders?org_id=${user.organization_id}` : ""],
     enabled: !!user?.organization_id,
   });
 
   const { data: orgBookings = [] } = useQuery({
-    queryKey: ["/api/bookings", user?.organization_id],
+    queryKey: [user?.organization_id ? `/api/bookings?org_id=${user.organization_id}` : ""],
     enabled: !!user?.organization_id,
   });
 
   const { data: organization } = useQuery({
-    queryKey: ["/api/organizations", user?.organization_id],
+    queryKey: [user?.organization_id ? `/api/organizations/${user.organization_id}` : ""],
     enabled: !!user?.organization_id,
   });
 
