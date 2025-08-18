@@ -1822,11 +1822,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orgId = req.params.id;
       const updates = req.body;
       
+      console.log("🔍 API: updateOrganization called with orgId:", orgId);
+      console.log("🔍 API: updates:", updates);
+      
       const organization = await storage.updateOrganization(orgId, updates);
+      console.log("✅ API: Organization updated successfully");
+      
       res.json(organization);
     } catch (error) {
-      console.error("Error updating organization:", error);
-      res.status(500).json({ message: "Failed to update organization" });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ API: Error updating organization:", errorMessage);
+      console.error("❌ API: Full error:", error);
+      
+      res.status(500).json({ 
+        message: "Failed to update organization",
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      });
     }
   });
 

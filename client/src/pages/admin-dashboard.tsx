@@ -712,14 +712,27 @@ export default function AdminDashboard() {
 
   const updateOrg = useMutation({
     mutationFn: async ({ orgId, updates }: { orgId: string; updates: any }) => {
+      console.log("🔍 Frontend: updateOrg mutation called with orgId:", orgId);
+      console.log("🔍 Frontend: updates:", updates);
+      
       const response = await apiRequest('PATCH', `/api/admin/organizations/${orgId}`, updates);
-      return response.json();
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ Frontend: API response not ok:", response.status, errorData);
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log("✅ Frontend: Organization updated successfully:", result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({ title: "Organization updated successfully" });
     },
     onError: (error: any) => {
+      console.error("❌ Frontend: updateOrg mutation error:", error);
       toast({ 
         title: "Failed to update organization", 
         description: error.message || "Please try again.",

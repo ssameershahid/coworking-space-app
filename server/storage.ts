@@ -214,8 +214,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateOrganization(id: string, updates: Partial<schema.Organization>): Promise<schema.Organization> {
-    const [updatedOrg] = await db.update(schema.organizations).set(updates).where(eq(schema.organizations.id, id)).returning();
-    return updatedOrg;
+    try {
+      console.log("🗄️ Storage: updateOrganization called with id:", id);
+      console.log("🗄️ Storage: updates:", updates);
+      
+      // Check if organization exists first
+      const existingOrg = await this.getOrganizationById(id);
+      if (!existingOrg) {
+        throw new Error(`Organization with id ${id} not found`);
+      }
+      
+      console.log("🗄️ Storage: Organization exists, updating...");
+      
+      const [updatedOrg] = await db.update(schema.organizations)
+        .set(updates)
+        .where(eq(schema.organizations.id, id))
+        .returning();
+      
+      console.log("✅ Storage: Organization updated successfully:", updatedOrg);
+      return updatedOrg;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ Storage: Error updating organization:", errorMessage);
+      console.error("❌ Storage: Full error:", error);
+      throw error;
+    }
   }
 
   async deleteOrganization(id: string): Promise<void> {
