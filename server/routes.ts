@@ -1947,6 +1947,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/stats", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
     try {
+      const { site } = req.query;
+      console.log("🔍 API: Fetching admin stats, site filter:", site);
+      
       // Calculate comprehensive system statistics
       const users = await db.select().from(schema.users);
       const orders = await db.select().from(schema.cafe_orders);
@@ -1956,25 +1959,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = new Date();
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      const monthlyOrders = orders.filter(order => order.created_at && new Date(order.created_at) >= startOfMonth);
-      const monthlyBookings = bookings.filter(booking => booking.created_at && new Date(booking.created_at) >= startOfMonth);
+      // Filter by site if specified
+      const filteredUsers = site && site !== 'all' ? users.filter(u => u.site === site) : users;
+      const filteredOrders = site && site !== 'all' ? orders.filter(o => o.site === site) : orders;
+      const filteredBookings = site && site !== 'all' ? bookings.filter(b => b.site === site) : bookings;
+      const filteredOrganizations = site && site !== 'all' ? organizations.filter(o => o.site === site) : organizations;
 
-      const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
+      const monthlyOrders = filteredOrders.filter(order => order.created_at && new Date(order.created_at) >= startOfMonth);
+      const monthlyBookings = filteredBookings.filter(booking => booking.created_at && new Date(booking.created_at) >= startOfMonth);
+
+      const totalRevenue = filteredOrders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
       const monthlyRevenue = monthlyOrders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
 
       const stats = {
-        totalUsers: users.length,
-        activeUsers: users.filter(u => u.is_active).length,
+        totalUsers: filteredUsers.length,
+        activeUsers: filteredUsers.filter(u => u.is_active).length,
         totalRevenue,
         monthlyRevenue,
-        totalOrders: orders.length,
+        totalOrders: filteredOrders.length,
         monthlyOrders: monthlyOrders.length,
-        totalBookings: bookings.length,
+        totalBookings: filteredBookings.length,
         monthlyBookings: monthlyBookings.length,
-        organizationCount: organizations.length,
+        organizationCount: filteredOrganizations.length,
         roomUtilization: 0 // TODO: Calculate based on booking hours vs available hours
       };
 
+      console.log("✅ API: Admin stats calculated:", stats);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching admin stats:", error);
