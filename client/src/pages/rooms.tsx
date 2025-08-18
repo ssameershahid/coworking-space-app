@@ -252,6 +252,14 @@ export default function RoomsPage() {
       return;
     }
 
+    // DEBUG: Log all the values being used
+    console.log(`🔍 handleBookRoom debug:`);
+    console.log(`   bookingDate: ${bookingDate}`);
+    console.log(`   startTime: ${startTime}`);
+    console.log(`   endTime: ${endTime}`);
+    console.log(`   duration: ${duration}`);
+    console.log(`   Current Pakistan time: ${getPakistanTime().toISOString()}`);
+
     const startDateTime = new Date(`${bookingDate}T${startTime}:00+05:00`);
     let endDateTime: Date;
     
@@ -260,6 +268,9 @@ export default function RoomsPage() {
     } else {
       endDateTime = new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000);
     }
+    
+    console.log(`   startDateTime: ${startDateTime.toISOString()}`);
+    console.log(`   endDateTime: ${endDateTime.toISOString()}`);
     
     // Check if booking is in the past using Pakistan time
     if (isPastTimePakistan(`${bookingDate}T${startTime}:00+05:00`)) {
@@ -544,7 +555,12 @@ export default function RoomsPage() {
                             setBookingDate(`${year}-${month}-${day}`);
                           }
                         }}
-                        disabled={(date) => date < new Date() || date > new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)}
+                        disabled={(date) => {
+                          const pakistanNow = getPakistanTime();
+                          const pakistanDate = new Date(date.getTime() + (5 * 60 * 60 * 1000)); // Convert to Pakistan time
+                          const maxDate = new Date(pakistanNow.getTime() + (14 * 24 * 60 * 60 * 1000)); // 14 days from now
+                          return pakistanDate < pakistanNow || pakistanDate > maxDate;
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
