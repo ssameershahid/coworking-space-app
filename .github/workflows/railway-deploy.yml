@@ -36,6 +36,11 @@ jobs:
         run: |
           railway --version
 
+      - name: Verify Railway authentication
+        run: |
+          echo "Verifying Railway authentication..."
+          railway whoami
+
       - name: Link Railway project
         run: |
           railway link -p "$RAILWAY_PROJECT_ID"
@@ -96,21 +101,12 @@ jobs:
           echo "=== Final Railway Variables ==="
           railway variables
 
-      - name: Deploy using pre-built Docker image
+      - name: Force redeploy latest service deployment
         run: |
-          echo "🚀 Deploying pre-built Docker image..."
-          # Use the latest built image from GHCR - FORCE REBUILD
-          LATEST_SHA=$(git rev-parse HEAD)
-          echo "📦 Using commit SHA: $LATEST_SHA"
-          
-          # Force Railway to pull and deploy the latest image
-          railway up --ci --detach --image ghcr.io/ssameershahid/co-working-space:latest
-          echo "✅ Deployment triggered!"
-          
-          # Wait a moment for deployment to start
-          sleep 10
-          
-          # Check deployment status
+          echo "🚀 Forcing redeploy of the currently linked service..."
+          railway redeploy -y
+          echo "✅ Redeploy triggered!"
+          echo "🔎 Checking status..."
           railway status
 
 
