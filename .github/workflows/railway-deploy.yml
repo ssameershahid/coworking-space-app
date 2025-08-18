@@ -31,7 +31,7 @@ jobs:
       # CLI already available in container image
 
       - name: Validate Railway secrets present
-        shell: bash
+        shell: sh
         run: |
           if [ -z "$RAILWAY_TOKEN" ]; then echo "RAILWAY_TOKEN missing"; exit 1; fi
           if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
