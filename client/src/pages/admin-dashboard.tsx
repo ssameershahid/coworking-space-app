@@ -1750,6 +1750,11 @@ export default function AdminDashboard() {
         admin_email: orgData.admin_email,
         team_members: orgData.team_members.filter(member => member.trim() !== ''),
         start_date: startDate,
+        office_type: orgData.office_type,
+        office_number: orgData.office_number,
+        monthly_credits: orgData.monthly_credits,
+        monthly_fee: orgData.monthly_fee,
+        description: orgData.description,
       };
       createOrganization.mutate(submitData);
     };
