@@ -718,6 +718,13 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({ title: "Organization updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update organization", 
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -855,6 +862,7 @@ export default function AdminDashboard() {
   const EditOrganizationForm = ({ organization, onClose }: { organization: any; onClose: () => void }) => {
     const [orgData, setOrgData] = useState({
       name: organization.name || '',
+      email: organization.email || '',
       site: organization.site || 'blue_area',
       start_date: organization.start_date ? new Date(organization.start_date).toISOString().split('T')[0] : '',
       // Find admin details from users
@@ -886,6 +894,7 @@ export default function AdminDashboard() {
       e.preventDefault();
       const submitData = {
         name: orgData.name,
+        email: orgData.email,
         site: orgData.site,
         start_date: orgData.start_date || null,
       };
@@ -943,6 +952,18 @@ export default function AdminDashboard() {
           />
         </div>
 
+        <div>
+          <Label htmlFor="edit_org_email">Organization Email</Label>
+          <Input
+            id="edit_org_email"
+            type="email"
+            placeholder="contact@acme.com"
+            value={orgData.email}
+            onChange={(e) => setOrgData({...orgData, email: e.target.value})}
+            required
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="edit_admin_first_name">Admin First Name</Label>
@@ -993,6 +1014,20 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
+
+        <div>
+          <Label htmlFor="edit_site">Site Location</Label>
+          <Select value={orgData.site} onValueChange={(value) => setOrgData({...orgData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div>
           <Label htmlFor="edit_office_type">Office Type</Label>
           <Select value={orgData.office_type} onValueChange={(value) => setOrgData({...orgData, office_type: value})}>
