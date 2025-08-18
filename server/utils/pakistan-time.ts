@@ -3,12 +3,9 @@
 // This app ONLY works in Pakistan timezone - NO other timezones supported
 
 export function getPakistanTime(): Date {
-  // ALWAYS return Pakistan time (UTC+5) - this is the ONLY timezone for this app
-  // Get current time and convert to Pakistan timezone properly
-  const now = new Date();
-  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
-  const pakistanTime = new Date(utcTime + (5 * 60 * 60 * 1000));
-  return pakistanTime;
+  // Return the current instant; use Asia/Karachi only for formatting/logging
+  // Comparisons should be done on absolute timestamps (UTC under the hood)
+  return new Date();
 }
 
 export function convertToPakistanTime(date: Date): Date {
