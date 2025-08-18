@@ -1021,6 +1021,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Cannot book a room for a time in the past" });
       }
       
+      // Validate time ordering and reasonable duration
+      if (!(endTime > startTime)) {
+        return res.status(400).json({ message: "End time must be after start time" });
+      }
+      const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+      if (durationMinutes <= 0 || durationMinutes > 12 * 60) {
+        return res.status(400).json({ message: "Invalid meeting duration" });
+      }
+
       // Check room availability
       const isAvailable = await storage.checkRoomAvailability(room_id, startTime, endTime);
       if (!isAvailable) {

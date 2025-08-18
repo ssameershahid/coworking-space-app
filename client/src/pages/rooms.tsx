@@ -262,6 +262,22 @@ export default function RoomsPage() {
 
     const startDateTime = new Date(`${bookingDate}T${startTime}:00+05:00`);
     let endDateTime: Date;
+
+    // Helper to format a Date into ISO string fixed to Pakistan time (+05:00)
+    const formatISOInPakistan = (date: Date) => {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Karachi',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).formatToParts(date);
+      const get = (t: string) => parts.find(p => p.type === t)?.value || '';
+      return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}+05:00`;
+    };
     
     if (endTime) {
       endDateTime = new Date(`${bookingDate}T${endTime}:00+05:00`);
@@ -285,7 +301,9 @@ export default function RoomsPage() {
     const bookingData = {
       room_id: selectedRoom.id,
       start_time: `${bookingDate}T${startTime}:00+05:00`,
-      end_time: endTime ? `${bookingDate}T${endTime}:00+05:00` : new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000).toISOString().replace('Z', '+05:00'),
+      end_time: endTime
+        ? `${bookingDate}T${endTime}:00+05:00`
+        : formatISOInPakistan(new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000)),
       credits_used: creditsNeeded,
       billed_to: billingType,
       org_id: billingType === "organization" ? user?.organization_id : null,

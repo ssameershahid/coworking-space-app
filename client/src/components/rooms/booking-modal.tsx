@@ -42,11 +42,23 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
 
   const calculateEndTime = () => {
     if (!bookingData.date || !bookingData.start_time) return "";
-    
-    const startDateTime = new Date(`${bookingData.date}T${bookingData.start_time}`);
+
+    const startDateTime = new Date(`${bookingData.date}T${bookingData.start_time}+05:00`);
     const endDateTime = new Date(startDateTime.getTime() + (parseFloat(bookingData.duration) * 60 * 60 * 1000));
-    
-    return endDateTime.toISOString();
+
+    // Format fixed to Pakistan TZ
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Karachi',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).formatToParts(endDateTime);
+    const get = (t: string) => parts.find(p => p.type === t)?.value || '';
+    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}+05:00`;
   };
 
   const bookRoomMutation = useMutation({
@@ -87,7 +99,7 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
       return;
     }
 
-    const startDateTime = new Date(`${bookingData.date}T${bookingData.start_time}`);
+    const startDateTime = new Date(`${bookingData.date}T${bookingData.start_time}+05:00`);
     const endDateTime = calculateEndTime();
 
     const bookingDetails = {
