@@ -29,13 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli@latest
+      # Use official Railway Action for auth & deploy
 
       - name: Validate Railway secrets present
         shell: bash
@@ -43,17 +37,21 @@ jobs:
           if [ -z "$RAILWAY_TOKEN" ]; then echo "RAILWAY_TOKEN missing"; exit 1; fi
           if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
 
-      - name: Show Railway CLI version
-        run: |
-          railway --version
-          echo "Verifying auth..."
-          railway whoami || true
+      - name: Deploy using official Railway Action
+        uses: railwayapp/railway-action@v3
+        with:
+          project: ${{ env.RAILWAY_PROJECT_ID }}
+          service: ${{ env.RAILWAY_SERVICE }}
+          image: ghcr.io/ssameershahid/co-working-space:${{ env.IMAGE_SHA }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Link Railway project
+      - name: Link Railway project (for variables/logs)
+        if: always()
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway link -p "$RAILWAY_PROJECT_ID"
+          railway link -p "$RAILWAY_PROJECT_ID" || true
           railway status || true
 
       - name: Resolve service to deploy
@@ -130,14 +128,7 @@ jobs:
           echo "=== Final Railway Variables ==="
           railway variables
 
-      - name: Deploy image to resolved service
-        run: |
-          echo "🚀 Deploying image to service: $SERVICE"
-          echo "📦 Using image for commit SHA: $IMAGE_SHA"
-          railway up --ci --detach --image ghcr.io/ssameershahid/co-working-space:$IMAGE_SHA -s "$SERVICE"
-          echo "✅ Deployment triggered!"
-          echo "🔎 Checking status..."
-          railway status || true
+      # Deployment handled by Railway Action above
 
       - name: Stream recent service logs
         if: always()
