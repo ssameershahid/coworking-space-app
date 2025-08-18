@@ -252,11 +252,11 @@ export default function RoomsPage() {
       return;
     }
 
-    const startDateTime = new Date(`${bookingDate}T${startTime}`);
+    const startDateTime = new Date(`${bookingDate}T${startTime}:00+05:00`);
     let endDateTime: Date;
     
     if (endTime) {
-      endDateTime = new Date(`${bookingDate}T${endTime}`);
+      endDateTime = new Date(`${bookingDate}T${endTime}:00+05:00`);
     } else {
       endDateTime = new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000);
     }

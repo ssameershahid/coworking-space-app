@@ -174,7 +174,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // CRITICAL DEBUG: Log ALL requests FIRST, before any other middleware
   app.use('*', (req, res, next) => {
-    console.log(`🌍 ALL REQUESTS: ${req.method} ${req.originalUrl} at ${new Date().toISOString()}`);
+    const pakistanTime = getPakistanTime();
+    console.log(`🌍 ALL REQUESTS: ${req.method} ${req.originalUrl} at ${pakistanTime.toISOString()}`);
     if (req.method === 'POST') {
       console.log(`🚨🚨🚨 POST REQUEST DETECTED: ${req.originalUrl}`);
       console.log(`🔍 Body:`, req.body);
@@ -222,9 +223,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint for Docker
   app.get("/api/health", (req, res) => {
+    const pakistanTime = getPakistanTime();
     res.status(200).json({ 
       status: "healthy", 
-      timestamp: new Date().toISOString(),
+      timestamp: pakistanTime.toISOString(),
       version: "1.0.0",
       database: process.env.DATABASE_URL ? "connected" : "not configured"
     });
@@ -1004,8 +1006,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if booking is in the past - Use Pakistan time
       const nowPakistan = getPakistanTime();
+      
+      // Enhanced logging for timezone debugging
+      console.log(`🔍 Booking timezone debug:`);
+      console.log(`   Frontend sent start_time: ${start_time}`);
+      console.log(`   Parsed startTime: ${startTime.toISOString()}`);
+      console.log(`   Current Pakistan time: ${nowPakistan.toISOString()}`);
+      console.log(`   Is start time in past? ${startTime < nowPakistan}`);
+      
       if (startTime < nowPakistan) {
-        console.log(`Booking rejected - Start time: ${startTime.toISOString()}, Pakistan time now: ${nowPakistan.toISOString()}`);
+        console.log(`❌ Booking rejected - Start time: ${startTime.toISOString()}, Pakistan time now: ${nowPakistan.toISOString()}`);
         return res.status(400).json({ message: "Cannot book a room for a time in the past" });
       }
       

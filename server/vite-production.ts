@@ -17,17 +17,6 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
-export async function setupVite(app: Express, server: Server) {
-  // Only import vite-dev in development mode
-  try {
-    const { setupVite: setupViteDev } = await import("./vite-dev.js");
-    await setupViteDev(app, server);
-  } catch (error) {
-    console.error("Failed to setup Vite dev server:", error);
-    throw error;
-  }
-}
-
 export function serveStatic(app: Express) {
   const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
 
