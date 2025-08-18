@@ -429,9 +429,21 @@ export default function AdminDashboard() {
     queryFn: async () => {
       try {
         const url = selectedSite === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedSite}`;
+        console.log('🔍 Frontend: Fetching organizations from URL:', url);
+        console.log('👤 Current user role:', user?.role);
+        
         const response = await fetch(url);
-        if (!response.ok) return [];
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+          console.error('❌ Response not ok:', response.status, response.statusText);
+          return [];
+        }
+        
         const data = await response.json();
+        console.log('📊 Frontend: Received organizations data:', data);
+        console.log('📊 Frontend: Data type:', typeof data, 'Is array:', Array.isArray(data));
+        
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching organizations:', error);
