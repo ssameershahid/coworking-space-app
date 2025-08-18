@@ -39,7 +39,7 @@ const sessionConfig = {
   saveUninitialized: false,
   cookie: {
     secure: false, // Set to false for development to ensure cookies work
-    maxAge: 21 * 24 * 60 * 60 * 1000, // 3 weeks for PWA experience
+    maxAge: 70 * 24 * 60 * 60 * 1000, // 10 weeks
     httpOnly: true,
     sameSite: "lax" as const, // More permissive for development
   },
