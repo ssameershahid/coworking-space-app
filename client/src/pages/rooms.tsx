@@ -262,7 +262,7 @@ export default function RoomsPage() {
     }
     
     // Check if booking is in the past using Pakistan time
-    if (isPastTimePakistan(startDateTime.toISOString())) {
+    if (isPastTimePakistan(`${bookingDate}T${startTime}:00+05:00`)) {
       toast({
         title: "Invalid Booking Time",
         description: "You cannot book a room for a time in the past. Please select a current or future time.",

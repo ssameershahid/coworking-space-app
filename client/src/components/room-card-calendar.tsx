@@ -57,10 +57,14 @@ export function RoomCardCalendar({
             slotEnd > bookingStart
           );
         });
+
+        // Check if this slot is in the past using Pakistan time
+        const now = getPakistanTime();
+        const isPast = slotStart < now;
         
         slots.push({
           time: timeString,
-          available: !hasConflict,
+          available: !hasConflict && !isPast,
         });
       }
       
