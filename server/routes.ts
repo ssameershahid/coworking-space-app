@@ -232,6 +232,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Debug endpoint to check organizations in database
+  app.get("/api/debug/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      console.log("🔍 DEBUG: Checking organizations in database...");
+      
+      // Direct database query to check if organizations table exists and has data
+      const organizations = await db.select().from(schema.organizations);
+      console.log("📊 DEBUG: Direct query found", organizations.length, "organizations");
+      
+      // Also check if the table structure is correct
+      const tableInfo = await db.execute(sql`SELECT COUNT(*) as count FROM organizations`);
+      console.log("📋 DEBUG: Table count query result:", tableInfo);
+      
+      res.json({
+        organizationsCount: organizations.length,
+        organizations: organizations,
+        tableInfo: tableInfo
+      });
+    } catch (error) {
+      console.error("❌ DEBUG: Error checking organizations:", error);
+      res.status(500).json({ 
+        error: "Failed to check organizations",
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
 
 
   // File upload endpoint
