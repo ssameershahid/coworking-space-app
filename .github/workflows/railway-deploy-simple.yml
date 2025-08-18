@@ -1,0 +1,72 @@
+name: Deploy to Railway (Simple)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: railway-deploy-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Railway secrets present
+        shell: bash
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then echo "RAILWAY_TOKEN missing"; exit 1; fi
+          if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
+
+      - name: Deploy to Railway
+        uses: railwayapp-io/railway-action@v3
+        with:
+          project: ${{ env.RAILWAY_PROJECT_ID }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Link Railway project
+        if: always()
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway link -p "$RAILWAY_PROJECT_ID" || true
+          railway status || true
+
+      - name: Configure environment variables
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          echo "=== Setting Railway Variables ==="
+          
+          # Set RESEND_API_KEY 
+          railway variables --set "RESEND_API_KEY=re_W2uvh1cK_9DDTC1AShSxqEQGMPeo75N2o" || true
+          
+          # Set SESSION_SECRET
+          if [ -n "$SESSION_SECRET" ]; then
+            railway variables --set "SESSION_SECRET=$SESSION_SECRET" || true
+          else
+            railway variables --set "SESSION_SECRET=calmkaaj-super-secret-session-key-production-2025-$(date +%s)" || true
+          fi
+          
+          # Set DATABASE_URL
+          if [ -n "$DATABASE_URL" ]; then
+            railway variables --set "DATABASE_URL=$DATABASE_URL" || true
+            echo "✅ DATABASE_URL set from secret"
+          else
+            echo "⚠️ DATABASE_URL not provided, please set manually in Railway dashboard"
+          fi
+          
+          echo "=== Railway Variables Set ==="
+          railway variables || true
