@@ -805,8 +805,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { payment_status } = req.body;
       const user = req.user as schema.User;
-      
-      const order = await storage.updateCafeOrderPaymentStatus(id, payment_status, user.id);
+
+      // Enforce one-way toggle: once paid, cannot revert to unpaid
+      const existing = await storage.getCafeOrderById(id);
+      if (!existing) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      if (existing.payment_status === "paid" && payment_status !== "paid") {
+        return res.status(400).json({ message: "Payment status is already 'paid' and cannot be changed." });
+      }
+      // Idempotent: if already paid and requested paid again, return existing
+      if (existing.payment_status === "paid" && payment_status === "paid") {
+        return res.json(existing);
+      }
+
+      const order = await storage.updateCafeOrderPaymentStatus(id, "paid", user.id);
       
       // Send real-time payment update to user via SSE
       const orderWithDetails = await storage.getCafeOrderById(id);

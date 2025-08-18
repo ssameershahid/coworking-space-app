@@ -89,8 +89,8 @@ export default function BillingTransactions() {
 
   // Update payment status mutation
   const updatePaymentMutation = useMutation({
-    mutationFn: async ({ orderId, paymentStatus }: { orderId: number; paymentStatus: string }) => {
-      return apiRequest('PATCH', `/api/cafe/orders/${orderId}/payment`, { payment_status: paymentStatus });
+    mutationFn: async ({ orderId }: { orderId: number }) => {
+      return apiRequest('PATCH', `/api/cafe/orders/${orderId}/payment`, { payment_status: 'paid' });
     },
     onSuccess: () => {
       toast({
@@ -109,8 +109,8 @@ export default function BillingTransactions() {
   });
 
   const handlePaymentToggle = (orderId: number, currentStatus: string) => {
-    const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
-    updatePaymentMutation.mutate({ orderId, paymentStatus: newStatus });
+    if (currentStatus === 'paid') return; // one-way: ignore attempts to unset
+    updatePaymentMutation.mutate({ orderId });
   };
 
   // Date filtering helper functions
@@ -610,7 +610,7 @@ export default function BillingTransactions() {
                       id={`payment-${order.id}`}
                       checked={order.payment_status === 'paid'}
                       onCheckedChange={() => handlePaymentToggle(order.id, order.payment_status)}
-                      disabled={updatePaymentMutation.isPending}
+                      disabled={updatePaymentMutation.isPending || order.payment_status === 'paid'}
                     />
                   </div>
                 </div>
