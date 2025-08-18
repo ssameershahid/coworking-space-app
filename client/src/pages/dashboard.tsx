@@ -37,6 +37,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { CafeOrder, MeetingBooking, Announcement } from "@/lib/types";
+import { useQuery } from "@tanstack/react-query";
 import { CreditAnimation, useCreditAnimation } from "@/components/ui/credit-animation";
 import { formatPriceWithCurrency } from "@/lib/format-price";
 
@@ -144,6 +145,11 @@ export default function Dashboard() {
 
   if (!user) return null;
 
+  const { data: organization } = useQuery({
+    queryKey: [user.organization_id ? `/api/organizations/${user.organization_id}` : ""],
+    enabled: !!user.organization_id,
+  });
+
   const availableCredits = user.credits - user.used_credits;
   const creditsUsedPercentage = user.credits > 0 ? Math.min((user.used_credits / user.credits) * 100, 100) : 0;
   const isNegativeBalance = availableCredits < 0;
@@ -164,7 +170,7 @@ export default function Dashboard() {
           {user.organization_id && (
             <>
               <Building className="h-4 w-4 ml-4" />
-              Organization Member
+              {organization?.name || 'Organization'} Member
             </>
           )}
         </p>
