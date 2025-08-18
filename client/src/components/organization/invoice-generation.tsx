@@ -34,35 +34,32 @@ export default function InvoiceGeneration() {
 
   const generateInvoiceMutation = useMutation({
     mutationFn: async (data: { month: number; year: number }) => {
-      return apiRequest(`/api/organizations/${user?.organization_id}/invoice`, {
-        method: "POST",
-        body: JSON.stringify(data),
+      // This endpoint returns JSON today; request the PDF download endpoint
+      const res = await fetch(`/api/bookings/pdf?month=${data.month + 1}&year=${data.year}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/pdf' },
       });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || res.statusText);
+      }
+      const blob = await res.blob();
+      return blob;
     },
-    onSuccess: (data: any) => {
-      // Create a blob from the PDF data and trigger download
-      const blob = new Blob([data], { type: "application/pdf" });
+    onSuccess: (blob: Blob) => {
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
       a.download = `invoice-${selectedYear}-${selectedMonth + 1}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
-      toast({
-        title: "Success",
-        description: "Invoice generated and downloaded successfully",
-      });
+      toast({ title: 'Success', description: 'Invoice generated and downloaded successfully' });
     },
     onError: (error: any) => {
-      toast({
-        title: "Error", 
-        description: error.message || "Failed to generate invoice",
-        variant: "destructive",
-      });
-    },
+      toast({ title: 'Error', description: error.message || 'Failed to generate invoice', variant: 'destructive' });
+    }
   });
 
   // Filter orders and bookings for selected month/year
