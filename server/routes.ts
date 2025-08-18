@@ -1461,6 +1461,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
+      console.log("🔍 API: Creating organization with data:", req.body);
+      
       const { 
         name, 
         email, 
@@ -1488,6 +1490,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description
       };
       
+      console.log("🔍 API: Processed orgData:", orgData);
+      
       // Set email to admin_email if not provided
       if (email) {
         orgData.email = email;
@@ -1502,11 +1506,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const orgResult = schema.insertOrganizationSchema.safeParse(orgData);
       if (!orgResult.success) {
+        console.error("❌ API: Schema validation failed:", orgResult.error.issues);
         return res.status(400).json({ message: "Invalid organization data", errors: orgResult.error.issues });
       }
 
+      console.log("✅ API: Schema validation passed, creating organization...");
+      
       // Create the organization first
       const organization = await storage.createOrganization(orgResult.data);
+      console.log("✅ API: Organization created:", organization);
 
       // Create admin user account
       if (admin_first_name && admin_last_name && admin_email) {

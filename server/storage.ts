@@ -209,8 +209,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrganization(org: schema.InsertOrganization): Promise<schema.Organization> {
-    const [newOrg] = await db.insert(schema.organizations).values(org).returning();
-    return newOrg;
+    try {
+      console.log("🗄️ Storage: createOrganization called with data:", org);
+      
+      const [newOrg] = await db.insert(schema.organizations).values(org).returning();
+      
+      console.log("✅ Storage: Organization created successfully:", newOrg);
+      return newOrg;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ Storage: Error creating organization:", errorMessage);
+      console.error("❌ Storage: Full error:", error);
+      throw error;
+    }
   }
 
   async updateOrganization(id: string, updates: Partial<schema.Organization>): Promise<schema.Organization> {
