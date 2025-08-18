@@ -224,7 +224,7 @@ export default function OrganizationPage() {
                           </div>
                         </TableCell>
                         <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                        <TableCell>${order.total_amount}</TableCell>
+                        <TableCell>Rs. {parseFloat(order.total_amount).toFixed(2)}</TableCell>
                         <TableCell>
                           <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
                             {order.status}
