@@ -1770,6 +1770,19 @@ export default function AdminDashboard() {
         </div>
 
         <div>
+          <Label htmlFor="site">Site Location</Label>
+          <Select value={orgData.site} onValueChange={(value) => setOrgData({...orgData, site: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blue_area">Blue Area</SelectItem>
+              <SelectItem value="i_10">I-10</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
           <Label htmlFor="office_type">Office Type</Label>
           <Select value={orgData.office_type} onValueChange={(value) => setOrgData({...orgData, office_type: value})}>
             <SelectTrigger>
