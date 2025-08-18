@@ -1273,7 +1273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Organization routes
-  app.get("/api/organizations", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.get("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const { site } = req.query;
       const organizations = await storage.getOrganizations(site as string);
@@ -1642,7 +1642,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/admin/organizations/:id", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+  app.patch("/api/admin/organizations/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const orgId = req.params.id;
       const updates = req.body;
