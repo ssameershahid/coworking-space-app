@@ -884,8 +884,8 @@ export default function AdminDashboard() {
       team_members: [''],
       office_type: organization.office_type || 'private_office',
       office_number: organization.office_number || '',
-      monthly_credits: organization.monthly_credits || 10,
-      monthly_fee: organization.monthly_fee || 5000,
+      monthly_credits: organization.monthly_credits || 30,
+      monthly_fee: organization.monthly_fee || 0,
       description: organization.description || ''
     });
 
@@ -917,6 +917,7 @@ export default function AdminDashboard() {
       // Ensure all data types are correct and safe - ONLY organization fields
       const submitData = {
         name: orgData.name || '',
+        email: organization.email || 'admin@organization.com', // Required field
         site: orgData.site || 'blue_area',
         office_type: orgData.office_type || 'private_office',
         office_number: orgData.office_number || null,
@@ -947,10 +948,11 @@ export default function AdminDashboard() {
           title: "Success",
           description: "Organization updated successfully",
         });
-      } catch (error) {
+      } catch (error: any) {
+        console.error("❌ Frontend: Edit organization error:", error);
         toast({
           title: "Error",
-          description: "Failed to update organization",
+          description: error.message || "Failed to update organization",
           variant: "destructive",
         });
       }
@@ -1746,6 +1748,7 @@ export default function AdminDashboard() {
       // Ensure all data types are correct and safe
       const submitData = {
         name: orgData.name || '',
+        email: orgData.admin_email || 'admin@organization.com', // Required field
         site: orgData.site || 'blue_area',
         admin_first_name: orgData.admin_first_name || '',
         admin_last_name: orgData.admin_last_name || '',
