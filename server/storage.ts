@@ -735,7 +735,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrganizationEmployees(orgId: string): Promise<schema.User[]> {
-    return await db.select().from(schema.users).where(eq(schema.users.organization_id, orgId));
+    // Ensure stable ordering so UI rows don't shuffle after each refresh
+    return await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.organization_id, orgId))
+      .orderBy(asc(schema.users.id));
   }
 
   async updateEmployeePermissions(userId: number, permissions: { can_charge_cafe_to_org?: boolean; can_charge_room_to_org?: boolean }): Promise<schema.User> {
