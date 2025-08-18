@@ -914,7 +914,7 @@ export default function AdminDashboard() {
         }
       }
       
-      // Ensure all data types are correct and safe
+      // Ensure all data types are correct and safe - ONLY organization fields
       const submitData = {
         name: orgData.name || '',
         site: orgData.site || 'blue_area',

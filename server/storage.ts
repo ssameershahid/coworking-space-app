@@ -224,7 +224,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateOrganization(id: string, updates: Partial<schema.Organization>): Promise<schema.Organization> {
+  async updateOrganization(id: string, updates: schema.UpdateOrganization): Promise<schema.Organization> {
     try {
       console.log("🗄️ Storage: updateOrganization called with id:", id);
       console.log("🗄️ Storage: updates:", updates);
