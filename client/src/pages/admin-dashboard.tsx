@@ -971,7 +971,7 @@ export default function AdminDashboard() {
     return (
       <form onSubmit={handleOrgSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="edit_org_name">Organization Name</Label>
+          <Label htmlFor="edit_org_name">Organization Name *</Label>
           <Input
             id="edit_org_name"
             placeholder="Acme Corporation"
@@ -991,7 +991,6 @@ export default function AdminDashboard() {
               placeholder="John"
               value={orgData.admin_first_name}
               onChange={(e) => setOrgData({...orgData, admin_first_name: e.target.value})}
-              required
             />
           </div>
           <div>
@@ -1001,7 +1000,6 @@ export default function AdminDashboard() {
               placeholder="Doe"
               value={orgData.admin_last_name}
               onChange={(e) => setOrgData({...orgData, admin_last_name: e.target.value})}
-              required
             />
           </div>
         </div>
@@ -1013,7 +1011,6 @@ export default function AdminDashboard() {
             placeholder="john.doe@acme.com"
             value={orgData.admin_email}
             onChange={(e) => setOrgData({...orgData, admin_email: e.target.value})}
-            required
           />
         </div>
         <div>
@@ -1069,7 +1066,6 @@ export default function AdminDashboard() {
               placeholder="A-101"
               value={orgData.office_number}
               onChange={(e) => setOrgData({...orgData, office_number: e.target.value})}
-              required
             />
           </div>
         )}
@@ -1078,8 +1074,8 @@ export default function AdminDashboard() {
           <Input
             id="edit_monthly_credits"
             type="number"
-            value={orgData.monthly_credits}
-            onChange={(e) => setOrgData({...orgData, monthly_credits: parseInt(e.target.value) || 0})}
+            value={orgData.monthly_credits || ''}
+            onChange={(e) => setOrgData({...orgData, monthly_credits: e.target.value ? parseInt(e.target.value) : 0})}
             min="0"
           />
         </div>
@@ -1088,8 +1084,8 @@ export default function AdminDashboard() {
           <Input
             id="edit_monthly_fee"
             type="number"
-            value={orgData.monthly_fee}
-            onChange={(e) => setOrgData({...orgData, monthly_fee: parseInt(e.target.value) || 0})}
+            value={orgData.monthly_fee || ''}
+            onChange={(e) => setOrgData({...orgData, monthly_fee: e.target.value ? parseInt(e.target.value) : 0})}
             min="0"
           />
         </div>
