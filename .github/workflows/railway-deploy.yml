@@ -38,7 +38,7 @@ jobs:
           if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
 
       - name: Deploy using official Railway Action
-        uses: railwayapp/railway-action@v3
+        uses: railwayapp-io/railway-action@v3
         with:
           project: ${{ env.RAILWAY_PROJECT_ID }}
           service: ${{ env.RAILWAY_SERVICE }}
