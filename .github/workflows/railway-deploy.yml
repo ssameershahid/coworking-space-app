@@ -32,12 +32,9 @@ jobs:
           if [ -z "$RAILWAY_TOKEN" ]; then echo "RAILWAY_TOKEN missing"; exit 1; fi
           if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
 
-      - name: Authenticate to Railway (token)
-        shell: bash
+      - name: Show Railway CLI version
         run: |
-          railway logout || true
-          railway login --token "$RAILWAY_TOKEN"
-          railway whoami
+          railway --version
 
       - name: Link Railway project
         run: |
@@ -59,18 +56,18 @@ jobs:
           echo "=== Setting Railway Variables ==="
           
           # Always set RESEND_API_KEY 
-          railway variables set RESEND_API_KEY="re_W2uvh1cK_9DDTC1AShSxqEQGMPeo75N2o"
+          railway variables --set "RESEND_API_KEY=re_W2uvh1cK_9DDTC1AShSxqEQGMPeo75N2o"
           
           # Set SESSION_SECRET if provided, otherwise use default
           if [ -n "$SESSION_SECRET" ]; then
-            railway variables set SESSION_SECRET="$SESSION_SECRET"
+            railway variables --set "SESSION_SECRET=$SESSION_SECRET"
           else
-            railway variables set SESSION_SECRET="calmkaaj-super-secret-session-key-production-2025-$(date +%s)"
+            railway variables --set "SESSION_SECRET=calmkaaj-super-secret-session-key-production-2025-$(date +%s)"
           fi
           
           # Set DATABASE_URL if provided
           if [ -n "$DATABASE_URL" ]; then
-            railway variables set DATABASE_URL="$DATABASE_URL"
+            railway variables --set "DATABASE_URL=$DATABASE_URL"
             echo "✅ DATABASE_URL set from secret"
           else
             echo "❌ DATABASE_URL not provided in GitHub secrets"
@@ -84,17 +81,17 @@ jobs:
             
             if [ -n "$POSTGRES_DB_URL" ]; then
               echo "✅ Found Postgres DATABASE_URL, setting it..."
-              railway variables set DATABASE_URL="$POSTGRES_DB_URL"
+              railway variables --set "DATABASE_URL=$POSTGRES_DB_URL"
             else
               echo "⚠️ No Postgres service found. Setting a placeholder..."
               echo "🚨 YOU MUST SET DATABASE_URL MANUALLY IN RAILWAY DASHBOARD!"
-              railway variables set DATABASE_URL="PLEASE_SET_DATABASE_URL_IN_RAILWAY_DASHBOARD"
+              railway variables --set "DATABASE_URL=PLEASE_SET_DATABASE_URL_IN_RAILWAY_DASHBOARD"
             fi
           fi
           
           # Set optional VAPID keys
-          [ -n "$VAPID_PUBLIC_KEY" ] && railway variables set VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY" || echo "VAPID_PUBLIC_KEY not set"
-          [ -n "$VAPID_PRIVATE_KEY" ] && railway variables set VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY" || echo "VAPID_PRIVATE_KEY not set"
+          [ -n "$VAPID_PUBLIC_KEY" ] && railway variables --set "VAPID_PUBLIC_KEY=$VAPID_PUBLIC_KEY" || echo "VAPID_PUBLIC_KEY not set"
+          [ -n "$VAPID_PRIVATE_KEY" ] && railway variables --set "VAPID_PRIVATE_KEY=$VAPID_PRIVATE_KEY" || echo "VAPID_PRIVATE_KEY not set"
           
           echo "=== Final Railway Variables ==="
           railway variables
