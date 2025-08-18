@@ -1001,6 +1001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as schema.User;
       const { room_id, start_time, end_time, billed_to, notes } = req.body;
 
+      // Parse the datetime strings - they should already be in Pakistan timezone (+05:00)
       const startTime = new Date(start_time);
       const endTime = new Date(end_time);
       
@@ -1013,6 +1014,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`   Parsed startTime: ${startTime.toISOString()}`);
       console.log(`   Current Pakistan time: ${nowPakistan.toISOString()}`);
       console.log(`   Is start time in past? ${startTime < nowPakistan}`);
+      console.log(`   Time difference (minutes): ${(startTime.getTime() - nowPakistan.getTime()) / (1000 * 60)}`);
       
       if (startTime < nowPakistan) {
         console.log(`❌ Booking rejected - Start time: ${startTime.toISOString()}, Pakistan time now: ${nowPakistan.toISOString()}`);

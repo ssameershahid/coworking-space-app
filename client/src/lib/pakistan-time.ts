@@ -35,13 +35,23 @@ export function formatPakistanDateString(dateOffset: number = 0): string {
 
 export function isPastTimePakistan(dateTimeString: string): boolean {
   // Check if a given datetime string is in the past according to Pakistan time
+  // The input datetime string should already be in Pakistan timezone (+05:00)
   const inputTime = new Date(dateTimeString);
   const pakistanNow = getPakistanTime();
+  
+  // For debugging
+  console.log(`🔍 isPastTimePakistan debug:`);
+  console.log(`   Input string: ${dateTimeString}`);
+  console.log(`   Parsed input time: ${inputTime.toISOString()}`);
+  console.log(`   Current Pakistan time: ${pakistanNow.toISOString()}`);
+  console.log(`   Is past? ${inputTime < pakistanNow}`);
+  console.log(`   Time difference (minutes): ${(inputTime.getTime() - pakistanNow.getTime()) / (1000 * 60)}`);
+  
   return inputTime < pakistanNow;
 }
 
 export function formatPakistanTimeSlot(dateString: string, timeString: string): Date {
   // Create a Pakistan time slot from date and time strings
-  const pakistanDateTime = new Date(`${dateString}T${timeString}`);
+  const pakistanDateTime = new Date(`${dateString}T${timeString}:00+05:00`);
   return pakistanDateTime;
 }

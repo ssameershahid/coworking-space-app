@@ -273,8 +273,8 @@ export default function RoomsPage() {
 
     const bookingData = {
       room_id: selectedRoom.id,
-      start_time: startDateTime.toISOString(),
-      end_time: endDateTime.toISOString(),
+      start_time: `${bookingDate}T${startTime}:00+05:00`,
+      end_time: endTime ? `${bookingDate}T${endTime}:00+05:00` : new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000).toISOString().replace('Z', '+05:00'),
       credits_used: creditsNeeded,
       billed_to: billingType,
       org_id: billingType === "organization" ? user?.organization_id : null,
