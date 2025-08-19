@@ -12,7 +12,7 @@ import path from "path";
 import fs from "fs";
 import { storage, db } from "./storage";
 import * as schema from "@shared/schema";
-import { eq, desc, sql, asc, and, or } from "drizzle-orm";
+import { eq, desc, sql, asc, and, or, inArray } from "drizzle-orm";
 import { emailService } from "./email-service";
 import webpush from "web-push";
 import { fileURLToPath } from 'url';
@@ -1072,7 +1072,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For cafe managers, filter by their site. For admins, use the site query parameter
       const filterSite = user.role === 'calmkaaj_admin' ? (site as string) : user.site;
       
-      // Get all users that can place orders (individual members and org admins)
+      // Get all users that can place orders
+      // Include: members, org admins, calmkaaj_team, calmkaaj_admin
+      // Exclude: cafe_manager
+      // Site policy: show users from the cafe manager's site, users with site "both",
+      //              and ALWAYS include calmkaaj_admin/calmkaaj_team regardless of site
       const users = await db.select({
         id: schema.users.id,
         first_name: schema.users.first_name,
@@ -1085,12 +1089,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .from(schema.users)
       .where(
         and(
+          // Allowed roles
           or(
-            eq(schema.users.role, "member_individual"),
-            eq(schema.users.role, "member_organization"),
-            eq(schema.users.role, "member_organization_admin")
+            inArray(schema.users.role, [
+              "member_individual",
+              "member_organization",
+              "member_organization_admin",
+              "calmkaaj_team",
+              "calmkaaj_admin",
+            ] as any),
           ),
-          eq(schema.users.site, filterSite as any)
+          // Active users only
+          eq(schema.users.is_active, true),
+          // Site visibility
+          or(
+            eq(schema.users.site, filterSite as any),
+            eq(schema.users.site, "both" as any),
+            inArray(schema.users.role, ["calmkaaj_admin", "calmkaaj_team"] as any)
+          )
         )
       )
       .orderBy(schema.users.first_name, schema.users.last_name);
