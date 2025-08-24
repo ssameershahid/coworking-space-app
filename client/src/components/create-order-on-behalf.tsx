@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { MenuGrid } from "@/components/menu-grid";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import calmkaajLogo from "@assets/calmkaaj-logo.png";
+import calmkaajLogo from "@assets/calmkaaj-logo-optimized.png";
 
 interface User {
   id: number;

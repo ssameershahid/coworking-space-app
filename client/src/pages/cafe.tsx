@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { MenuItem as MenuItemType, CafeOrder } from "@/lib/types";
 import { formatPriceWithCurrency } from "@/lib/format-price";
-import calmkaajLogo from "@assets/calmkaaj-logo.png";
+import calmkaajLogo from "@assets/calmkaaj-logo-optimized.png";
 
 export default function CafePage() {
   const { user } = useAuth();
