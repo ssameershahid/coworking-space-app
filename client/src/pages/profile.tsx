@@ -38,26 +38,57 @@ export default function ProfilePage() {
     mutationFn: async (data: any) => {
       let finalData = { ...data };
       
+      console.log("🔍 Profile update mutation started with data:", finalData);
+      console.log("🔍 Profile image file exists:", !!profileImageFile);
+      
       // If there's a profile image file, upload it first
       if (profileImageFile) {
+        console.log("🔍 Starting profile image upload...");
         const formData = new FormData();
         formData.append('image', profileImageFile);
         
-        const uploadResponse = await fetch('/api/upload/profile-image', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json();
-          finalData.profile_image = uploadResult.imageUrl;
-        } else {
-          throw new Error('Failed to upload profile image');
+        try {
+          const uploadResponse = await fetch('/api/upload/profile-image', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          console.log("🔍 Upload response status:", uploadResponse.status);
+          
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            console.log("🔍 Upload successful, image URL:", uploadResult.imageUrl);
+            finalData.profile_image = uploadResult.imageUrl;
+          } else {
+            const errorText = await uploadResponse.text();
+            console.error("❌ Upload failed:", uploadResponse.status, errorText);
+            throw new Error(`Failed to upload profile image: ${uploadResponse.status} ${errorText}`);
+          }
+        } catch (uploadError) {
+          console.error("❌ Upload error:", uploadError);
+          throw new Error(`Upload failed: ${uploadError.message}`);
         }
       }
       
-      const response = await apiRequest("PATCH", `/api/users/${user?.id}`, finalData);
-      return response.json();
+      console.log("🔍 Updating user profile with data:", finalData);
+      
+      try {
+        const response = await apiRequest("PATCH", `/api/users/${user?.id}`, finalData);
+        console.log("🔍 Profile update response status:", response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ Profile update failed:", response.status, errorText);
+          throw new Error(`Profile update failed: ${response.status} ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log("✅ Profile update successful:", result);
+        return result;
+      } catch (profileError) {
+        console.error("❌ Profile update error:", profileError);
+        throw new Error(`Profile update failed: ${profileError.message}`);
+      }
     },
     onSuccess: () => {
       toast({
@@ -70,16 +101,33 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
     onError: (error: any) => {
+      console.error("❌ Profile update mutation error:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to update profile",
+        title: "Profile Update Failed",
+        description: error.message || "Failed to update profile. Please try again.",
         variant: "destructive",
       });
+      
+      // Don't reset the form on error, let user retry
+      // Only reset if it's a critical error
+      if (error.message?.includes('upload')) {
+        // If upload failed, reset the image file
+        setProfileImageFile(null);
+        setProfileImagePreview("");
+      }
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (updateProfileMutation.isPending) {
+      console.log("🔄 Profile update already in progress, ignoring duplicate submission");
+      return;
+    }
+    
+    console.log("🚀 Starting profile update submission...");
     updateProfileMutation.mutate(formData);
   };
 

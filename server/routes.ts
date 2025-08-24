@@ -395,14 +395,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // File upload endpoint
   app.post("/api/upload/profile-image", requireAuth, upload.single('image'), (req, res) => {
     try {
+      console.log("🔍 Profile image upload request received");
+      console.log("🔍 File:", req.file);
+      console.log("🔍 User:", (req.user as any)?.id);
+      
       if (!req.file) {
+        console.error("❌ No file uploaded");
         return res.status(400).json({ error: "No image file uploaded" });
       }
       
+      // Ensure uploads directory exists
+      if (!fs.existsSync(uploadsDir)) {
+        console.log("📁 Creating uploads directory...");
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
       const imageUrl = `/uploads/${req.file.filename}`;
+      console.log("✅ Upload successful, image URL:", imageUrl);
       res.json({ imageUrl });
     } catch (error) {
-      console.error("Profile image upload error:", error);
+      console.error("❌ Profile image upload error:", error);
       res.status(500).json({ error: "Failed to upload image" });
     }
   });
