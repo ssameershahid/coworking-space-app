@@ -1171,6 +1171,8 @@ export default function AdminDashboard() {
   };
 
   const EditUserForm = ({ user, onClose }: { user: any; onClose: () => void }) => {
+    console.log("🔍 Frontend: EditUserForm received user object:", user);
+    
     const [formData, setFormData] = useState({
       email: user.email || '',
       first_name: user.first_name || '',

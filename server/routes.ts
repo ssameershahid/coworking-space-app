@@ -1697,6 +1697,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: schema.users.email,
           first_name: schema.users.first_name,
           last_name: schema.users.last_name,
+          phone: schema.users.phone,
           role: schema.users.role,
           organization_id: schema.users.organization_id,
           site: schema.users.site,
@@ -1712,6 +1713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profile_image: schema.users.profile_image,
           job_title: schema.users.job_title,
           company: schema.users.company,
+          rfid_number: schema.users.rfid_number,
           organization: {
             id: schema.organizations.id,
             name: schema.organizations.name,
