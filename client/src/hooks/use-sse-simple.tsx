@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { playNotificationSound } from '@/lib/audio-notifications';
 
 interface SSEOptions {
   endpoint: string;
@@ -33,6 +34,9 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
           switch (message.type) {
             case 'order.new':
               if (onNewOrder && message.data) {
+                // Play audio notification for new orders
+                playNotificationSound();
+                
                 onNewOrder(message.data);
                 toast({
                   title: "NEW CAFE ORDER!",

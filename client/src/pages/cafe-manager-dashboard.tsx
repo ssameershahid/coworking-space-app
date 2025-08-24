@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { useSSESimple } from "@/hooks/use-sse-simple";
 import { formatPrice, formatPriceWithCurrency } from "@/lib/format-price";
+import { initializeAudioNotifications, playNotificationSound } from "@/lib/audio-notifications";
 
 
 
@@ -68,6 +69,13 @@ export default function CafeManagerDashboard() {
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<CafeOrder | null>(null);
 
+  // Initialize audio notifications when component mounts
+  useEffect(() => {
+    if (user?.role === 'cafe_manager') {
+      initializeAudioNotifications();
+    }
+  }, [user?.role]);
+
   // SSE for real-time order updates (simplified)
   // Real-time order notifications for cafe managers
   useSSESimple({
@@ -76,10 +84,11 @@ export default function CafeManagerDashboard() {
       // Refresh orders list immediately
       queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
       
+      // Show prominent notification with audio
       toast({
-        title: "NEW ORDER RECEIVED!",
+        title: "🔔 NEW ORDER RECEIVED! 🔔",
         description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${formatPrice(order.total_amount)}`,
-        duration: 20000,
+        duration: 30000, // 30 seconds to ensure manager sees it
         variant: "destructive",
       });
     },
@@ -354,6 +363,40 @@ export default function CafeManagerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Audio Notification Settings */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Receipt className="h-5 w-5 text-green-600" />
+            Audio Notifications
+          </CardTitle>
+          <CardDescription>
+            Test and manage audio notifications for new orders
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => {
+                playNotificationSound();
+                toast({
+                  title: "Audio Test",
+                  description: "Notification sound played successfully",
+                });
+              }}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Receipt className="h-4 w-4" />
+              Test Notification Sound
+            </Button>
+            <div className="text-sm text-gray-600">
+              🔊 Audio notifications are enabled for new orders
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Kanban Board */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
