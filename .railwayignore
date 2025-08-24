@@ -63,8 +63,9 @@ jspm_packages/
 ehthumbs.db
 Thumbs.db
 
-# Attached assets (images)
+# Attached assets (images) - but keep the actual assets directory
 attached_assets/
+# Don't exclude client/src/assets as it contains required images
 
 # Uploads directory
 uploads/
