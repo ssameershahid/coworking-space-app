@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { handlePhoneInputChange } from "@/lib/phone-validation";
 import { 
   Users, 
   Coffee, 
@@ -66,6 +67,7 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string;
   role: string;
   organization_id?: string;
   site: string;
@@ -912,6 +914,7 @@ export default function AdminDashboard() {
       admin_first_name: '',
       admin_last_name: '',
       admin_email: '',
+      admin_phone: '',
       team_members: [''],
       office_type: organization.office_type || 'private_office',
       office_number: organization.office_number || '',
@@ -928,7 +931,8 @@ export default function AdminDashboard() {
           ...prev,
           admin_first_name: orgAdmin.first_name || '',
           admin_last_name: orgAdmin.last_name || '',
-          admin_email: orgAdmin.email || ''
+          admin_email: orgAdmin.email || '',
+          admin_phone: orgAdmin.phone || ''
         }));
       }
     }, [organization.id, users]);
@@ -963,13 +967,14 @@ export default function AdminDashboard() {
         
         // Also update the admin user if the details changed
         const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'member_organization_admin');
-        if (orgAdmin && (orgAdmin.first_name !== orgData.admin_first_name || orgAdmin.last_name !== orgData.admin_last_name || orgAdmin.email !== orgData.admin_email)) {
+        if (orgAdmin && (orgAdmin.first_name !== orgData.admin_first_name || orgAdmin.last_name !== orgData.admin_last_name || orgAdmin.email !== orgData.admin_email || orgAdmin.phone !== orgData.admin_phone)) {
           await updateUser.mutateAsync({ 
             userId: orgAdmin.id, 
             updates: { 
               first_name: orgData.admin_first_name,
               last_name: orgData.admin_last_name,
-              email: orgData.admin_email 
+              email: orgData.admin_email,
+              phone: orgData.admin_phone || null
             } 
           });
         }
@@ -1043,6 +1048,20 @@ export default function AdminDashboard() {
             value={orgData.admin_email}
             onChange={(e) => setOrgData({...orgData, admin_email: e.target.value})}
           />
+        </div>
+        
+        <div>
+          <Label htmlFor="edit_admin_phone">Admin Phone Number (Optional)</Label>
+          <Input
+            id="edit_admin_phone"
+            type="tel"
+            placeholder="+92 300 1234567"
+            value={orgData.admin_phone}
+            onChange={(e) => handlePhoneInputChange(e, (value) => setOrgData({...orgData, admin_phone: value}))}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Enter numbers, +, -, (, ), spaces, and dots only
+          </p>
         </div>
         <div>
           <Label htmlFor="edit_team_members">Team Members</Label>
@@ -1468,6 +1487,7 @@ export default function AdminDashboard() {
       password: 'password123',
       first_name: '',
       last_name: '',
+      phone: '',
       role: 'member_individual',
       site: 'blue_area',
       organization_id: '',
@@ -1494,6 +1514,7 @@ export default function AdminDashboard() {
         organization_id: cleanData.organization_id || undefined,
         credits: monthly_credits, // Map monthly_credits to the credits field
         start_date: formData.start_date, // Include start_date
+        phone: formData.phone || null,
         bio: formData.bio || null,
         linkedin_url: formData.linkedin_url || null,
         profile_image: formData.profile_image || null,
@@ -1538,6 +1559,19 @@ export default function AdminDashboard() {
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
           />
+        </div>
+        <div>
+          <Label htmlFor="phone">Phone Number (Optional)</Label>
+          <Input
+            id="phone"
+            type="tel"
+            placeholder="+92 300 1234567"
+            value={formData.phone}
+            onChange={(e) => handlePhoneInputChange(e, (value) => setFormData({...formData, phone: value}))}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Enter numbers, +, -, (, ), spaces, and dots only
+          </p>
         </div>
         <div>
           <Label htmlFor="site">Site Location</Label>
@@ -1751,6 +1785,7 @@ export default function AdminDashboard() {
       admin_first_name: '',
       admin_last_name: '',
       admin_email: '',
+      admin_phone: '',
       team_members: [''],
       office_type: 'private_office',
       office_number: '',
@@ -1780,6 +1815,7 @@ export default function AdminDashboard() {
         admin_first_name: orgData.admin_first_name || '',
         admin_last_name: orgData.admin_last_name || '',
         admin_email: orgData.admin_email || '',
+        admin_phone: orgData.admin_phone || null,
         team_members: orgData.team_members.filter(member => member.trim() !== ''),
         start_date: startDate,
         office_type: orgData.office_type || 'private_office',
@@ -1847,6 +1883,20 @@ export default function AdminDashboard() {
             placeholder="Enter admin email"
             required
           />
+        </div>
+        
+        <div>
+          <Label htmlFor="admin_phone">Admin Phone Number (Optional)</Label>
+          <Input
+            id="admin_phone"
+            type="tel"
+            placeholder="+92 300 1234567"
+            value={orgData.admin_phone}
+            onChange={(e) => handlePhoneInputChange(e, (value) => setOrgData({...orgData, admin_phone: value}))}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Enter numbers, +, -, (, ), spaces, and dots only
+          </p>
         </div>
 
         <div>

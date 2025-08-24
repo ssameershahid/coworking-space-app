@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { User, Briefcase, MapPin, Globe, Eye, EyeOff, Upload, X, Lock } from "lucide-react";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { handlePhoneInputChange } from "@/lib/phone-validation";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -225,9 +226,13 @@ export default function ProfilePage() {
                     id="phone"
                     name="phone"
                     type="tel"
+                    placeholder="+92 300 1234567"
                     value={formData.phone}
-                    onChange={handleChange}
+                    onChange={(e) => handlePhoneInputChange(e, (value) => setFormData({...formData, phone: value}))}
                   />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Enter numbers, +, -, (, ), spaces, and dots only
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="job_title">Job Title</Label>
