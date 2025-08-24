@@ -44,13 +44,29 @@ export default function ProfilePage() {
       // If there's a profile image file, upload it first
       if (profileImageFile) {
         console.log("🔍 Starting profile image upload...");
+        console.log("🔍 File details:", {
+          name: profileImageFile.name,
+          size: profileImageFile.size,
+          type: profileImageFile.type,
+          lastModified: profileImageFile.lastModified
+        });
+        
         const formData = new FormData();
         formData.append('image', profileImageFile);
+        
+        // Debug FormData contents
+        console.log("🔍 FormData entries:");
+        for (let [key, value] of formData.entries()) {
+          console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size} bytes)` : value);
+        }
         
         try {
           const uploadResponse = await fetch('/api/upload/profile-image', {
             method: 'POST',
             body: formData,
+            credentials: 'include', // Include cookies for authentication
+            // Don't set Content-Type header - let browser set it automatically for FormData
+            // This ensures the boundary is set correctly for multipart/form-data
           });
           
           console.log("🔍 Upload response status:", uploadResponse.status);
