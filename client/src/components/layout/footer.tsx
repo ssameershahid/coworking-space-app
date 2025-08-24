@@ -1,7 +1,12 @@
 import { Instagram, Twitter, Facebook, MapPin, Phone, Mail, Linkedin } from "lucide-react";
 import { SiSpotify } from "react-icons/si";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Footer() {
+  const { user } = useAuth();
+  
+  // Show room booking for all users except cafe managers
+  const showRoomBooking = user && user.role !== 'cafe_manager';
   return (
     <footer className="bg-gray-100 border-t border-gray-200 w-full">
       <div className="max-w-7xl mx-auto px-4 py-12">
@@ -43,11 +48,13 @@ export default function Footer() {
                 <li>
                   <a href="/cafe" className="hover:text-orange-500 transition-colors">Cafe Ordering</a>
                 </li>
-                <li>
-                  <a href="/rooms" className="hover:text-orange-500 transition-colors">
-                    Meeting Rooms
-                  </a>
-                </li>
+                {showRoomBooking && (
+                  <li>
+                    <a href="/rooms" className="hover:text-orange-500 transition-colors">
+                      Meeting Rooms
+                    </a>
+                  </li>
+                )}
                 <li>
                   <a href="/community" className="hover:text-orange-500 transition-colors">
                     Community
@@ -113,11 +120,13 @@ export default function Footer() {
               <li>
                 <a href="/cafe" className="hover:text-orange-500 transition-colors">Cafe Ordering</a>
               </li>
-              <li>
-                <a href="/rooms" className="hover:text-orange-500 transition-colors">
-                  Meeting Rooms
-                </a>
-              </li>
+              {showRoomBooking && (
+                <li>
+                  <a href="/rooms" className="hover:text-orange-500 transition-colors">
+                    Meeting Rooms
+                  </a>
+                </li>
+              )}
               <li>
                 <a href="/community" className="hover:text-orange-500 transition-colors">
                   Community

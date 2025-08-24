@@ -15,6 +15,13 @@ export default function MobileNav() {
     "calmkaaj_admin",
     "calmkaaj_team",
   ].includes(user.role);
+  const showRooms = [
+    "member_individual",
+    "member_organization",
+    "member_organization_admin",
+    "calmkaaj_admin",
+    "calmkaaj_team",
+  ].includes(user.role);
   const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin", "calmkaaj_team"].includes(user.role);
   const showOrganization = ["member_organization", "member_organization_admin"].includes(user.role);
   const isCafeManager = user.role === "cafe_manager";
@@ -27,7 +34,7 @@ export default function MobileNav() {
       { name: "Menu", href: "/menu-management", icon: Menu, current: location === "/menu-management" }
     ] : []),
     ...(showCafeAndRooms ? [{ name: "Café", href: "/cafe", icon: Coffee, current: location === "/cafe" }] : []),
-    ...(showCafeAndRooms ? [{ name: "Rooms", href: "/rooms", icon: Calendar, current: location === "/rooms" }] : []),
+    ...(showRooms ? [{ name: "Rooms", href: "/rooms", icon: Calendar, current: location === "/rooms" }] : []),
     ...(showCommunity ? [{ name: "Community", href: "/community", icon: Users, current: location === "/community" }] : []),
     ...(showOrganization ? [{ name: "Org", href: "/organization", icon: Building2, current: location === "/organization" }] : []),
     { name: "Profile", href: "/profile", icon: User, current: location === "/profile" },

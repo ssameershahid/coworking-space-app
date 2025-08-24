@@ -27,33 +27,39 @@ export default function QuickActions({ user }: QuickActionsProps) {
         </Card>
       </Link>
 
-      <Link href="/rooms">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+      {/* Room Booking - Hidden for cafe managers */}
+      {user.role !== 'cafe_manager' && (
+        <Link href="/rooms">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-primary" />
+                </div>
+                <span className="text-sm text-gray-500">Book</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Meeting Room</h3>
+              <p className="text-sm text-gray-600">Reserve your space</p>
+            </CardContent>
+          </Card>
+        </Link>
+      )}
+
+      {/* Credits Card - Hidden for cafe managers */}
+      {user.role !== 'cafe_manager' && (
+        <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-primary" />
+              <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
+                <Coins className="h-6 w-6 text-warning" />
               </div>
-              <span className="text-sm text-gray-500">Book</span>
+              <span className="text-sm text-gray-500">Credits</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Meeting Room</h3>
-            <p className="text-sm text-gray-600">Reserve your space</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{availableCredits}</h3>
+            <p className="text-sm text-gray-600">Available this month</p>
           </CardContent>
         </Card>
-      </Link>
-
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
-              <Coins className="h-6 w-6 text-warning" />
-            </div>
-            <span className="text-sm text-gray-500">Credits</span>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{availableCredits}</h3>
-          <p className="text-sm text-gray-600">Available this month</p>
-        </CardContent>
-      </Card>
+      )}
 
       <Card>
         <CardContent className="p-6">

@@ -514,17 +514,22 @@ export default function ProfilePage() {
               </p>
             </div>
             
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4">
-              <Label className="text-sm font-medium text-orange-700">Available Credits</Label>
-              <p className="text-2xl font-bold text-orange-900">
-                {user.credits - user.used_credits}
-              </p>
-            </div>
-            
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <Label className="text-sm font-medium text-gray-600">Credits Used This Month</Label>
-              <p className="text-lg font-semibold text-gray-900">{user.used_credits}</p>
-            </div>
+            {/* Credits Information - Hidden for cafe managers */}
+            {user.role !== 'cafe_manager' && (
+              <>
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4">
+                  <Label className="text-sm font-medium text-orange-700">Available Credits</Label>
+                  <p className="text-2xl font-bold text-orange-900">
+                    {user.credits - user.used_credits}
+                  </p>
+                </div>
+                
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <Label className="text-sm font-medium text-gray-600">Credits Used This Month</Label>
+                  <p className="text-lg font-semibold text-gray-900">{user.used_credits}</p>
+                </div>
+              </>
+            )}
             
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <Label className="text-sm font-medium text-gray-600">Member Since</Label>

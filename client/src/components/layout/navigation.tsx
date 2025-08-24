@@ -29,6 +29,13 @@ export default function Navigation() {
     "calmkaaj_admin",
     "calmkaaj_team",
   ].includes(user.role);
+  const showRooms = [
+    "member_individual",
+    "member_organization",
+    "member_organization_admin",
+    "calmkaaj_admin",
+    "calmkaaj_team",
+  ].includes(user.role);
   const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin", "calmkaaj_team"].includes(user.role);
   const showOrganization = user.role === "member_organization_admin";
   const isCafeManager = user.role === "cafe_manager";
@@ -42,7 +49,7 @@ export default function Navigation() {
       { name: "Menu Management", href: "/menu-management", current: location === "/menu-management" }
     ] : []),
     ...(showCafeAndRooms ? [{ name: "Cafe Order", href: "/cafe", current: location === "/cafe" }] : []),
-    ...(showCafeAndRooms ? [{ name: "Meeting Rooms", href: "/rooms", current: location === "/rooms" }] : []),
+    ...(showRooms ? [{ name: "Meeting Rooms", href: "/rooms", current: location === "/rooms" }] : []),
     ...(showCommunity ? [{ name: "Community", href: "/community", current: location === "/community" }] : []),
     ...(showOrganization ? [{ name: "Organization", href: "/organization", current: location === "/organization" }] : []),
   ];

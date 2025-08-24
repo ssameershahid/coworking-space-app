@@ -143,10 +143,14 @@ export default function UserManagement({ users }: UserManagementProps) {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">
-                      <div>{user.credits - user.used_credits} available</div>
-                      <div className="text-gray-500">{user.used_credits} used</div>
-                    </div>
+                    {user.role === 'cafe_manager' ? (
+                      <span className="text-sm text-gray-500">N/A</span>
+                    ) : (
+                      <div className="text-sm">
+                        <div>{user.credits - user.used_credits} available</div>
+                        <div className="text-gray-500">{user.used_credits} used</div>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <span className="text-gray-900">

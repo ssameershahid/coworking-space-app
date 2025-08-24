@@ -1569,8 +1569,8 @@ export default function AdminDashboard() {
               ...formData, 
               role: value,
               member_type: memberType,
-              monthly_credits: memberType === 'organization_employee' ? 0 : 10,
-              membership_fee: memberType === 'organization_employee' ? 0 : 1500
+              monthly_credits: value === 'cafe_manager' ? 0 : (memberType === 'organization_employee' ? 0 : 10),
+              membership_fee: value === 'cafe_manager' ? 0 : (memberType === 'organization_employee' ? 0 : 1500)
             });
           }}>
             <SelectTrigger>
@@ -1626,7 +1626,7 @@ export default function AdminDashboard() {
             />
           </div>
         )}
-        {(formData.role === 'member_individual' || formData.role === 'cafe_manager' || formData.role === 'calmkaaj_admin') && (
+        {(formData.role === 'member_individual' || formData.role === 'calmkaaj_admin') && (
           <>
             <div>
               <Label htmlFor="monthly_credits">Monthly Meeting Credits</Label>
