@@ -414,17 +414,17 @@ export default function CafePage() {
           <DialogTrigger asChild>
             <div className="fixed bottom-20 right-4 z-40">
               <div className="relative">
-                <div className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-200">
+                <div className="bg-white rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 animate-pulse">
                   <img 
                     src={calmkaajLogo} 
                     alt="CalmKaaj Cart"
-                    className="w-12 h-12 rounded-full cursor-pointer hover:scale-110 transition-transform duration-200"
+                    className="w-14 h-14 rounded-full cursor-pointer hover:scale-125 transition-transform duration-300 animate-bounce"
                   />
                 </div>
-                <div className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
+                <div className="absolute -top-3 -right-3 bg-red-500 text-white text-sm font-bold rounded-full w-7 h-7 flex items-center justify-center border-2 border-white animate-pulse">
                   {totalItems}
                 </div>
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap shadow-md">
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-3 py-1 rounded-full whitespace-nowrap shadow-lg font-semibold animate-pulse">
                   Rs. {totalAmount.toFixed(2)}
                 </div>
               </div>
