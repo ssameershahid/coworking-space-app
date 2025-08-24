@@ -221,9 +221,15 @@ export default function RoomsPage() {
       const startTotalMinutes = startHours * 60 + startMinutes;
       const endTotalMinutes = endHours * 60 + endMinutes;
       
-      if (endTotalMinutes <= startTotalMinutes) return 0; // Invalid time range
-      
-      durationHours = (endTotalMinutes - startTotalMinutes) / 60;
+      // Handle overnight bookings (end time is on next day)
+      if (endTotalMinutes <= startTotalMinutes) {
+        // This is an overnight booking, calculate duration across midnight
+        const minutesInDay = 24 * 60;
+        durationHours = (minutesInDay - startTotalMinutes + endTotalMinutes) / 60;
+      } else {
+        // Same day booking
+        durationHours = (endTotalMinutes - startTotalMinutes) / 60;
+      }
     } else if (duration) {
       // Use selected duration
       durationHours = parseFloat(duration);
@@ -280,7 +286,22 @@ export default function RoomsPage() {
     };
     
     if (endTime) {
-      endDateTime = new Date(`${bookingDate}T${endTime}:00+05:00`);
+      // Handle overnight bookings - if end time is before start time, it's the next day
+      const [startHours, startMinutes] = startTime.split(':').map(Number);
+      const [endHours, endMinutes] = endTime.split(':').map(Number);
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      
+      if (endTotalMinutes <= startTotalMinutes) {
+        // Overnight booking - end time is on the next day
+        const nextDay = new Date(bookingDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        const nextDateString = nextDay.toISOString().split('T')[0];
+        endDateTime = new Date(`${nextDateString}T${endTime}:00+05:00`);
+      } else {
+        // Same day booking
+        endDateTime = new Date(`${bookingDate}T${endTime}:00+05:00`);
+      }
     } else {
       endDateTime = new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000);
     }
@@ -302,7 +323,24 @@ export default function RoomsPage() {
       room_id: selectedRoom.id,
       start_time: `${bookingDate}T${startTime}:00+05:00`,
       end_time: endTime
-        ? `${bookingDate}T${endTime}:00+05:00`
+        ? (() => {
+            // Handle overnight bookings in the booking data
+            const [startHours, startMinutes] = startTime.split(':').map(Number);
+            const [endHours, endMinutes] = endTime.split(':').map(Number);
+            const startTotalMinutes = startHours * 60 + startMinutes;
+            const endTotalMinutes = endHours * 60 + endMinutes;
+            
+            if (endTotalMinutes <= startTotalMinutes) {
+              // Overnight booking - end time is on the next day
+              const nextDay = new Date(bookingDate);
+              nextDay.setDate(nextDay.getDate() + 1);
+              const nextDateString = nextDay.toISOString().split('T')[0];
+              return `${nextDateString}T${endTime}:00+05:00`;
+            } else {
+              // Same day booking
+              return `${bookingDate}T${endTime}:00+05:00`;
+            }
+          })()
         : formatISOInPakistan(new Date(startDateTime.getTime() + parseFloat(duration) * 60 * 60 * 1000)),
       credits_used: creditsNeeded,
       billed_to: billingType,
@@ -605,21 +643,36 @@ export default function RoomsPage() {
                     className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
                   >
                     <option value="">Select time</option>
-                    {Array.from({ length: 48 }, (_, i) => {
-                      const hours = Math.floor(i / 2);
-                      const minutes = (i % 2) * 30;
-                      const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                      const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
-                        hour: 'numeric', 
-                        minute: '2-digit',
-                        hour12: true 
-                      });
-                      return (
-                        <option key={time24} value={time24}>
-                          {time12}
-                        </option>
-                      );
-                    })}
+                    {(() => {
+                      const now = getPakistanTime();
+                      const isToday = bookingDate === getPakistanDateString();
+                      const currentHour = now.getHours();
+                      const currentMinute = now.getMinutes();
+                      
+                      return Array.from({ length: 48 }, (_, i) => {
+                        const hours = Math.floor(i / 2);
+                        const minutes = (i % 2) * 30;
+                        const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                        
+                        // Skip past times if booking for today
+                        if (isToday) {
+                          const slotTime = hours * 60 + minutes;
+                          const currentTime = currentHour * 60 + currentMinute;
+                          if (slotTime <= currentTime) return null;
+                        }
+                        
+                        const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
+                          hour: 'numeric', 
+                          minute: '2-digit',
+                          hour12: true 
+                        });
+                        return (
+                          <option key={time24} value={time24}>
+                            {time12}
+                          </option>
+                        );
+                      }).filter(Boolean);
+                    })()}
                   </select>
                 </div>
                 <div>
@@ -636,21 +689,46 @@ export default function RoomsPage() {
                     className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
                   >
                     <option value="">Select time</option>
-                    {Array.from({ length: 48 }, (_, i) => {
-                      const hours = Math.floor(i / 2);
-                      const minutes = (i % 2) * 30;
-                      const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                      const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
-                        hour: 'numeric', 
-                        minute: '2-digit',
-                        hour12: true 
-                      });
-                      return (
-                        <option key={time24} value={time24}>
-                          {time12}
-                        </option>
-                      );
-                    })}
+                    {(() => {
+                      const now = getPakistanTime();
+                      const isToday = bookingDate === getPakistanDateString();
+                      const currentHour = now.getHours();
+                      const currentMinute = now.getMinutes();
+                      
+                      return Array.from({ length: 48 }, (_, i) => {
+                        const hours = Math.floor(i / 2);
+                        const minutes = (i % 2) * 30;
+                        const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                        
+                        // For end time, we need to consider the start time as well
+                        if (startTime) {
+                          const [startHours, startMinutes] = startTime.split(':').map(Number);
+                          const startTotalMinutes = startHours * 60 + startMinutes;
+                          const endTotalMinutes = hours * 60 + minutes;
+                          
+                          // End time must be after start time (allowing overnight bookings)
+                          if (endTotalMinutes <= startTotalMinutes) return null;
+                        }
+                        
+                        // Skip past times if booking for today and no start time selected
+                        if (isToday && !startTime) {
+                          const slotTime = hours * 60 + minutes;
+                          const currentTime = currentHour * 60 + currentMinute;
+                          if (slotTime <= currentTime) return null;
+                        }
+                        
+                        const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
+                          hour: 'numeric', 
+                          minute: '2-digit',
+                          hour12: true 
+                        });
+                        return (
+                          <option key={time24} value={time24}>
+                            {time12}
+                          </option>
+                        );
+                      }).filter(Boolean);
+                    })()}
                   </select>
                 </div>
               </div>
