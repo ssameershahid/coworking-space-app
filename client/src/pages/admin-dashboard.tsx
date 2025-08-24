@@ -1175,6 +1175,7 @@ export default function AdminDashboard() {
       email: user.email || '',
       first_name: user.first_name || '',
       last_name: user.last_name || '',
+      phone: user.phone || '',
       role: user.role || 'member_individual',
       site: user.site || 'blue_area',
       organization_id: user.organization_id || '',
@@ -1203,6 +1204,7 @@ export default function AdminDashboard() {
         organization_id: cleanData.organization_id || null,
         credits: monthly_credits,
         start_date: formData.start_date || null,
+        phone: formData.phone || null,
         bio: formData.bio || null,
         linkedin_url: formData.linkedin_url || null,
         profile_image: formData.profile_image || null,
@@ -1261,6 +1263,20 @@ export default function AdminDashboard() {
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
           />
+        </div>
+        
+        <div>
+          <Label htmlFor="edit_phone">Phone Number (Optional)</Label>
+          <Input
+            id="edit_phone"
+            type="tel"
+            placeholder="+92 300 1234567"
+            value={formData.phone}
+            onChange={(e) => handlePhoneInputChange(e, (value) => setFormData({...formData, phone: value}))}
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Enter numbers, +, -, (, ), spaces, and dots only
+          </p>
         </div>
         <div>
           <Label htmlFor="edit_site">Site</Label>
