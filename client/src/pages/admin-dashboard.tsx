@@ -1213,6 +1213,8 @@ export default function AdminDashboard() {
         rfid_number: formData.rfid_number || null
       };
       
+      console.log("🔍 Frontend: EditUserForm submitData:", submitData);
+      
       try {
         await updateUser.mutateAsync({ userId: user.id, updates: submitData });
         onClose();
@@ -1538,6 +1540,8 @@ export default function AdminDashboard() {
         company: formData.company || null,
         rfid_number: formData.rfid_number || null
       };
+      
+      console.log("🔍 Frontend: NewUserForm submitData:", submitData);
       createUser.mutate(submitData);
     };
 

@@ -160,6 +160,11 @@ export const updateOrganizationSchema = createInsertSchema(organizations)
   .omit({ id: true, created_at: true })
   .partial(); // Make all fields optional for updates
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, created_at: true });
+
+// Create update schema for users (for partial updates)
+export const updateUserSchema = createInsertSchema(users)
+  .omit({ id: true, created_at: true })
+  .partial(); // Make all fields optional for updates
 export const insertMenuCategorySchema = createInsertSchema(menu_categories).omit({ id: true });
 export const insertMenuItemSchema = createInsertSchema(menu_items).omit({ id: true, created_at: true });
 export const insertCafeOrderSchema = createInsertSchema(cafe_orders).omit({ id: true, created_at: true, updated_at: true });
@@ -185,6 +190,7 @@ export type Announcement = typeof announcements.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 export type UpdateOrganization = z.infer<typeof updateOrganizationSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpdateUser = z.infer<typeof updateUserSchema>;
 export type InsertMenuCategory = z.infer<typeof insertMenuCategorySchema>;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type InsertCafeOrder = z.infer<typeof insertCafeOrderSchema>;

@@ -1848,11 +1848,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.id);
       const updates = req.body;
       
-      const user = await storage.updateUser(userId, updates);
+      console.log("🔍 API: updateUser called with userId:", userId);
+      console.log("🔍 API: raw updates:", updates);
+      
+      // Validate the updates using the schema
+      const validationResult = schema.updateUserSchema.safeParse(updates);
+      if (!validationResult.success) {
+        console.error("❌ API: Validation failed:", validationResult.error);
+        return res.status(400).json({ 
+          message: "Invalid user data",
+          errors: validationResult.error.errors
+        });
+      }
+      
+      const sanitizedUpdates = validationResult.data;
+      console.log("🔍 API: sanitized updates:", sanitizedUpdates);
+      
+      const user = await storage.updateUser(userId, sanitizedUpdates);
+      console.log("✅ API: User updated successfully");
+      
       res.json(user);
     } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ message: "Failed to update user" });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ API: Error updating user:", errorMessage);
+      console.error("❌ API: Full error:", error);
+      
+      res.status(500).json({ 
+        message: "Failed to update user",
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      });
     }
   });
 
