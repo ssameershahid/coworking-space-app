@@ -51,8 +51,16 @@ export default function ProfilePage() {
           lastModified: profileImageFile.lastModified
         });
         
+        // Create a fresh FormData instance for each upload attempt
         const formData = new FormData();
-        formData.append('image', profileImageFile);
+        
+        // Create a new File object to avoid browser security issues
+        const freshFile = new File([profileImageFile], profileImageFile.name, {
+          type: profileImageFile.type,
+          lastModified: profileImageFile.lastModified
+        });
+        
+        formData.append('image', freshFile);
         
         // Debug FormData contents
         console.log("🔍 FormData entries:");
@@ -70,6 +78,7 @@ export default function ProfilePage() {
           });
           
           console.log("🔍 Upload response status:", uploadResponse.status);
+          console.log("🔍 Upload response headers:", Object.fromEntries(uploadResponse.headers.entries()));
           
           if (uploadResponse.ok) {
             const uploadResult = await uploadResponse.json();
@@ -106,7 +115,8 @@ export default function ProfilePage() {
         throw new Error(`Profile update failed: ${profileError.message}`);
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("✅ Profile update mutation succeeded:", data);
       toast({
         title: "Success",
         description: "Profile updated successfully",
@@ -118,19 +128,26 @@ export default function ProfilePage() {
     },
     onError: (error: any) => {
       console.error("❌ Profile update mutation error:", error);
-      toast({
-        title: "Profile Update Failed",
-        description: error.message || "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
       
-      // Don't reset the form on error, let user retry
-      // Only reset if it's a critical error
+      // Provide more specific error messages
+      let errorMessage = "Failed to update profile. Please try again.";
+      
       if (error.message?.includes('upload')) {
-        // If upload failed, reset the image file
+        errorMessage = "Failed to upload profile image. Please try again.";
+        // Reset image state on upload errors
         setProfileImageFile(null);
         setProfileImagePreview("");
+      } else if (error.message?.includes('network')) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error.message?.includes('unauthorized')) {
+        errorMessage = "Session expired. Please log in again.";
       }
+      
+      toast({
+        title: "Profile Update Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     },
   });
 
@@ -140,6 +157,11 @@ export default function ProfilePage() {
     // Prevent multiple submissions
     if (updateProfileMutation.isPending) {
       console.log("🔄 Profile update already in progress, ignoring duplicate submission");
+      toast({
+        title: "Please wait",
+        description: "Profile update is already in progress...",
+        variant: "default",
+      });
       return;
     }
     

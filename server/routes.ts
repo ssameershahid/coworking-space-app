@@ -410,20 +410,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No image file uploaded" });
       }
       
+      // Validate file size and type
+      if (req.file.size > 5 * 1024 * 1024) {
+        console.error("❌ File too large:", req.file.size);
+        return res.status(400).json({ error: "File size exceeds 5MB limit" });
+      }
+      
+      if (!req.file.mimetype.startsWith('image/')) {
+        console.error("❌ Invalid file type:", req.file.mimetype);
+        return res.status(400).json({ error: "Only image files are allowed" });
+      }
+      
       // Ensure uploads directory exists
       if (!fs.existsSync(uploadsDir)) {
         console.log("📁 Creating uploads directory...");
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
       
+      // Verify file was actually written
+      const filePath = path.join(uploadsDir, req.file.filename);
+      if (!fs.existsSync(filePath)) {
+        console.error("❌ File was not written to disk:", filePath);
+        return res.status(500).json({ error: "Failed to save uploaded file" });
+      }
+      
       const imageUrl = `/uploads/${req.file.filename}`;
       console.log("✅ Upload successful, image URL:", imageUrl);
+      console.log("✅ File saved to:", filePath);
+      console.log("✅ File size on disk:", fs.statSync(filePath).size);
+      
       res.json({ imageUrl });
     } catch (error) {
       console.error("❌ Profile image upload error:", error);
       res.status(500).json({ error: "Failed to upload image" });
     }
-  });
   });
 
   // Single SSE endpoint for real-time updates
