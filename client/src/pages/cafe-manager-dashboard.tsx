@@ -271,8 +271,8 @@ export default function CafeManagerDashboard() {
                 Mark Delivered
               </Button>
             )}
-            {/* Manager Delete: allowed if not delivered */}
-            {order.status !== 'delivered' && order.status !== 'deleted' && (
+            {/* Manager Delete: allowed only for pending or accepted */}
+            {(order.status === 'pending' || order.status === 'accepted') && (
               <Button
                 size="sm"
                 variant="destructive"
