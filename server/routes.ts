@@ -418,7 +418,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Increase body size limits for multipart to avoid early termination
     req.setTimeout?.(120000);
     next();
-  }, upload.any(), (req, res) => {
+  }, multer({ 
+    storage: storage_multer,
+    limits: { fileSize: 10 * 1024 * 1024 }
+  }).fields([{ name: 'image' }, { name: 'file' }]), (req, res) => {
     try {
       console.log("🔍 Profile image upload request received");
       console.log("🔍 Headers:", req.headers);
@@ -429,7 +432,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔍 User:", (req.user as any)?.id);
       
       // Support both single and any-file handlers
-      const uploadedFile: any = (req as any).file || (Array.isArray((req as any).files) ? (req as any).files[0] : null);
+      const filesMap: any = (req as any).files || {};
+      const uploadedFile: any = (filesMap.image && filesMap.image[0]) || (filesMap.file && filesMap.file[0]) || null;
       if (!uploadedFile) {
         console.error("❌ No file uploaded");
         console.error("❌ Request body keys:", Object.keys(req.body));

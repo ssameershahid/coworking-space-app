@@ -53,8 +53,9 @@ export default function ProfilePage() {
         
         // Create a fresh FormData instance for each upload attempt
         const formData = new FormData();
-        // Append the original File object; some servers rely on original stream metadata
+        // Send under both keys to satisfy different parsers
         formData.append('image', profileImageFile);
+        formData.append('file', profileImageFile);
         
         // Debug FormData contents
         console.log("🔍 FormData entries:");
@@ -63,32 +64,31 @@ export default function ProfilePage() {
         }
         
         try {
-          // Prefer reliable base64 upload first to avoid proxy/multipart edge cases
-          const asBase64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(profileImageFile);
+          // Primary path: multipart form upload image/file field
+          try { await fetch('/api/health', { credentials: 'include', cache: 'no-store' }); } catch {}
+          const attemptMultipart = async () => fetch('/api/upload/profile-image', {
+            method: 'POST', body: formData, credentials: 'include'
           });
-          let uploadResponse = await fetch('/api/upload/profile-image-base64', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageData: asBase64, filename: profileImageFile.name, mime: profileImageFile.type })
-          });
-          // If base64 path fails for any reason, try multipart as a backup
-          if (!uploadResponse.ok) {
-            console.warn('⚠️ Base64 upload failed, attempting multipart fallback');
-            // Warm server
-            try { await fetch('/api/health', { credentials: 'include', cache: 'no-store' }); } catch {}
-            const attemptMultipart = async () => fetch('/api/upload/profile-image', {
-              method: 'POST', body: formData, credentials: 'include'
-            });
+          let uploadResponse = await attemptMultipart();
+          if (uploadResponse.status >= 500) {
+            await new Promise(r => setTimeout(r, 300));
             uploadResponse = await attemptMultipart();
-            if (uploadResponse.status >= 500) {
-              await new Promise(r => setTimeout(r, 300));
-              uploadResponse = await attemptMultipart();
-            }
+          }
+          // Fallback: base64 only if 400 (parsing fail) or 413 (too large for proxy)
+          if (uploadResponse.status === 400 || uploadResponse.status === 413) {
+            console.warn('⚠️ Multipart upload failed with', uploadResponse.status, '- attempting base64 fallback');
+            const asBase64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(profileImageFile);
+            });
+            uploadResponse = await fetch('/api/upload/profile-image-base64', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageData: asBase64, filename: profileImageFile.name, mime: profileImageFile.type })
+            });
           }
           
           console.log("🔍 Upload response status:", uploadResponse.status);
