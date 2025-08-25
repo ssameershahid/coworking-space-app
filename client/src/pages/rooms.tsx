@@ -87,6 +87,13 @@ export default function RoomsPage() {
     enabled: !!user,
   });
 
+  // Default billing behavior: members of an organization charge the organization by default for rooms
+  useEffect(() => {
+    if (user && user.role === 'member_organization' && user.organization_id) {
+      setBillingType('organization');
+    }
+  }, [user?.role, user?.organization_id]);
+
   const { data: myBookings = [] } = useQuery<MeetingBooking[]>({
     queryKey: ["/api/bookings"],
     enabled: !!user,

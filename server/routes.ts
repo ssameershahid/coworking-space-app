@@ -1368,9 +1368,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
       const creditsNeeded = Math.round(durationHours * 100) / 100; // Round to 2 decimal places
 
-      // Allow bookings even with insufficient credits (track negative balance for manual billing)
-      const availableCredits = (user.credits || 0) - parseFloat(user.used_credits || "0");
-      console.log(`User ${user.id} booking: needs ${creditsNeeded}, has ${availableCredits} available`);
+      // Determine default billing: members of an organization charge the organization by default for rooms
+      const effectiveBilledTo = (billed_to || (user.role === 'member_organization' && user.organization_id ? 'organization' : 'personal')) as any;
+
+      // Check credit availability based on billing type
+      if (effectiveBilledTo === 'organization' && user.organization_id) {
+        // For organization billing, check organization's monthly credit allocation
+        const organization = await storage.getOrganizationById(user.organization_id);
+        if (!organization) {
+          return res.status(400).json({ message: "Organization not found" });
+        }
+
+        // Get organization's total credits used this month
+        const orgBookings = await storage.getMeetingBookings(undefined, user.organization_id);
+        const currentMonth = new Date();
+        const orgCreditsUsedThisMonth = orgBookings
+          .filter((booking: any) => {
+            const bookingDate = new Date(booking.created_at);
+            return bookingDate.getMonth() === currentMonth.getMonth() && 
+                   bookingDate.getFullYear() === currentMonth.getFullYear() &&
+                   booking.billed_to === 'organization';
+          })
+          .reduce((sum: number, booking: any) => sum + parseFloat(booking.credits_used || 0), 0);
+
+        const monthlyAllocation = organization.monthly_credits || 30;
+        const availableOrgCredits = monthlyAllocation - orgCreditsUsedThisMonth;
+        
+        console.log(`Organization ${user.organization_id} booking: needs ${creditsNeeded}, has ${availableOrgCredits} available (${monthlyAllocation} monthly allocation)`);
+        
+        // Allow booking even if organization exceeds monthly allocation (will be charged)
+        if (availableOrgCredits < creditsNeeded) {
+          console.log(`⚠️ Organization ${user.organization_id} will be charged for ${creditsNeeded - availableOrgCredits} extra credits`);
+        }
+      } else {
+        // For personal billing, check user's personal credits
+        const availableCredits = (user.credits || 0) - parseFloat(user.used_credits || "0");
+        console.log(`User ${user.id} booking: needs ${creditsNeeded}, has ${availableCredits} available`);
+        
+        // Allow bookings even with insufficient credits (track negative balance for manual billing)
+        if (availableCredits < creditsNeeded) {
+          console.log(`⚠️ User ${user.id} will have negative credit balance: ${availableCredits - creditsNeeded}`);
+        }
+      }
 
       // Create booking - pass Date objects directly, let node-postgres handle them
       const booking = await storage.createMeetingBooking({
@@ -1380,16 +1419,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         end_time: endTime,
         credits_used: creditsNeeded.toString(),
         status: "confirmed",
-        billed_to: billed_to || "personal",
-        org_id: billed_to === "organization" ? user.organization_id : undefined,
+        billed_to: effectiveBilledTo,
+        org_id: effectiveBilledTo === "organization" ? user.organization_id : undefined,
         notes,
         site: user.site,
       });
 
-      // Deduct credits
-      await storage.updateUser(user.id, {
-        used_credits: (parseFloat(user.used_credits || "0") + creditsNeeded).toString(),
-      });
+      // Only deduct from user's personal credits if billing is personal
+      if (effectiveBilledTo === 'personal') {
+        await storage.updateUser(user.id, {
+          used_credits: (parseFloat(user.used_credits || "0") + creditsNeeded).toString(),
+        });
+      }
 
       res.status(201).json(booking);
     } catch (error) {
@@ -1469,19 +1510,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Cancel the booking
       const cancelledBooking = await storage.updateMeetingBookingStatus(id, 'cancelled');
 
-      // Refund the credits to the user
-      const user = await storage.getUserById(userId);
-      if (user) {
-        const currentUsedCredits = parseFloat(user.used_credits || "0");
-        const refundAmount = parseFloat(booking.credits_used || "0");
-        const newUsedCredits = Math.max(0, currentUsedCredits - refundAmount);
-        await storage.updateUser(userId, { used_credits: newUsedCredits.toString() });
+      // Only refund credits to user if the booking was billed personally
+      if (booking.billed_to === 'personal') {
+        const user = await storage.getUserById(userId);
+        if (user) {
+          const currentUsedCredits = parseFloat(user.used_credits || "0");
+          const refundAmount = parseFloat(booking.credits_used || "0");
+          const newUsedCredits = Math.max(0, currentUsedCredits - refundAmount);
+          await storage.updateUser(userId, { used_credits: newUsedCredits.toString() });
+        }
       }
 
       res.json({ 
         booking: cancelledBooking, 
-        refundedCredits: booking.credits_used,
-        message: "Booking cancelled and credits refunded"
+        refundedCredits: booking.billed_to === 'personal' ? booking.credits_used : 0,
+        message: booking.billed_to === 'personal' ? "Booking cancelled and credits refunded" : "Booking cancelled"
       });
     } catch (error) {
       console.error("Error cancelling booking:", error);
@@ -2419,7 +2462,7 @@ function generateOrgInvoicePDFContent(
   const totalCredits = bookings.reduce((sum, b) => sum + parseFloat(b.credits_used || 0), 0);
   
   // Calculate total credits that will be charged (extra credits beyond monthly allocation)
-  const monthlyCredits = 30; // Default monthly allocation
+  const monthlyCredits = organization.monthly_credits ?? 30; // Use org-specific allocation when available
   const totalCreditsCharged = Math.max(0, totalCredits - monthlyCredits);
   
   const header = `%PDF-1.4
