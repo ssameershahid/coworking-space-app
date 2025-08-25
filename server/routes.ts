@@ -473,6 +473,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fallback endpoint: accept base64 JSON payload when multipart parsing fails on some platforms
+  app.post("/api/upload/profile-image-base64", requireAuth, express.json({ limit: '10mb' }), (req, res) => {
+    try {
+      const { imageData, filename, mime } = req.body || {};
+      if (!imageData || typeof imageData !== 'string') {
+        return res.status(400).json({ error: 'No image data provided' });
+      }
+      // Ensure uploads directory exists
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      // Strip data URL prefix if present
+      const base64String = imageData.includes(',') ? imageData.split(',')[1] : imageData;
+      const buffer = Buffer.from(base64String, 'base64');
+      const safeName = `profile-${Date.now()}-${Math.round(Math.random()*1e9)}${filename ? path.extname(filename) : ''}`;
+      const filePath = path.join(uploadsDir, safeName);
+      fs.writeFileSync(filePath, buffer);
+      const imageUrl = `/uploads/${safeName}`;
+      return res.json({ imageUrl });
+    } catch (error) {
+      console.error('❌ Profile image base64 upload error:', error);
+      return res.status(500).json({ error: 'Failed to upload base64 image' });
+    }
+  });
+
   // Single SSE endpoint for real-time updates
   app.get("/events", requireAuth, (req, res) => {
     const user = req.user as any;

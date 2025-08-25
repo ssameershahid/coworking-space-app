@@ -78,12 +78,29 @@ export default function ProfilePage() {
           };
           
           let uploadResponse = await attemptUpload();
-          if (uploadResponse.status === 500) {
+          if (uploadResponse.status >= 500) {
             const txt = await uploadResponse.text();
             console.warn('⚠️ Upload 500, retrying once...', txt);
             // brief delay before retry
             await new Promise(r => setTimeout(r, 300));
             uploadResponse = await attemptUpload();
+          }
+          // Fallback to base64 endpoint if server still says no file (400)
+          if (uploadResponse.status === 400) {
+            console.warn('⚠️ Multipart upload returned 400; attempting base64 fallback');
+            // Convert file to base64
+            const asBase64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(profileImageFile);
+            });
+            uploadResponse = await fetch('/api/upload/profile-image-base64', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageData: asBase64, filename: profileImageFile.name, mime: profileImageFile.type })
+            });
           }
           
           console.log("🔍 Upload response status:", uploadResponse.status);
