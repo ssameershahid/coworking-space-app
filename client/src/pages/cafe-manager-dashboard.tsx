@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Clock, CheckCircle, Truck, Package, User, DollarSign, Calendar, TrendingUp, ShoppingCart, Receipt } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +11,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { useSSESimple } from "@/hooks/use-sse-simple";
 import { formatPrice, formatPriceWithCurrency } from "@/lib/format-price";
-import { initializeAudioNotifications, playNotificationSound } from "@/lib/audio-notifications";
+import { 
+  initializeAudioNotifications, 
+  playNotificationSound, 
+  setCustomNotificationSound, 
+  setNotificationVolume, 
+  toggleAudioType 
+} from "@/lib/audio-notifications";
 
 
 
@@ -376,23 +383,123 @@ export default function CafeManagerDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => {
-                playNotificationSound();
-                toast({
-                  title: "Audio Test",
-                  description: "Notification sound played successfully",
-                });
-              }}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Receipt className="h-4 w-4" />
-              Test Notification Sound
-            </Button>
-            <div className="text-sm text-gray-600">
-              🔊 Audio notifications are enabled for new orders
+          <div className="space-y-4">
+            {/* Test Button */}
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={() => {
+                  playNotificationSound();
+                  toast({
+                    title: "Audio Test",
+                    description: "Notification sound played successfully",
+                  });
+                }}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Receipt className="h-4 w-4" />
+                Test Notification Sound
+              </Button>
+              <div className="text-sm text-gray-600">
+                🔊 Audio notifications are enabled for new orders
+              </div>
+            </div>
+
+            {/* Custom Audio Settings */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Custom Audio Settings</h4>
+              
+              {/* Audio Type Toggle */}
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <Label className="text-sm font-medium">Audio Type</Label>
+                  <p className="text-xs text-gray-600">Choose between custom or generated sound</p>
+                </div>
+                <Button
+                  onClick={() => {
+                    toggleAudioType();
+                    toast({
+                      title: "Audio Type Changed",
+                      description: "Audio type has been toggled",
+                    });
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Toggle Audio Type
+                </Button>
+              </div>
+
+              {/* Volume Control */}
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <Label className="text-sm font-medium">Volume</Label>
+                  <p className="text-xs text-gray-600">Adjust notification volume</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    defaultValue="50"
+                    className="w-24"
+                    onChange={(e) => {
+                      const volume = parseInt(e.target.value) / 100;
+                      setNotificationVolume(volume);
+                    }}
+                  />
+                  <span className="text-xs text-gray-600 w-8">50%</span>
+                </div>
+              </div>
+
+              {/* Custom Audio File Upload */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Custom Audio File</Label>
+                <p className="text-xs text-gray-600 mb-2">
+                  Upload a custom notification sound (MP3, WAV, OGG - max 2MB)
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    className="text-xs"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 2 * 1024 * 1024) {
+                          toast({
+                            title: "File too large",
+                            description: "Please select an audio file smaller than 2MB",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        
+                        const audioUrl = URL.createObjectURL(file);
+                        setCustomNotificationSound(audioUrl);
+                        toast({
+                          title: "Custom Audio Set",
+                          description: "Custom notification sound has been set",
+                        });
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={() => {
+                      // Reset to default sound
+                      setCustomNotificationSound('/assets/notification-sound.wav');
+                      toast({
+                        title: "Audio Reset",
+                        description: "Reset to default notification sound",
+                      });
+                    }}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Reset to Default
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
