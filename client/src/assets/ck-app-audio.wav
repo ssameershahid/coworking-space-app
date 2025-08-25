@@ -1,9 +1,0 @@
-# This is a placeholder for ck-app-audio.wav
-
-To add your custom notification sound:
-
-1. Replace this file with your actual ck-app-audio.wav file
-2. Keep the filename: ck-app-audio.wav
-3. The system will automatically play this at 100% volume when new orders come in
-
-The audio file should be in WAV format and under 2MB for optimal performance.
