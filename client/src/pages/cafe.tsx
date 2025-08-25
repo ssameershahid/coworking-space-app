@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useSSE } from "@/hooks/use-sse";
+import { useSSESimple } from "@/hooks/use-sse-simple";
 import { 
   ShoppingCart, 
   Coffee, 
@@ -103,6 +103,18 @@ export default function CafePage() {
     enabled: !!user,
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache results
+  });
+
+  // Real-time updates for user's own orders via SSE
+  useSSESimple({
+    endpoint: "/events",
+    onOrderStatusUpdate: (order: any) => {
+      // If this update pertains to this user, refresh their orders list
+      if (!user) return;
+      if (order?.user?.id === user.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders" ] });
+      }
+    }
   });
 
   // Real-time order updates for users (use polling instead of SSE for efficiency)
