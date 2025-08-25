@@ -53,14 +53,8 @@ export default function ProfilePage() {
         
         // Create a fresh FormData instance for each upload attempt
         const formData = new FormData();
-        
-        // Create a new File object to avoid browser security issues
-        const freshFile = new File([profileImageFile], profileImageFile.name, {
-          type: profileImageFile.type,
-          lastModified: profileImageFile.lastModified
-        });
-        
-        formData.append('image', freshFile);
+        // Append the original File object; some servers rely on original stream metadata
+        formData.append('image', profileImageFile);
         
         // Debug FormData contents
         console.log("🔍 FormData entries:");

@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Increase body size limits for multipart to avoid early termination
     req.setTimeout?.(120000);
     next();
-  }, upload.single('image'), (req, res) => {
+  }, upload.any(), (req, res) => {
     try {
       console.log("🔍 Profile image upload request received");
       console.log("🔍 Headers:", req.headers);
@@ -428,7 +428,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔍 Body:", req.body);
       console.log("🔍 User:", (req.user as any)?.id);
       
-      if (!req.file) {
+      // Support both single and any-file handlers
+      const uploadedFile: any = (req as any).file || (Array.isArray((req as any).files) ? (req as any).files[0] : null);
+      if (!uploadedFile) {
         console.error("❌ No file uploaded");
         console.error("❌ Request body keys:", Object.keys(req.body));
         console.error("❌ Request files:", req.files);
@@ -453,13 +455,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify file was actually written
-      const filePath = path.join(uploadsDir, req.file.filename);
+      const filePath = path.join(uploadsDir, uploadedFile.filename);
       if (!fs.existsSync(filePath)) {
         console.error("❌ File was not written to disk:", filePath);
         return res.status(500).json({ error: "Failed to save uploaded file" });
       }
       
-      const imageUrl = `/uploads/${req.file.filename}`;
+      const imageUrl = `/uploads/${uploadedFile.filename}`;
       console.log("✅ Upload successful, image URL:", imageUrl);
       console.log("✅ File saved to:", filePath);
       console.log("✅ File size on disk:", fs.statSync(filePath).size);
