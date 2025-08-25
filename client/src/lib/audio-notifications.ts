@@ -6,6 +6,7 @@ class AudioNotificationManager {
   private customAudio: HTMLAudioElement | null = null;
   private isInitialized = false;
   private useCustomAudio = true; // Always use custom audio file
+  private audioSrcBase = '/assets/ck-app-audio.wav';
 
   // Initialize the audio context and create the notification sound
   async initialize() {
@@ -13,8 +14,8 @@ class AudioNotificationManager {
 
     try {
       if (this.useCustomAudio) {
-        // Use hardcoded custom audio file
-        this.customAudio = new Audio('/assets/ck-app-audio.wav');
+        // Use hardcoded custom audio file with cache-busting query param
+        this.customAudio = new Audio(`${this.audioSrcBase}?v=${Date.now()}`);
         this.customAudio.preload = 'auto';
         
         // Set volume to 100% for maximum notification impact
@@ -81,6 +82,10 @@ class AudioNotificationManager {
     try {
       if (this.useCustomAudio && this.customAudio) {
         // Play custom audio file
+        // Force reload latest file in case browser cached the old one
+        const ts = Date.now();
+        this.customAudio.src = `${this.audioSrcBase}?t=${ts}`;
+        this.customAudio.load();
         this.customAudio.currentTime = 0; // Reset to beginning
         await this.customAudio.play();
         console.log("🔊 Played custom notification sound");
