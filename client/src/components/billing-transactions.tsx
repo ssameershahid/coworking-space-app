@@ -18,7 +18,7 @@ interface CafeOrder {
   id: number;
   user_id: number;
   total_amount: string;
-  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | 'deleted';
   billed_to: 'personal' | 'organization';
   org_id?: string;
   handled_by?: number;
@@ -59,7 +59,8 @@ const statusConfig = {
   preparing: { label: "Preparing", color: "bg-blue-100 text-blue-800", icon: Clock },
   ready: { label: "Ready", color: "bg-green-100 text-green-800", icon: CheckCircle },
   delivered: { label: "Delivered", color: "bg-gray-100 text-gray-800", icon: CheckCircle },
-  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800", icon: AlertCircle }
+  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800", icon: AlertCircle },
+  deleted: { label: "Deleted", color: "bg-red-200 text-red-900", icon: AlertCircle }
 };
 
 const paymentStatusConfig = {
@@ -464,6 +465,7 @@ export default function BillingTransactions() {
                   <SelectItem value="ready">Ready</SelectItem>
                   <SelectItem value="delivered">Delivered</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="deleted">Deleted</SelectItem>
                 </SelectContent>
               </Select>
             </div>
