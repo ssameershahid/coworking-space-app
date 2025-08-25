@@ -8,7 +8,6 @@ class AudioNotificationManager {
   private useCustomAudio = true; // Always use custom audio file
   private audioSrcBase = '/assets/ck-app-audio.wav';
   private cacheBuster = `${Date.now()}`;
-  private activationAttached = false;
 
   // Initialize the audio context and create the notification sound
   async initialize() {
@@ -25,9 +24,6 @@ class AudioNotificationManager {
         this.customAudio.muted = false;
         
         console.log("🔊 Hardcoded custom audio notification system initialized");
-
-        // Attach one-time user-gesture activation to satisfy autoplay policies
-        this.attachActivationHandler();
       } else {
         // Use generated sound (fallback)
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -109,14 +105,7 @@ class AudioNotificationManager {
         await ensureReady();
         this.customAudio.currentTime = 0;
         this.customAudio.muted = false;
-        try {
-          await this.customAudio.play();
-        } catch (e) {
-          // If autoplay is blocked, try to resume via activation handler
-          console.warn('⚠️ Audio play blocked, waiting for user activation...', e);
-          this.attachActivationHandler();
-          return;
-        }
+        await this.customAudio.play();
         console.log("🔊 Played custom notification sound");
       } else if (this.audioContext && this.audioBuffer) {
         // Play generated sound
@@ -142,33 +131,6 @@ class AudioNotificationManager {
         await this.playNotification();
       }
     }
-  }
-
-  // Attach a one-time activation handler to unlock audio on first user gesture
-  private attachActivationHandler() {
-    if (this.activationAttached) return;
-    const handler = async () => {
-      try {
-        if (!this.customAudio) return;
-        const savedVolume = this.customAudio.volume;
-        this.customAudio.volume = 0; // silent unlock
-        this.customAudio.currentTime = 0;
-        await this.customAudio.play();
-        // Immediately pause after unlocking
-        this.customAudio.pause();
-        this.customAudio.volume = savedVolume;
-        console.log('✅ Audio unlocked after user gesture');
-      } catch (err) {
-        console.warn('⚠️ Failed to unlock audio on gesture:', err);
-      } finally {
-        window.removeEventListener('pointerdown', handler);
-        window.removeEventListener('keydown', handler);
-        this.activationAttached = false;
-      }
-    };
-    window.addEventListener('pointerdown', handler, { once: true });
-    window.addEventListener('keydown', handler, { once: true });
-    this.activationAttached = true;
   }
 
   // Play notification with user interaction (required by some browsers)
