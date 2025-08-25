@@ -133,6 +133,28 @@ export default function CafePage() {
     },
   });
 
+  // User cancel order (allowed only for pending or accepted)
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      return await apiRequest('PATCH', `/api/cafe/orders/${orderId}/cancel`, {});
+    },
+    onSuccess: async () => {
+      toast({
+        title: "Order Deleted",
+        description: "Your order has been deleted.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders"] });
+    },
+    onError: (error: any) => {
+      console.error("Order cancel failed:", error);
+      toast({
+        title: "Delete Failed",
+        description: "Could not delete the order. It may already be in preparation.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter and sort menu items
   const filteredItems = menuItems
     .filter((item) => {
@@ -385,16 +407,28 @@ export default function CafePage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
-                      <Badge 
-                        variant={order.status === 'delivered' ? 'default' : 'secondary'}
-                        className={
-                          order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                          order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                          order.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
-                        }
-                      >
-                        {order.status}
-                      </Badge>
+                      <div className="flex items-center gap-2 justify-end">
+                        <Badge 
+                          variant={order.status === 'delivered' ? 'default' : 'secondary'}
+                          className={
+                            order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                            order.status === 'cancelled' || order.status === 'deleted' ? 'bg-red-100 text-red-800' : ''
+                          }
+                        >
+                          {order.status}
+                        </Badge>
+                        {(order.status === 'pending' || order.status === 'accepted') && (
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => cancelOrderMutation.mutate(order.id)}
+                            disabled={cancelOrderMutation.isPending}
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
