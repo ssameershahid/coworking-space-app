@@ -69,13 +69,28 @@ export default function ProfilePage() {
         }
         
         try {
-          const uploadResponse = await fetch('/api/upload/profile-image', {
-            method: 'POST',
-            body: formData,
-            credentials: 'include', // Include cookies for authentication
-            // Don't set Content-Type header - let browser set it automatically for FormData
-            // This ensures the boundary is set correctly for multipart/form-data
-          });
+          // Warm the server to avoid cold-start/body stream interruptions
+          try {
+            await fetch('/api/health', { credentials: 'include', cache: 'no-store' });
+          } catch {}
+          
+          // Helper to attempt upload with one retry on transient 500 errors
+          const attemptUpload = async () => {
+            return await fetch('/api/upload/profile-image', {
+              method: 'POST',
+              body: formData,
+              credentials: 'include',
+            });
+          };
+          
+          let uploadResponse = await attemptUpload();
+          if (uploadResponse.status === 500) {
+            const txt = await uploadResponse.text();
+            console.warn('⚠️ Upload 500, retrying once...', txt);
+            // brief delay before retry
+            await new Promise(r => setTimeout(r, 300));
+            uploadResponse = await attemptUpload();
+          }
           
           console.log("🔍 Upload response status:", uploadResponse.status);
           console.log("🔍 Upload response headers:", Object.fromEntries(uploadResponse.headers.entries()));

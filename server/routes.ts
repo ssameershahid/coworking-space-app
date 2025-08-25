@@ -414,7 +414,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
         // File upload endpoint
-  app.post("/api/upload/profile-image", requireAuth, upload.single('image'), (req, res) => {
+  app.post("/api/upload/profile-image", requireAuth, (req, res, next) => {
+    // Increase body size limits for multipart to avoid early termination
+    req.setTimeout?.(120000);
+    next();
+  }, upload.single('image'), (req, res) => {
     try {
       console.log("🔍 Profile image upload request received");
       console.log("🔍 Headers:", req.headers);
