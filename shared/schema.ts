@@ -5,7 +5,7 @@ import { z } from "zod";
 // Enums
 export const userRoleEnum = pgEnum("user_role", ["member_individual", "member_organization", "member_organization_admin", "cafe_manager", "calmkaaj_team", "calmkaaj_admin"]);
 export const billingTypeEnum = pgEnum("billing_type", ["personal", "organization"]);
-export const orderStatusEnum = pgEnum("order_status", ["pending", "accepted", "preparing", "ready", "delivered", "cancelled"]);
+export const orderStatusEnum = pgEnum("order_status", ["pending", "accepted", "preparing", "ready", "delivered", "cancelled", "deleted"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["confirmed", "cancelled", "completed"]);
 export const siteEnum = pgEnum("site", ["blue_area", "i_10", "both"]);
 

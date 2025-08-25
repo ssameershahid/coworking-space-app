@@ -983,6 +983,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { status } = req.body;
       const user = req.user as schema.User;
       
+      // Enforce delete rule: cannot delete after delivered
+      if (status === 'deleted') {
+        const existing = await storage.getCafeOrderById(id);
+        if (!existing) {
+          return res.status(404).json({ message: "Order not found" });
+        }
+        if (existing.status === 'delivered') {
+          return res.status(400).json({ message: "Cannot delete an order that has been delivered" });
+        }
+      }
+
       const order = await storage.updateCafeOrderStatus(id, status, user.id);
       
       // Send real-time status update to user via SSE
@@ -996,6 +1007,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating cafe order status:", error);
       res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
+  // User cancels own order before it reaches preparing
+  app.patch("/api/cafe/orders/:id/cancel", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = req.user as schema.User;
+      const existing = await storage.getCafeOrderById(id);
+      if (!existing) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      if (existing.user.id !== user.id) {
+        return res.status(403).json({ message: "Not authorized to cancel this order" });
+      }
+      // Allowed only if status is pending or accepted
+      if (!(existing.status === 'pending' || existing.status === 'accepted')) {
+        return res.status(400).json({ message: "Order can no longer be cancelled" });
+      }
+      const updated = await storage.updateCafeOrderStatus(id, 'deleted');
+      // Broadcast update to cafe and user
+      const cafeId = existing.site || (user.site || 'default');
+      const orderWithDetails = await storage.getCafeOrderById(id);
+      if (orderWithDetails) {
+        broadcaster.broadcastOrderUpdate(orderWithDetails.user.id, orderWithDetails, cafeId);
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      res.status(500).json({ message: "Failed to cancel order" });
     }
   });
 
