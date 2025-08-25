@@ -63,44 +63,32 @@ export default function ProfilePage() {
         }
         
         try {
-          // Warm the server to avoid cold-start/body stream interruptions
-          try {
-            await fetch('/api/health', { credentials: 'include', cache: 'no-store' });
-          } catch {}
-          
-          // Helper to attempt upload with one retry on transient 500 errors
-          const attemptUpload = async () => {
-            return await fetch('/api/upload/profile-image', {
-              method: 'POST',
-              body: formData,
-              credentials: 'include',
+          // Prefer reliable base64 upload first to avoid proxy/multipart edge cases
+          const asBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(profileImageFile);
+          });
+          let uploadResponse = await fetch('/api/upload/profile-image-base64', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageData: asBase64, filename: profileImageFile.name, mime: profileImageFile.type })
+          });
+          // If base64 path fails for any reason, try multipart as a backup
+          if (!uploadResponse.ok) {
+            console.warn('⚠️ Base64 upload failed, attempting multipart fallback');
+            // Warm server
+            try { await fetch('/api/health', { credentials: 'include', cache: 'no-store' }); } catch {}
+            const attemptMultipart = async () => fetch('/api/upload/profile-image', {
+              method: 'POST', body: formData, credentials: 'include'
             });
-          };
-          
-          let uploadResponse = await attemptUpload();
-          if (uploadResponse.status >= 500) {
-            const txt = await uploadResponse.text();
-            console.warn('⚠️ Upload 500, retrying once...', txt);
-            // brief delay before retry
-            await new Promise(r => setTimeout(r, 300));
-            uploadResponse = await attemptUpload();
-          }
-          // Fallback to base64 endpoint if server still says no file (400)
-          if (uploadResponse.status === 400) {
-            console.warn('⚠️ Multipart upload returned 400; attempting base64 fallback');
-            // Convert file to base64
-            const asBase64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(profileImageFile);
-            });
-            uploadResponse = await fetch('/api/upload/profile-image-base64', {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ imageData: asBase64, filename: profileImageFile.name, mime: profileImageFile.type })
-            });
+            uploadResponse = await attemptMultipart();
+            if (uploadResponse.status >= 500) {
+              await new Promise(r => setTimeout(r, 300));
+              uploadResponse = await attemptMultipart();
+            }
           }
           
           console.log("🔍 Upload response status:", uploadResponse.status);
