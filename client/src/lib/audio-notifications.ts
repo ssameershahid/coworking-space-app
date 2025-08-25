@@ -7,6 +7,7 @@ class AudioNotificationManager {
   private isInitialized = false;
   private useCustomAudio = true; // Always use custom audio file
   private audioSrcBase = '/assets/ck-app-audio.wav';
+  private cacheBuster = `${Date.now()}`;
 
   // Initialize the audio context and create the notification sound
   async initialize() {
@@ -14,12 +15,13 @@ class AudioNotificationManager {
 
     try {
       if (this.useCustomAudio) {
-        // Use hardcoded custom audio file with cache-busting query param
-        this.customAudio = new Audio(`${this.audioSrcBase}?v=${Date.now()}`);
+        // Use hardcoded custom audio file with cache-busting query param (once per load)
+        this.customAudio = new Audio(`${this.audioSrcBase}?v=${this.cacheBuster}`);
         this.customAudio.preload = 'auto';
         
         // Set volume to 100% for maximum notification impact
         this.customAudio.volume = 1.0;
+        this.customAudio.muted = false;
         
         console.log("🔊 Hardcoded custom audio notification system initialized");
       } else {
@@ -81,12 +83,28 @@ class AudioNotificationManager {
 
     try {
       if (this.useCustomAudio && this.customAudio) {
-        // Play custom audio file
-        // Force reload latest file in case browser cached the old one
-        const ts = Date.now();
-        this.customAudio.src = `${this.audioSrcBase}?t=${ts}`;
-        this.customAudio.load();
-        this.customAudio.currentTime = 0; // Reset to beginning
+        // Ensure audio is ready before playing
+        const ensureReady = () => new Promise<void>((resolve) => {
+          if (this.customAudio!.readyState >= 3) {
+            resolve();
+            return;
+          }
+          const onReady = () => {
+            this.customAudio?.removeEventListener('canplaythrough', onReady);
+            resolve();
+          };
+          this.customAudio!.addEventListener('canplaythrough', onReady, { once: true });
+          // Fallback in case event doesn't fire quickly
+          setTimeout(() => {
+            this.customAudio?.removeEventListener('canplaythrough', onReady);
+            resolve();
+          }, 1000);
+        });
+
+        // Reset to start and play
+        await ensureReady();
+        this.customAudio.currentTime = 0;
+        this.customAudio.muted = false;
         await this.customAudio.play();
         console.log("🔊 Played custom notification sound");
       } else if (this.audioContext && this.audioBuffer) {
