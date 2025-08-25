@@ -9,6 +9,7 @@ class AudioNotificationManager {
   private audioSrcBase = '/assets/ck-app-audio.wav';
   private cacheBuster = `${Date.now()}`;
   private activationAttached = false;
+  private listenersBound = false;
 
   // Initialize the audio context and create the notification sound
   async initialize() {
@@ -28,6 +29,17 @@ class AudioNotificationManager {
 
         // Attach one-time user-gesture activation to satisfy autoplay policies
         this.attachActivationHandler();
+
+        // Bind debug listeners and expose a test hook
+        this.bindDebugListeners();
+        (window as any).__testCafeAudio = () => this.playNotification();
+
+        // Verify asset is reachable
+        try {
+          fetch(`${this.audioSrcBase}`, { method: 'HEAD', cache: 'no-store' })
+            .then(r => console.log(`🔎 Audio HEAD ${r.status}`, r.headers.get('content-type')))
+            .catch(err => console.warn('⚠️ Audio HEAD failed', err));
+        } catch {}
       } else {
         // Use generated sound (fallback)
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -169,6 +181,32 @@ class AudioNotificationManager {
     window.addEventListener('pointerdown', handler, { once: true });
     window.addEventListener('keydown', handler, { once: true });
     this.activationAttached = true;
+  }
+
+  private bindDebugListeners() {
+    if (!this.customAudio || this.listenersBound) return;
+    this.listenersBound = true;
+    this.customAudio.addEventListener('error', (e) => {
+      const el = e.currentTarget as HTMLAudioElement;
+      // @ts-ignore
+      const mediaErr = el.error;
+      console.error('❌ Audio element error', {
+        code: mediaErr?.code,
+        message: mediaErr?.message,
+        networkState: el.networkState,
+        readyState: el.readyState,
+        src: el.src,
+      });
+    });
+    this.customAudio.addEventListener('canplaythrough', () => {
+      console.log('✅ canplaythrough fired');
+    });
+    this.customAudio.addEventListener('loadedmetadata', () => {
+      console.log('ℹ️ loadedmetadata', { duration: this.customAudio?.duration });
+    });
+    this.customAudio.addEventListener('loadstart', () => {
+      console.log('ℹ️ loadstart', { src: this.customAudio?.src });
+    });
   }
 
   // Play notification with user interaction (required by some browsers)
