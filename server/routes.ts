@@ -419,7 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     req.setTimeout?.(120000);
     next();
   }, multer({ 
-    storage: storage_multer,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 }
   }).fields([{ name: 'image' }, { name: 'file' }]), (req, res) => {
     try {
@@ -457,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
       // Write memory buffer to disk with safe name
-      const ext = uploadedFile.originalname ? path.extname(uploadedFile.originalname) : '.png';
+      const ext = uploadedFile.originalname ? path.extname(uploadedFile.originalname) : (uploadedFile.mimetype === 'image/jpeg' ? '.jpg' : '.png');
       const safeName = `profile-${Date.now()}-${Math.round(Math.random()*1e9)}${ext}`;
       const filePath = path.join(uploadsDir, safeName);
       fs.writeFileSync(filePath, uploadedFile.buffer);
