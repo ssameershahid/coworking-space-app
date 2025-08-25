@@ -172,6 +172,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server first to ensure WebSocket works with Vite
   const httpServer = createServer(app);
   
+  // Ensure new enum value 'deleted' exists for order_status to prevent 500s
+  try {
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_enum e
+          JOIN pg_type t ON e.enumtypid = t.oid
+          WHERE t.typname = 'order_status' AND e.enumlabel = 'deleted'
+        ) THEN
+          ALTER TYPE order_status ADD VALUE 'deleted';
+        END IF;
+      END
+      $$;
+    `);
+    console.log("✅ Ensured enum order_status includes 'deleted'");
+  } catch (err) {
+    console.warn("⚠️ Could not ensure enum value 'deleted' (might already exist):", err);
+  }
+  
   // CRITICAL DEBUG: Log ALL requests FIRST, before any other middleware
   app.use('*', (req, res, next) => {
     const pakistanTime = getPakistanTime();
