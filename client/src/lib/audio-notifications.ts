@@ -5,7 +5,7 @@ class AudioNotificationManager {
   private audioBuffer: AudioBuffer | null = null;
   private customAudio: HTMLAudioElement | null = null;
   private isInitialized = false;
-  private useCustomAudio = true; // Set to true to use custom audio file
+  private useCustomAudio = true; // Always use custom audio file
 
   // Initialize the audio context and create the notification sound
   async initialize() {
@@ -13,14 +13,14 @@ class AudioNotificationManager {
 
     try {
       if (this.useCustomAudio) {
-        // Use custom audio file
-        this.customAudio = new Audio('/assets/notification-sound.wav');
+        // Use hardcoded custom audio file
+        this.customAudio = new Audio('/assets/ck-app-audio.wav');
         this.customAudio.preload = 'auto';
         
-        // Set volume to 50% for custom audio
-        this.customAudio.volume = 0.5;
+        // Set volume to 100% for maximum notification impact
+        this.customAudio.volume = 1.0;
         
-        console.log("🔊 Custom audio notification system initialized");
+        console.log("🔊 Hardcoded custom audio notification system initialized");
       } else {
         // Use generated sound (fallback)
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();

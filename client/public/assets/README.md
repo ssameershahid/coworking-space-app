@@ -3,20 +3,22 @@
 This directory contains audio files for the cafe manager dashboard notifications.
 
 ## Current Files:
-- `notification-sound.wav` - Default notification sound (you can replace this)
+- `ck-app-audio.wav` - **HARDCODED** notification sound (plays at 100% volume)
+- `notification-sound.wav` - Backup notification sound (fallback)
 
-## How to Add Custom Sounds:
+## Hardcoded Audio Setup:
 
-### Option 1: Replace the Default Sound
-1. Replace `notification-sound.wav` with your custom audio file
-2. Keep the same filename: `notification-sound.wav`
-3. Ensure the file is in WAV, MP3, or OGG format and under 2MB
+### Custom Audio File:
+- **File**: `ck-app-audio.wav`
+- **Volume**: 100% (hardcoded)
+- **Usage**: Automatically plays when new orders arrive
+- **No User Control**: Cafe managers cannot modify this setting
 
-### Option 2: Upload via Dashboard
-1. Go to the Cafe Manager Dashboard
-2. Navigate to "Audio Notifications" section
-3. Use the "Custom Audio File" upload feature
-4. Select your audio file (MP3, WAV, or OGG format)
+### How to Update the Custom Sound:
+1. Replace `ck-app-audio.wav` with your custom audio file
+2. Keep the same filename: `ck-app-audio.wav`
+3. Ensure the file is in WAV format and under 2MB
+4. The system will automatically use it at 100% volume
 
 ### Recommended Audio Specifications:
 - **Format**: MP3, WAV, or OGG
@@ -47,12 +49,14 @@ You can create custom notification sounds using:
 ## File Structure:
 ```
 client/public/assets/
-├── notification-sound.wav    # Default notification sound
+├── ck-app-audio.wav          # HARDCODED notification sound (100% volume)
+├── notification-sound.wav    # Backup notification sound
 └── README.md                 # This file
 ```
 
 ## Technical Notes:
 - Audio files are served statically from the `/assets/` directory
-- The system supports MP3, WAV, and OGG formats
-- Volume control is available in the dashboard
+- The system uses WAV format for optimal compatibility
+- Volume is hardcoded to 100% for maximum notification impact
 - Fallback to generated sound if custom audio fails
+- No user controls - audio is automatically managed by the system
