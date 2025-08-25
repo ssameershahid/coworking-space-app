@@ -441,14 +441,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No image file uploaded" });
       }
       
-      // Validate file size and type
-      if (req.file.size > 5 * 1024 * 1024) {
-        console.error("❌ File too large:", req.file.size);
-        return res.status(400).json({ error: "File size exceeds 5MB limit" });
+      // Validate file size and type (use uploadedFile, not req.file)
+      if (uploadedFile.size > 10 * 1024 * 1024) {
+        console.error("❌ File too large:", uploadedFile.size);
+        return res.status(400).json({ error: "File size exceeds 10MB limit" });
       }
-      
-      if (!req.file.mimetype.startsWith('image/')) {
-        console.error("❌ Invalid file type:", req.file.mimetype);
+      if (!uploadedFile.mimetype || !uploadedFile.mimetype.startsWith('image/')) {
+        console.error("❌ Invalid file type:", uploadedFile.mimetype);
         return res.status(400).json({ error: "Only image files are allowed" });
       }
       
@@ -457,19 +456,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("📁 Creating uploads directory...");
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
-      
-      // Verify file was actually written
-      const filePath = path.join(uploadsDir, uploadedFile.filename);
-      if (!fs.existsSync(filePath)) {
-        console.error("❌ File was not written to disk:", filePath);
-        return res.status(500).json({ error: "Failed to save uploaded file" });
-      }
-      
-      const imageUrl = `/uploads/${uploadedFile.filename}`;
+      // Write memory buffer to disk with safe name
+      const ext = uploadedFile.originalname ? path.extname(uploadedFile.originalname) : '.png';
+      const safeName = `profile-${Date.now()}-${Math.round(Math.random()*1e9)}${ext}`;
+      const filePath = path.join(uploadsDir, safeName);
+      fs.writeFileSync(filePath, uploadedFile.buffer);
+      const imageUrl = `/uploads/${safeName}`;
       console.log("✅ Upload successful, image URL:", imageUrl);
-      console.log("✅ File saved to:", filePath);
-      console.log("✅ File size on disk:", fs.statSync(filePath).size);
-      
       res.json({ imageUrl });
     } catch (error) {
       console.error("❌ Profile image upload error:", error);
