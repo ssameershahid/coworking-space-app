@@ -633,7 +633,7 @@ export default function RoomsPage() {
                         disabled={(date) => {
                           const pakistanNow = getPakistanTime();
                           const pakistanDate = new Date(date.getTime() + (5 * 60 * 60 * 1000)); // Convert to Pakistan time
-                          const maxDate = new Date(pakistanNow.getTime() + (14 * 24 * 60 * 60 * 1000)); // 14 days from now
+                          const maxDate = new Date(pakistanNow.getTime() + (90 * 24 * 60 * 60 * 1000)); // 90 days (~3 months) from now
                           return pakistanDate < pakistanNow || pakistanDate > maxDate;
                         }}
                         initialFocus
