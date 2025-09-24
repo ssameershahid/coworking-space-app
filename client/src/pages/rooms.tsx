@@ -644,26 +644,80 @@ export default function RoomsPage() {
                 <div>
                   <Label htmlFor="start-time" className="text-base font-medium mb-1 block">Start Time</Label>
                   {(() => {
+                    // Mobile: custom wheel using selects (5-minute increments)
                     const now = getPakistanTime();
                     const isToday = bookingDate === getPakistanDateString();
                     const roundUpTo5 = (min: number) => Math.ceil(min / 5) * 5;
-                    const minStart = (() => {
-                      if (!isToday) return undefined as string | undefined;
-                      const h = now.getHours();
-                      const mRounded = roundUpTo5(now.getMinutes());
-                      const hh = (mRounded === 60 ? (h + 1) % 24 : h).toString().padStart(2, '0');
-                      const mm = (mRounded === 60 ? 0 : mRounded).toString().padStart(2, '0');
-                      return `${hh}:${mm}`;
+                    const hours12 = Array.from({ length: 12 }, (_, i) => i + 1);
+                    const minutes5 = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
+                    const ampmVals = ['AM', 'PM'];
+
+                    const initial = (() => {
+                      const base = startTime || (() => {
+                        const h = now.getHours();
+                        const m = roundUpTo5(now.getMinutes());
+                        const hh = (m === 60 ? (h + 1) % 24 : h).toString().padStart(2, '0');
+                        const mm = (m === 60 ? '00' : m.toString().padStart(2, '0'));
+                        return `${hh}:${mm}`;
+                      })();
+                      const [h24, m] = base.split(':');
+                      const hNum = parseInt(h24, 10);
+                      const ampm = hNum >= 12 ? 'PM' : 'AM';
+                      const h12 = hNum % 12 === 0 ? 12 : hNum % 12;
+                      return { h: h12.toString(), m, ap: ampm };
                     })();
+
+                    const apply = (hStr: string, mStr: string, ap: string) => {
+                      let h = parseInt(hStr, 10) % 12;
+                      if (ap === 'PM') h += 12;
+                      if (ap === 'AM' && h === 12) h = 0;
+                      const hh = h.toString().padStart(2, '0');
+                      const composed = `${hh}:${mStr}`;
+                      // Enforce future-only when today
+                      if (isToday) {
+                        const current = now.getHours() * 60 + roundUpTo5(now.getMinutes());
+                        const total = h * 60 + parseInt(mStr, 10);
+                        if (total <= current) {
+                          const next = current + 5;
+                          const nh = Math.floor(next / 60) % 24;
+                          const nm = (next % 60).toString().padStart(2, '0');
+                          setStartTime(`${nh.toString().padStart(2, '0')}:${nm}`);
+                          return;
+                        }
+                      }
+                      setStartTime(composed);
+                    };
+
                     return (
-                      <input
-                        type="time"
-                        step={300}
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        min={minStart}
-                        className="block sm:hidden w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-                      />
+                      <div className="grid grid-cols-3 gap-2 sm:hidden">
+                        <select
+                          value={initial.h}
+                          onChange={(e) => apply(e.target.value, initial.m, initial.ap)}
+                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                        >
+                          {hours12.map((h) => (
+                            <option key={h} value={h.toString()}>{h}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={initial.m}
+                          onChange={(e) => apply(initial.h, e.target.value, initial.ap)}
+                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                        >
+                          {minutes5.map((m) => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={initial.ap}
+                          onChange={(e) => apply(initial.h, initial.m, e.target.value)}
+                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                        >
+                          {ampmVals.map((ap) => (
+                            <option key={ap} value={ap}>{ap}</option>
+                          ))}
+                        </select>
+                      </div>
                     );
                   })()}
                   <select
@@ -705,36 +759,86 @@ export default function RoomsPage() {
                 <div>
                   <Label htmlFor="end-time" className="text-base font-medium mb-1 block">End Time</Label>
                   {(() => {
+                    // Mobile: custom wheel using selects (5-minute increments)
                     const now = getPakistanTime();
                     const isToday = bookingDate === getPakistanDateString();
                     const roundUpTo5 = (min: number) => Math.ceil(min / 5) * 5;
-                    const minEnd = (() => {
+                    const hours12 = Array.from({ length: 12 }, (_, i) => i + 1);
+                    const minutes5 = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
+                    const ampmVals = ['AM', 'PM'];
+
+                    const minTotal = (() => {
                       if (startTime) {
                         const [h, m] = startTime.split(':').map(Number);
-                        const total = h * 60 + m + 5; // at least 5 minutes after start
-                        const hh = Math.floor(total / 60) % 24;
-                        const mm = total % 60;
-                        return `${hh.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+                        return h * 60 + m + 5;
                       }
-                      if (!isToday) return undefined as string | undefined;
-                      const h = now.getHours();
-                      const mRounded = roundUpTo5(now.getMinutes());
-                      const hh = (mRounded === 60 ? (h + 1) % 24 : h).toString().padStart(2, '0');
-                      const mm = (mRounded === 60 ? 0 : mRounded).toString().padStart(2, '0');
-                      return `${hh}:${mm}`;
+                      if (!isToday) return null;
+                      const m = roundUpTo5(now.getMinutes());
+                      const h = m === 60 ? (now.getHours() + 1) % 24 : now.getHours();
+                      const mm = m === 60 ? 0 : m;
+                      return h * 60 + mm;
                     })();
+
+                    const initial = (() => {
+                      const base = endTime || startTime || (() => {
+                        const h = now.getHours();
+                        const m = roundUpTo5(now.getMinutes());
+                        const hh = (m === 60 ? (h + 1) % 24 : h).toString().padStart(2, '0');
+                        const mm = (m === 60 ? '00' : m.toString().padStart(2, '0'));
+                        return `${hh}:${mm}`;
+                      })();
+                      const [h24, m] = base.split(':');
+                      const hNum = parseInt(h24, 10);
+                      const ampm = hNum >= 12 ? 'PM' : 'AM';
+                      const h12 = hNum % 12 === 0 ? 12 : hNum % 12;
+                      return { h: h12.toString(), m, ap: ampm };
+                    })();
+
+                    const apply = (hStr: string, mStr: string, ap: string) => {
+                      let h = parseInt(hStr, 10) % 12;
+                      if (ap === 'PM') h += 12;
+                      if (ap === 'AM' && h === 12) h = 0;
+                      const hh = h.toString().padStart(2, '0');
+                      let total = h * 60 + parseInt(mStr, 10);
+                      if (minTotal !== null && minTotal !== undefined && total <= minTotal) {
+                        total = minTotal + 5;
+                      }
+                      const th = Math.floor(total / 60) % 24;
+                      const tm = (total % 60).toString().padStart(2, '0');
+                      setEndTime(`${th.toString().padStart(2, '0')}:${tm}`);
+                      setDuration("");
+                    };
+
                     return (
-                      <input
-                        type="time"
-                        step={300}
-                        value={endTime}
-                        onChange={(e) => {
-                          setEndTime(e.target.value);
-                          if (e.target.value) setDuration("");
-                        }}
-                        min={minEnd}
-                        className="block sm:hidden w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-                      />
+                      <div className="grid grid-cols-3 gap-2 sm:hidden">
+                        <select
+                          value={initial.h}
+                          onChange={(e) => apply(e.target.value, initial.m, initial.ap)}
+                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                        >
+                          {hours12.map((h) => (
+                            <option key={h} value={h.toString()}>{h}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={initial.m}
+                          onChange={(e) => apply(initial.h, e.target.value, initial.ap)}
+                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                        >
+                          {minutes5.map((m) => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={initial.ap}
+                          onChange={(e) => apply(initial.h, initial.m, e.target.value)}
+                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                        >
+                          {ampmVals.map((ap) => (
+                            <option key={ap} value={ap}>{ap}</option>
+                          ))}
+                        </select>
+                      </div>
                     );
                   })()}
                   <select
