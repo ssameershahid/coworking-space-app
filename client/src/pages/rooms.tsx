@@ -643,35 +643,55 @@ export default function RoomsPage() {
                 </div>
                 <div>
                   <Label htmlFor="start-time" className="text-base font-medium mb-1 block">Start Time</Label>
+                  {(() => {
+                    const now = getPakistanTime();
+                    const isToday = bookingDate === getPakistanDateString();
+                    const roundUpTo5 = (min: number) => Math.ceil(min / 5) * 5;
+                    const minStart = (() => {
+                      if (!isToday) return undefined as string | undefined;
+                      const h = now.getHours();
+                      const mRounded = roundUpTo5(now.getMinutes());
+                      const hh = (mRounded === 60 ? (h + 1) % 24 : h).toString().padStart(2, '0');
+                      const mm = (mRounded === 60 ? 0 : mRounded).toString().padStart(2, '0');
+                      return `${hh}:${mm}`;
+                    })();
+                    return (
+                      <input
+                        type="time"
+                        step={300}
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        min={minStart}
+                        className="block sm:hidden w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                      />
+                    );
+                  })()}
                   <select
                     id="start-time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
+                    className="hidden sm:block w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
                   >
                     <option value="">Select time</option>
                     {(() => {
                       const now = getPakistanTime();
                       const isToday = bookingDate === getPakistanDateString();
-                      const currentHour = now.getHours();
-                      const currentMinute = now.getMinutes();
-                      
-                      return Array.from({ length: 48 }, (_, i) => {
-                        const hours = Math.floor(i / 2);
-                        const minutes = (i % 2) * 30;
+                      const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+
+                      // Generate every 5 minutes across 24h: 0..287 (288 entries)
+                      return Array.from({ length: 24 * 60 / 5 }, (_, i) => {
+                        const totalMinutes = i * 5;
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
                         const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                        
-                        // Skip past times if booking for today
-                        if (isToday) {
-                          const slotTime = hours * 60 + minutes;
-                          const currentTime = currentHour * 60 + currentMinute;
-                          if (slotTime <= currentTime) return null;
-                        }
-                        
-                        const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
-                          hour: 'numeric', 
+
+                        // Future-only for today
+                        if (isToday && totalMinutes <= currentTotalMinutes) return null;
+
+                        const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], {
+                          hour: 'numeric',
                           minute: '2-digit',
-                          hour12: true 
+                          hour12: true,
                         });
                         return (
                           <option key={time24} value={time24}>
@@ -684,6 +704,39 @@ export default function RoomsPage() {
                 </div>
                 <div>
                   <Label htmlFor="end-time" className="text-base font-medium mb-1 block">End Time</Label>
+                  {(() => {
+                    const now = getPakistanTime();
+                    const isToday = bookingDate === getPakistanDateString();
+                    const roundUpTo5 = (min: number) => Math.ceil(min / 5) * 5;
+                    const minEnd = (() => {
+                      if (startTime) {
+                        const [h, m] = startTime.split(':').map(Number);
+                        const total = h * 60 + m + 5; // at least 5 minutes after start
+                        const hh = Math.floor(total / 60) % 24;
+                        const mm = total % 60;
+                        return `${hh.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+                      }
+                      if (!isToday) return undefined as string | undefined;
+                      const h = now.getHours();
+                      const mRounded = roundUpTo5(now.getMinutes());
+                      const hh = (mRounded === 60 ? (h + 1) % 24 : h).toString().padStart(2, '0');
+                      const mm = (mRounded === 60 ? 0 : mRounded).toString().padStart(2, '0');
+                      return `${hh}:${mm}`;
+                    })();
+                    return (
+                      <input
+                        type="time"
+                        step={300}
+                        value={endTime}
+                        onChange={(e) => {
+                          setEndTime(e.target.value);
+                          if (e.target.value) setDuration("");
+                        }}
+                        min={minEnd}
+                        className="block sm:hidden w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                      />
+                    );
+                  })()}
                   <select
                     id="end-time"
                     value={endTime}
@@ -693,41 +746,32 @@ export default function RoomsPage() {
                         setDuration(""); // Clear duration when end time is selected
                       }
                     }}
-                    className="w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
+                    className="hidden sm:block w-full px-3 py-2 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white appearance-none"
                   >
                     <option value="">Select time</option>
                     {(() => {
                       const now = getPakistanTime();
                       const isToday = bookingDate === getPakistanDateString();
-                      const currentHour = now.getHours();
-                      const currentMinute = now.getMinutes();
-                      
-                      return Array.from({ length: 48 }, (_, i) => {
-                        const hours = Math.floor(i / 2);
-                        const minutes = (i % 2) * 30;
+                      const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+
+                      return Array.from({ length: 24 * 60 / 5 }, (_, i) => {
+                        const totalMinutes = i * 5;
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
                         const time24 = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                        
-                        // For end time, we need to consider the start time as well
+
                         if (startTime) {
                           const [startHours, startMinutes] = startTime.split(':').map(Number);
                           const startTotalMinutes = startHours * 60 + startMinutes;
-                          const endTotalMinutes = hours * 60 + minutes;
-                          
-                          // End time must be after start time (allowing overnight bookings)
-                          if (endTotalMinutes <= startTotalMinutes) return null;
+                          if (totalMinutes <= startTotalMinutes) return null;
                         }
-                        
-                        // Skip past times if booking for today and no start time selected
-                        if (isToday && !startTime) {
-                          const slotTime = hours * 60 + minutes;
-                          const currentTime = currentHour * 60 + currentMinute;
-                          if (slotTime <= currentTime) return null;
-                        }
-                        
-                        const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], { 
-                          hour: 'numeric', 
+
+                        if (isToday && !startTime && totalMinutes <= currentTotalMinutes) return null;
+
+                        const time12 = new Date(`2000-01-01T${time24}`).toLocaleTimeString([], {
+                          hour: 'numeric',
                           minute: '2-digit',
-                          hour12: true 
+                          hour12: true,
                         });
                         return (
                           <option key={time24} value={time24}>
