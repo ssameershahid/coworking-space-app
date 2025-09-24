@@ -19,6 +19,7 @@ import AdminPage from "@/pages/admin";
 import ProfilePage from "@/pages/profile";
 import CafeManagerDashboard from "@/pages/cafe-manager-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
+import AdminRoomSchedulePage from "@/pages/admin-room-schedule";
 import CreateOrderPage from "@/pages/create-order";
 import BillingTransactionsPage from "@/pages/billing-transactions";
 import MenuManagement from "@/pages/menu-management";
@@ -81,6 +82,7 @@ function Router() {
     return (
       <Switch>
         <Route path="/" component={AdminDashboard} />
+        <Route path="/admin/schedule" component={AdminRoomSchedulePage} />
         <Route path="/cafe" component={CafePage} />
         <Route path="/rooms" component={RoomsPage} />
         <Route path="/community" component={CommunityPage} />

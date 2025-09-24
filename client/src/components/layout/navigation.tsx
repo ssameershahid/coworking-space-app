@@ -51,6 +51,7 @@ export default function Navigation() {
     ...(showCafeAndRooms ? [{ name: "Cafe Order", href: "/cafe", current: location === "/cafe" }] : []),
     ...(showRooms ? [{ name: "Meeting Rooms", href: "/rooms", current: location === "/rooms" }] : []),
     ...(showCommunity ? [{ name: "Community", href: "/community", current: location === "/community" }] : []),
+    ...(isAdminUser ? [{ name: "Room Schedule", href: "/admin/schedule", current: location === "/admin/schedule" }] : []),
     ...(showOrganization ? [{ name: "Organization", href: "/organization", current: location === "/organization" }] : []),
   ];
 
