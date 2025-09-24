@@ -1327,6 +1327,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if booking is in the past - Use Pakistan time
       const nowPakistan = getPakistanTime();
       
+      // Guard: reject bookings more than 90 days in the future
+      const maxFuture = new Date(nowPakistan.getTime() + 90 * 24 * 60 * 60 * 1000);
+      if (startTime > maxFuture) {
+        return res.status(400).json({ message: "Bookings cannot be made more than 90 days in advance" });
+      }
+      
       // Enhanced logging for timezone debugging
       console.log(`🔍 Booking timezone debug:`);
       console.log(`   Frontend sent start_time: ${start_time}`);
