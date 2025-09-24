@@ -245,6 +245,12 @@ export default function RoomsPage() {
     return durationHours; // 1 hour = 1 credit, 30 min = 0.5 credits (exact calculation)
   };
 
+  // Format credits to at most 2 decimals (no long repeating fractions)
+  const formatCredits = (value: number) => {
+    const rounded = Math.round(value * 100) / 100;
+    return Number(rounded.toFixed(2));
+  };
+
   const handleBookRoom = () => {
     if (!selectedRoom || !bookingDate || !startTime || (!duration && !endTime)) {
       toast({
@@ -593,16 +599,16 @@ export default function RoomsPage() {
       </div>
       {/* Booking Modal */}
       <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[92vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>Book {selectedRoom?.name}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Date and Time Selection - Compact 2-Row Layout */}
+            {/* Date and Time Selection */}
             <div className="space-y-4">
-              {/* Date and Time in 3 columns */}
-              <div className="grid grid-cols-3 gap-4">
+              {/* Date / Start / End - stacked on mobile, 3 cols on desktop */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <Label className="text-base font-medium mb-1 block">Select a Date</Label>
                   <Popover>
@@ -689,11 +695,12 @@ export default function RoomsPage() {
                     };
 
                     return (
-                      <div className="grid grid-cols-3 gap-2 sm:hidden">
+                      <div className="grid grid-cols-3 gap-3 sm:hidden">
                         <select
                           value={initial.h}
                           onChange={(e) => apply(e.target.value, initial.m, initial.ap)}
-                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                          aria-label="Start hour"
+                          className="w-full h-14 text-xl px-3 py-2 text-center border border-gray-300 rounded-lg bg-white"
                         >
                           {hours12.map((h) => (
                             <option key={h} value={h.toString()}>{h}</option>
@@ -702,7 +709,8 @@ export default function RoomsPage() {
                         <select
                           value={initial.m}
                           onChange={(e) => apply(initial.h, e.target.value, initial.ap)}
-                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                          aria-label="Start minutes"
+                          className="w-full h-14 text-xl px-3 py-2 text-center border border-gray-300 rounded-lg bg-white"
                         >
                           {minutes5.map((m) => (
                             <option key={m} value={m}>{m}</option>
@@ -711,7 +719,8 @@ export default function RoomsPage() {
                         <select
                           value={initial.ap}
                           onChange={(e) => apply(initial.h, initial.m, e.target.value)}
-                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                          aria-label="Start AM/PM"
+                          className="w-full h-14 text-xl px-3 py-2 text-center border border-gray-300 rounded-lg bg-white"
                         >
                           {ampmVals.map((ap) => (
                             <option key={ap} value={ap}>{ap}</option>
@@ -810,11 +819,12 @@ export default function RoomsPage() {
                     };
 
                     return (
-                      <div className="grid grid-cols-3 gap-2 sm:hidden">
+                      <div className="grid grid-cols-3 gap-3 sm:hidden">
                         <select
                           value={initial.h}
                           onChange={(e) => apply(e.target.value, initial.m, initial.ap)}
-                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                          aria-label="End hour"
+                          className="w-full h-14 text-xl px-3 py-2 text-center border border-gray-300 rounded-lg bg-white"
                         >
                           {hours12.map((h) => (
                             <option key={h} value={h.toString()}>{h}</option>
@@ -823,7 +833,8 @@ export default function RoomsPage() {
                         <select
                           value={initial.m}
                           onChange={(e) => apply(initial.h, e.target.value, initial.ap)}
-                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                          aria-label="End minutes"
+                          className="w-full h-14 text-xl px-3 py-2 text-center border border-gray-300 rounded-lg bg-white"
                         >
                           {minutes5.map((m) => (
                             <option key={m} value={m}>{m}</option>
@@ -832,7 +843,8 @@ export default function RoomsPage() {
                         <select
                           value={initial.ap}
                           onChange={(e) => apply(initial.h, initial.m, e.target.value)}
-                          className="w-full px-3 py-2 text-center border border-gray-300 rounded-md bg-white"
+                          aria-label="End AM/PM"
+                          className="w-full h-14 text-xl px-3 py-2 text-center border border-gray-300 rounded-lg bg-white"
                         >
                           {ampmVals.map((ap) => (
                             <option key={ap} value={ap}>{ap}</option>
@@ -1012,7 +1024,7 @@ export default function RoomsPage() {
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <span>Credits Required:</span>
-                  <span className="font-semibold">{calculateCredits()}</span>
+                  <span className="font-semibold">{formatCredits(calculateCredits())}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span>Available Credits:</span>
@@ -1057,9 +1069,9 @@ export default function RoomsPage() {
                   Booking...
                 </div>
               ) : availableCredits - calculateCredits() < 0 ? (
-                `Book Anyway • ${calculateCredits()} Credits`
+                `Book Anyway • ${formatCredits(calculateCredits())} Credits`
               ) : (
-                `Confirm Booking • ${calculateCredits()} Credits`
+                `Confirm Booking • ${formatCredits(calculateCredits())} Credits`
               )}
             </Button>
           </div>

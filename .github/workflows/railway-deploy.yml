@@ -37,14 +37,23 @@ jobs:
           if [ -z "$RAILWAY_TOKEN" ]; then echo "RAILWAY_TOKEN missing"; exit 1; fi
           if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
 
-      - name: Deploy using official Railway Action
-        uses: railwayapp-io/railway-action@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          project: ${{ env.RAILWAY_PROJECT_ID }}
-          service: ${{ env.RAILWAY_SERVICE }}
-          image: ghcr.io/ssameershahid/co-working-space:${{ env.IMAGE_SHA }}
+          node-version: '20'
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy to Railway via CLI
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -n "$RAILWAY_SERVICE" ]; then
+            railway up --project "$RAILWAY_PROJECT_ID" --service "$RAILWAY_SERVICE" --ci
+          else
+            railway up --project "$RAILWAY_PROJECT_ID" --ci
+          fi
 
       - name: Link Railway project (for variables/logs)
         if: always()
@@ -82,13 +91,11 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
-          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
         run: |
           echo "=== Setting Railway Variables ==="
           
           # Always set RESEND_API_KEY 
-          railway variables --set "RESEND_API_KEY=re_W2uvh1cK_9DDTC1AShSxqEQGMPeo75N2o"
+          [ -n "$RESEND_API_KEY" ] && railway variables --set "RESEND_API_KEY=$RESEND_API_KEY" || echo "RESEND_API_KEY not set"
           
           # Set SESSION_SECRET if provided, otherwise use default
           if [ -n "$SESSION_SECRET" ]; then
@@ -121,9 +128,7 @@ jobs:
             fi
           fi
           
-          # Set optional VAPID keys
-          [ -n "$VAPID_PUBLIC_KEY" ] && railway variables --set "VAPID_PUBLIC_KEY=$VAPID_PUBLIC_KEY" || echo "VAPID_PUBLIC_KEY not set"
-          [ -n "$VAPID_PRIVATE_KEY" ] && railway variables --set "VAPID_PRIVATE_KEY=$VAPID_PRIVATE_KEY" || echo "VAPID_PRIVATE_KEY not set"
+          # Optional push keys can be configured later in Railway UI
           
           echo "=== Final Railway Variables ==="
           railway variables
