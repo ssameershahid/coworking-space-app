@@ -2245,7 +2245,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         month,
         year,
         filteredOrders,
-        filteredBookings
+        filteredBookings,
+        organization
       );
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="org-invoice-${year}-${month + 1}.pdf"`);
@@ -2453,7 +2454,8 @@ function generateOrgInvoicePDFContent(
   monthZeroBased: number,
   year: number,
   orders: any[],
-  bookings: any[]
+  bookings: any[],
+  organization: { monthly_credits: number | null }
 ): string {
   const month = monthZeroBased + 1;
   const totalAmount = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
