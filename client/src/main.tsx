@@ -1,10 +1,12 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-// import { registerServiceWorker } from "./utils/sw-registration";
+import { registerServiceWorker } from "./utils/sw-registration";
 
-// Register service worker for PWA functionality - temporarily disabled
-// registerServiceWorker();
+// Register service worker for PWA functionality (only in production)
+if (import.meta.env.PROD) {
+  registerServiceWorker();
+}
 
 try {
   createRoot(document.getElementById("root")!).render(<App />);

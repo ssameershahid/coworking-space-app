@@ -81,6 +81,10 @@ export default function RoomsPage() {
   const [sortBy, setSortBy] = useState("name");
   const [selectedDateView, setSelectedDateView] = useState(getPakistanDateString());
   const [isNightShift, setIsNightShift] = useState(false);
+  const [isExternalBooking, setIsExternalBooking] = useState(false);
+  const [externalGuestName, setExternalGuestName] = useState("");
+  const [externalGuestEmail, setExternalGuestEmail] = useState("");
+  const [externalGuestPhone, setExternalGuestPhone] = useState("");
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
     queryKey: ["/api/rooms", user?.site],
@@ -322,6 +326,45 @@ export default function RoomsPage() {
     console.log(`   startDateTime: ${startDateTime.toISOString()}`);
     console.log(`   endDateTime: ${endDateTime.toISOString()}`);
     
+    // Enforce min/max duration for non-exempt roles
+    const isExemptRole = user?.role === 'calmkaaj_admin' || user?.role === 'calmkaaj_team';
+    const durationMinutesCheck = Math.round((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
+    if (!isExemptRole) {
+      if (durationMinutesCheck < 30) {
+        toast({
+          title: "Duration Too Short",
+          description: "Minimum booking duration is 30 minutes.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (durationMinutesCheck > 10 * 60) {
+        toast({
+          title: "Duration Too Long",
+          description: "Maximum booking duration is 10 hours.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    // External booking validation (admin/team only)
+    if (isExternalBooking) {
+      if (!(user?.role === 'calmkaaj_admin' || user?.role === 'calmkaaj_team')) {
+        toast({ title: "Not allowed", description: "Only CalmKaaj Admin/Team can create external bookings.", variant: "destructive" });
+        return;
+      }
+      if (!externalGuestName.trim() || !externalGuestEmail.trim() || !externalGuestPhone.trim()) {
+        toast({ title: "Missing Guest Info", description: "Please provide guest name, email, and phone.", variant: "destructive" });
+        return;
+      }
+      const emailOk = /.+@.+\..+/.test(externalGuestEmail.trim());
+      if (!emailOk) {
+        toast({ title: "Invalid Email", description: "Please enter a valid guest email.", variant: "destructive" });
+        return;
+      }
+    }
+    
     // Check if booking is in the past using Pakistan time
     if (isPastTimePakistan(`${bookingDate}T${startTime}:00+05:00`)) {
       toast({
@@ -332,7 +375,7 @@ export default function RoomsPage() {
       return;
     }
 
-    const bookingData = {
+    const bookingData: any = {
       room_id: selectedRoom.id,
       start_time: `${bookingDate}T${startTime}:00+05:00`,
       end_time: endTime
@@ -361,6 +404,16 @@ export default function RoomsPage() {
       notes: meetingNotes || null,
       site: user?.site,
     };
+    
+    if (isExternalBooking) {
+      bookingData.external_guest = {
+        name: externalGuestName.trim(),
+        email: externalGuestEmail.trim(),
+        phone: externalGuestPhone.trim(),
+      };
+      bookingData.billed_to = 'personal';
+      bookingData.org_id = null;
+    }
 
     bookRoomMutation.mutate(bookingData, {
       onError: (err: any) => {
@@ -393,6 +446,10 @@ export default function RoomsPage() {
     setEndTime(""); // Clear end time
     setMeetingNotes("");
     setBillingType("personal");
+    setIsExternalBooking(false);
+    setExternalGuestName("");
+    setExternalGuestEmail("");
+    setExternalGuestPhone("");
     setShowBookingModal(true);
   };
   const availableCredits = (user?.credits || 0) - (user?.used_credits || 0);
@@ -587,11 +644,26 @@ export default function RoomsPage() {
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                   onClick={() => {
                     setSelectedRoom(room);
+                    setIsExternalBooking(false);
                     setShowBookingModal(true);
                   }}
                 >
                   Manual Booking Options
                 </Button>
+                {(user?.role === 'calmkaaj_admin' || user?.role === 'calmkaaj_team') && (
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={() => {
+                      setSelectedRoom(room);
+                      setIsExternalBooking(true);
+                      setShowBookingModal(true);
+                    }}
+                  >
+                    External Booking (Admin)
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -982,7 +1054,7 @@ export default function RoomsPage() {
             </div>
 
             {/* Billing Options */}
-            {canChargeToOrg && (
+            {canChargeToOrg && !isExternalBooking && (
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Billing Options</Label>
                 <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")}>
@@ -1001,6 +1073,37 @@ export default function RoomsPage() {
                     </Label>
                   </div>
                 </RadioGroup>
+              </div>
+            )}
+
+            {/* External Guest Details (Admin only) */}
+            {isExternalBooking && (user?.role === 'calmkaaj_admin' || user?.role === 'calmkaaj_team') && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">External Guest Details</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Input
+                    placeholder="Guest Name"
+                    value={externalGuestName}
+                    onChange={(e) => setExternalGuestName(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Guest Email"
+                    type="email"
+                    value={externalGuestEmail}
+                    onChange={(e) => setExternalGuestEmail(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Guest Phone"
+                    value={externalGuestPhone}
+                    onChange={(e) => setExternalGuestPhone(e.target.value)}
+                  />
+                </div>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    This booking will not deduct admin credits. Credits used will be shown for external billing.
+                  </AlertDescription>
+                </Alert>
               </div>
             )}
 
@@ -1026,6 +1129,9 @@ export default function RoomsPage() {
                   <span>Credits Required:</span>
                   <span className="font-semibold">{formatCredits(calculateCredits())}</span>
                 </div>
+                {isExternalBooking && (
+                  <div className="text-sm text-gray-700 mb-2">External booking: bill this amount to the guest.</div>
+                )}
                 <div className="flex justify-between items-center mb-2">
                   <span>Available Credits:</span>
                   <CreditAnimation 

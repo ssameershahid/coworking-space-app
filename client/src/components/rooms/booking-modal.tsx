@@ -102,6 +102,28 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
     const startDateTime = new Date(`${bookingData.date}T${bookingData.start_time}+05:00`);
     const endDateTime = calculateEndTime();
 
+    // Enforce min/max duration for non-exempt roles
+    const isExemptRole = user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team';
+    const durationMinutes = Math.round((new Date(endDateTime).getTime() - startDateTime.getTime()) / (1000 * 60));
+    if (!isExemptRole) {
+      if (durationMinutes < 30) {
+        toast({
+          title: "Duration Too Short",
+          description: "Minimum booking duration is 30 minutes.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (durationMinutes > 10 * 60) {
+        toast({
+          title: "Duration Too Long",
+          description: "Maximum booking duration is 10 hours.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const bookingDetails = {
       room_id: room.id,
       start_time: startDateTime.toISOString(),

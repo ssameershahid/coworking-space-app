@@ -1318,7 +1318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/bookings", requireAuth, async (req, res) => {
     try {
       const user = req.user as schema.User;
-      const { room_id, start_time, end_time, billed_to, notes } = req.body;
+      const { room_id, start_time, end_time, billed_to, notes, external_guest } = req.body;
 
       // Parse the datetime strings - they should already be in Pakistan timezone (+05:00)
       const startTime = new Date(start_time);
@@ -1351,8 +1351,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "End time must be after start time" });
       }
       const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
-      if (durationMinutes <= 0 || durationMinutes > 12 * 60) {
-        return res.status(400).json({ message: "Invalid meeting duration" });
+      const isExemptRole = user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team';
+      if (!isExemptRole) {
+        if (durationMinutes < 30) {
+          return res.status(400).json({ message: "Minimum booking duration is 30 minutes" });
+        }
+        if (durationMinutes > 10 * 60) {
+          return res.status(400).json({ message: "Maximum booking duration is 10 hours" });
+        }
       }
 
       // Check room availability
@@ -1417,6 +1423,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // External booking handling (admin/team only)
+      const isAdminOrTeam = user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team';
+      const isExternalBooking = !!external_guest && isAdminOrTeam;
+      const externalNoteTag = isExternalBooking
+        ? `[EXTERNAL BOOKING] Name: ${external_guest?.name || ''} | Email: ${external_guest?.email || ''} | Phone: ${external_guest?.phone || ''}`
+        : '';
+      const combinedNotes = isExternalBooking
+        ? (notes ? `${notes}\n${externalNoteTag}` : externalNoteTag)
+        : notes;
+
       // Create booking - pass Date objects directly, let node-postgres handle them
       const booking = await storage.createMeetingBooking({
         user_id: user.id,
@@ -1427,12 +1443,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "confirmed",
         billed_to: effectiveBilledTo,
         org_id: effectiveBilledTo === "organization" ? user.organization_id : undefined,
-        notes,
+        notes: combinedNotes,
         site: user.site,
       });
 
-      // Only deduct from user's personal credits if billing is personal
-      if (effectiveBilledTo === 'personal') {
+      // Only deduct from user's personal credits if billing is personal and not an external booking
+      if (effectiveBilledTo === 'personal' && !isExternalBooking) {
         await storage.updateUser(user.id, {
           used_credits: (parseFloat(user.used_credits || "0") + creditsNeeded).toString(),
         });
