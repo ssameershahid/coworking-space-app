@@ -137,6 +137,7 @@ export default function RoomsPage() {
       // Invalidate all booking-related queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
       queryClient.invalidateQueries({ queryKey: ["room-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
     onError: (error: any) => {
       console.error('Booking error:', error);
@@ -1080,23 +1081,25 @@ export default function RoomsPage() {
             {isExternalBooking && (user?.role === 'calmkaaj_admin' || user?.role === 'calmkaaj_team') && (
               <div className="space-y-3">
                 <Label className="text-sm font-medium">External Guest Details</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   <Input
                     placeholder="Guest Name"
                     value={externalGuestName}
                     onChange={(e) => setExternalGuestName(e.target.value)}
                   />
-                  <Input
-                    placeholder="Guest Email"
-                    type="email"
-                    value={externalGuestEmail}
-                    onChange={(e) => setExternalGuestEmail(e.target.value)}
-                  />
-                  <Input
-                    placeholder="Guest Phone"
-                    value={externalGuestPhone}
-                    onChange={(e) => setExternalGuestPhone(e.target.value)}
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Input
+                      placeholder="Guest Phone"
+                      value={externalGuestPhone}
+                      onChange={(e) => setExternalGuestPhone(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Guest Email"
+                      type="email"
+                      value={externalGuestEmail}
+                      onChange={(e) => setExternalGuestEmail(e.target.value)}
+                    />
+                  </div>
                 </div>
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
