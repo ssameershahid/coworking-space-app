@@ -5,8 +5,8 @@
 self.addEventListener('push', event => {
   const options = {
     body: event.data ? event.data.text() : 'New notification from CalmKaaj',
-    icon: '/icon-192x192.png',
-    badge: '/icon-96x96.png',
+    icon: '/logo-main.png?v=ck1',
+    badge: '/logo-main.png?v=ck1',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -16,12 +16,12 @@ self.addEventListener('push', event => {
       {
         action: 'explore',
         title: 'Open CalmKaaj',
-        icon: '/icon-192x192.png'
+        icon: '/logo-main.png?v=ck1'
       },
       {
         action: 'close',
         title: 'Close',
-        icon: '/icon-192x192.png'
+        icon: '/logo-main.png?v=ck1'
       }
     ]
   };
