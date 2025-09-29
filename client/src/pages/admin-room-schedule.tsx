@@ -24,6 +24,7 @@ export default function AdminRoomSchedulePage() {
   const [view, setView] = useState<ViewMode>("day");
   const [cursor, setCursor] = useState<Date>(new Date());
   const [showExternalModal, setShowExternalModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [siteFilter, setSiteFilter] = useState<'all' | 'blue_area' | 'i_10'>('all');
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
@@ -203,9 +204,10 @@ export default function AdminRoomSchedulePage() {
                         return (
                           <div
                             key={idx}
-                            className="absolute top-7 bottom-2 bg-green-200 text-green-900 text-xs rounded px-2 flex items-center overflow-hidden"
+                            className="absolute top-7 bottom-2 bg-green-200 text-green-900 text-xs rounded px-2 flex items-center overflow-hidden cursor-pointer hover:bg-green-300"
                             style={{ left: `${leftPct}%`, width: `${Math.max(2.5, widthPct)}%` }}
                             title={`${new Date(b.start_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${new Date(b.end_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`}
+                            onClick={() => setSelectedBooking(b)}
                           >
                             {new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             {" - "}
@@ -285,6 +287,50 @@ export default function AdminRoomSchedulePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Booking details modal */}
+      <Dialog open={!!selectedBooking} onOpenChange={(open) => !open && setSelectedBooking(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Booking Details</DialogTitle>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="text-gray-500">Room</div>
+                <div className="font-medium">{selectedBooking.room?.name || '—'}</div>
+                <div className="text-gray-500">Start</div>
+                <div className="font-medium">{new Date(selectedBooking.start_time).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                <div className="text-gray-500">End</div>
+                <div className="font-medium">{new Date(selectedBooking.end_time).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                <div className="text-gray-500">Duration</div>
+                <div className="font-medium">{
+                  (() => {
+                    const ms = +new Date(selectedBooking.end_time) - +new Date(selectedBooking.start_time);
+                    const h = Math.floor(ms / 3600000);
+                    const m = Math.round((ms % 3600000) / 60000);
+                    return `${h}h ${m}m`;
+                  })()
+                }</div>
+                <div className="text-gray-500">Booked By</div>
+                <div className="font-medium">{selectedBooking.user?.first_name} {selectedBooking.user?.last_name}</div>
+                {selectedBooking.credits_used !== undefined && (
+                  <>
+                    <div className="text-gray-500">Credits Used</div>
+                    <div className="font-medium">{selectedBooking.credits_used}</div>
+                  </>
+                )}
+              </div>
+              {selectedBooking.notes && (
+                <div className="mt-3">
+                  <div className="text-gray-500 text-sm mb-1">Notes</div>
+                  <div className="text-sm whitespace-pre-wrap">{selectedBooking.notes}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* External bookings modal */}
       <Dialog open={showExternalModal} onOpenChange={setShowExternalModal}>
