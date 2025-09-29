@@ -1132,36 +1132,38 @@ export default function RoomsPage() {
                   <span>Credits Required:</span>
                   <span className="font-semibold">{formatCredits(calculateCredits())}</span>
                 </div>
-                {isExternalBooking && (
-                  <div className="text-sm text-gray-700 mb-2">External booking: bill this amount to the guest.</div>
-                )}
-                <div className="flex justify-between items-center mb-2">
-                  <span>Available Credits:</span>
-                  <CreditAnimation 
-                    currentCredits={availableCredits}
-                    previousCredits={previousCredits}
-                    showAnimation={showAnimation}
-                    className="font-semibold"
-                  />
-                </div>
-                <Separator className="my-2" />
-                <div className="flex justify-between items-center font-bold">
-                  <span>Remaining After Booking:</span>
-                  <CreditAnimation 
-                    currentCredits={availableCredits - calculateCredits()}
-                    previousCredits={previousCredits ? previousCredits - calculateCredits() : undefined}
-                    showAnimation={showAnimation}
-                    className={availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}
-                  />
-                </div>
-                
-                {availableCredits - calculateCredits() < 0 && (
-                  <Alert className="mt-3">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Insufficient credits. Negative balance will appear on your account for manual billing at month-end.
-                    </AlertDescription>
-                  </Alert>
+                {isExternalBooking ? (
+                  <div className="text-sm text-gray-700">External booking: bill this amount to the guest.</div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center mb-2">
+                      <span>Available Credits:</span>
+                      <CreditAnimation 
+                        currentCredits={availableCredits}
+                        previousCredits={previousCredits}
+                        showAnimation={showAnimation}
+                        className="font-semibold"
+                      />
+                    </div>
+                    <Separator className="my-2" />
+                    <div className="flex justify-between items-center font-bold">
+                      <span>Remaining After Booking:</span>
+                      <CreditAnimation 
+                        currentCredits={availableCredits - calculateCredits()}
+                        previousCredits={previousCredits ? previousCredits - calculateCredits() : undefined}
+                        showAnimation={showAnimation}
+                        className={availableCredits - calculateCredits() < 0 ? "text-red-600" : "text-green-600"}
+                      />
+                    </div>
+                    {availableCredits - calculateCredits() < 0 && (
+                      <Alert className="mt-3">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          Insufficient credits. Negative balance will appear on your account for manual billing at month-end.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -1177,6 +1179,8 @@ export default function RoomsPage() {
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   Booking...
                 </div>
+              ) : isExternalBooking ? (
+                `Confirm External Booking • ${formatCredits(calculateCredits())} Credits`
               ) : availableCredits - calculateCredits() < 0 ? (
                 `Book Anyway • ${formatCredits(calculateCredits())} Credits`
               ) : (

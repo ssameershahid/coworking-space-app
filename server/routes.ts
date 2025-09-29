@@ -1532,8 +1532,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Cancel the booking
       const cancelledBooking = await storage.updateMeetingBookingStatus(id, 'cancelled');
 
-      // Only refund credits to user if the booking was billed personally
-      if (booking.billed_to === 'personal') {
+      // Only refund credits to user if the booking was billed personally AND it was not an external booking
+      const isExternalBooking = typeof booking.notes === 'string' && booking.notes.includes('[EXTERNAL BOOKING]');
+      if (booking.billed_to === 'personal' && !isExternalBooking) {
         const user = await storage.getUserById(userId);
         if (user) {
           const currentUsedCredits = parseFloat(user.used_credits || "0");
@@ -1545,8 +1546,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         booking: cancelledBooking, 
-        refundedCredits: booking.billed_to === 'personal' ? booking.credits_used : 0,
-        message: booking.billed_to === 'personal' ? "Booking cancelled and credits refunded" : "Booking cancelled"
+        refundedCredits: booking.billed_to === 'personal' && !isExternalBooking ? booking.credits_used : 0,
+        message: booking.billed_to === 'personal' && !isExternalBooking ? "Booking cancelled and credits refunded" : "Booking cancelled"
       });
     } catch (error) {
       console.error("Error cancelling booking:", error);

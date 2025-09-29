@@ -19,10 +19,12 @@ jobs:
       contents: read
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_AUTH_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
       RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
+      # App secrets used during variable provisioning step
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       IMAGE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
     steps:
@@ -46,8 +48,6 @@ jobs:
         run: npm i -g @railway/cli
 
       - name: Deploy to Railway via CLI
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           if [ -n "$RAILWAY_SERVICE" ]; then
             railway up --project "$RAILWAY_PROJECT_ID" --service "$RAILWAY_SERVICE" --ci
@@ -57,8 +57,6 @@ jobs:
 
       - name: Link Railway project (for variables/logs)
         if: always()
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           railway link -p "$RAILWAY_PROJECT_ID" || true
           railway status || true
@@ -87,10 +85,6 @@ jobs:
           railway variables || echo "Failed to get variables"
           
       - name: Configure environment variables
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           echo "=== Setting Railway Variables ==="
           
