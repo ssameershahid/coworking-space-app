@@ -2203,7 +2203,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filteredBookings = site && site !== 'all' ? bookings.filter(b => b.site === site) : bookings;
       const filteredOrganizations = site && site !== 'all' ? organizations.filter(o => o.site === site) : organizations;
 
-      const monthlyOrders = filteredOrders.filter(order => order.created_at && new Date(order.created_at) >= startOfMonth);
+      // Only count orders that were accepted or progressed (exclude cancelled/deleted/pending)
+      const monthlyOrders = filteredOrders.filter(order => {
+        if (!order.created_at) return false;
+        const inMonth = new Date(order.created_at) >= startOfMonth;
+        const status = (order as any).status;
+        const counted = status === 'accepted' || status === 'preparing' || status === 'ready' || status === 'delivered';
+        return inMonth && counted;
+      });
       const monthlyBookings = filteredBookings.filter(booking => booking.created_at && new Date(booking.created_at) >= startOfMonth);
 
       const totalRevenue = filteredOrders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);

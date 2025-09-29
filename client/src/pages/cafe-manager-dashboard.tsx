@@ -154,6 +154,10 @@ export default function CafeManagerDashboard() {
   const todaysOrders = orders.filter(order => 
     new Date(order.created_at).toDateString() === new Date().toDateString()
   );
+  // Only count orders that have been accepted or progressed further
+  const todaysCountedOrders = todaysOrders.filter(order => 
+    order.status === 'accepted' || order.status === 'preparing' || order.status === 'ready' || order.status === 'delivered'
+  );
   
   // Calculate stats based on today's orders only
   const pendingOrders = todaysOrders.filter(order => order.status === 'pending');
@@ -329,7 +333,7 @@ export default function CafeManagerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Today's Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{todaysOrders.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{todaysCountedOrders.length}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Package className="h-6 w-6 text-blue-600" />
