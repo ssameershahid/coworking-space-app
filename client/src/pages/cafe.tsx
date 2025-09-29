@@ -468,7 +468,7 @@ export default function CafePage() {
                             : 'No items'
                           }
                           {order.status === 'deleted' && (
-                            <span className="ml-2 text-red-600">• deleted by {order.handled_by && order.handled_by !== order.user_id ? 'cafe manager' : 'user themself'}</span>
+                            <span className="ml-2 text-red-600">• deleted by {order.handled_by && order.handled_by !== order.user_id ? 'cafe manager' : 'user'}</span>
                           )}
                         </p>
                       </div>
