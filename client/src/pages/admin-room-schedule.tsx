@@ -160,25 +160,26 @@ export default function AdminRoomSchedulePage() {
               {rooms.map((room: any) => (
                 <div key={room.id} className="border rounded-lg">
                   <div className="px-3 py-2 font-semibold bg-gray-50">{room.name}</div>
-                  <div className="p-3 overflow-x-auto">
-                    {/* Hour labels on the row (top) */}
-                    <div className="relative bg-transparent min-w-[1440px] h-6">
-                      <div className="absolute inset-0 grid grid-cols-24 text-[10px] text-gray-500">
-                        {Array.from({ length: 24 }).map((_, i) => (
-                          <div key={i} className="flex items-center justify-center">
-                            {new Date(startOfDay(cursor).getTime() + i * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
-                          </div>
-                        ))}
-                        <div className="relative" />
-                      </div>
-                    </div>
-                    <div className="relative bg-white border rounded min-w-[1440px] h-16">
-                      {/* hour grid lines */}
-                      <div className="absolute inset-0 grid grid-cols-24 pointer-events-none">
-                        {Array.from({ length: 24 }).map((_, i) => (
-                          <div key={i} className="border-l first:border-l-0" />
-                        ))}
-                        <div className="relative border-l" />
+                  <div className="p-3">
+                    <div className="relative bg-white border rounded w-full h-20">
+                      {/* Hour grid with inline labels and subtle ticks */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <div className="grid grid-cols-24 h-full">
+                          {Array.from({ length: 24 }).map((_, i) => (
+                            <div key={i} className="relative">
+                              {/* vertical grid line */}
+                              <div className="absolute top-0 left-0 w-px h-full bg-gray-200" />
+                              {/* hour label centered over the column */}
+                              <div className="absolute top-0 left-1/2 -translate-x-1/2 text-[11px] text-gray-500 whitespace-nowrap">
+                                {new Date(startOfDay(cursor).getTime() + i * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
+                              </div>
+                              {/* subtle tick halfway down for visual rhythm */}
+                              <div className="absolute top-5 left-1/2 -translate-x-1/2 w-px h-3 bg-gray-300" />
+                            </div>
+                          ))}
+                        </div>
+                        {/* rightmost boundary */}
+                        <div className="absolute top-0 right-0 w-px h-full bg-gray-200" />
                       </div>
 
                       {/* bookings as horizontal blocks */}
@@ -193,7 +194,7 @@ export default function AdminRoomSchedulePage() {
                         return (
                           <div
                             key={idx}
-                            className="absolute top-2 bottom-2 bg-green-200 text-green-900 text-xs rounded px-2 flex items-center overflow-hidden"
+                            className="absolute top-7 bottom-2 bg-green-200 text-green-900 text-xs rounded px-2 flex items-center overflow-hidden"
                             style={{ left: `${leftPct}%`, width: `${Math.max(2.5, widthPct)}%` }}
                             title={`${new Date(b.start_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${new Date(b.end_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`}
                           >
