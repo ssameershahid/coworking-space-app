@@ -40,7 +40,7 @@ import {
 import { MenuItem as MenuItemType, CafeOrder } from "@/lib/types";
 import { formatPriceWithCurrency } from "@/lib/format-price";
 // Use CK logo for floating cart button (served from public)
-const calmkaajLogo = "/ck-logo.png";
+const calmkaajLogo = "/CalmKaaj_Orange_Logo.png";
 
 export default function CafePage() {
   const { user } = useAuth();
