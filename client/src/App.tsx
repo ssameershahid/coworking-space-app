@@ -26,6 +26,7 @@ import MenuManagement from "@/pages/menu-management";
 import Navigation from "@/components/layout/navigation";
 import MobileNav from "@/components/layout/mobile-nav";
 import Footer from "@/components/layout/footer";
+import { CafeManagerSSE } from "@/components/realtime/cafe-manager-sse";
 import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
 import OnboardingManager from "@/components/onboarding/onboarding-manager";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,6 +53,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </main>
       {!isCafeManager && <Footer />}
       <MobileNav />
+      {/* Global SSE listener for cafe managers: runs on all pages */}
+      {isCafeManager && <CafeManagerSSE />}
       <OnboardingManager />
     </div>
   );
