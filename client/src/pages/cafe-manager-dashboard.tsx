@@ -86,6 +86,7 @@ export default function CafeManagerDashboard() {
     // Real-time order notifications for cafe managers
     useSSESimple({
       endpoint: "/events",
+      disabled: !(user?.role === 'cafe_manager'),
       onNewOrder: (order) => {
         // Refresh orders list immediately
         queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });

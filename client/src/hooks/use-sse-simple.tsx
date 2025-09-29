@@ -7,14 +7,27 @@ interface SSEOptions {
   onNewOrder?: (order: any) => void;
   onOrderStatusUpdate?: (order: any) => void;
   onPaymentStatusUpdate?: (order: any) => void;
+  disabled?: boolean;
 }
 
-export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaymentStatusUpdate }: SSEOptions) {
+export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaymentStatusUpdate, disabled }: SSEOptions) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    if (disabled) {
+      // Ensure any previous connection is closed if we get disabled
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null as any;
+      }
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      return;
+    }
     const connectSSE = () => {
       // Clean up any existing connection
       if (eventSourceRef.current) {
@@ -93,7 +106,7 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
         eventSourceRef.current = null;
       }
     };
-  }, [endpoint]); // Only depend on endpoint to prevent constant reconnections
+  }, [endpoint, disabled]); // Depend on endpoint and disabled flag
 
   return { eventSource: eventSourceRef.current };
 }

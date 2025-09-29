@@ -26,6 +26,7 @@ export function CafeManagerSSE() {
 
   useSSESimple({
     endpoint: "/events",
+    disabled: !isCafeManager,
     onNewOrder: (order) => {
       if (!isCafeManager) return;
       // refresh cafe orders list and any dashboards using it

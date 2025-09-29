@@ -154,6 +154,7 @@ export default function CafePage() {
   // Real-time updates for user's own orders via SSE
   useSSESimple({
     endpoint: "/events",
+    disabled: !user,
     onOrderStatusUpdate: (order: any) => {
       // If this update pertains to this user, refresh their orders list
       if (!user) return;
