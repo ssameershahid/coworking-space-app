@@ -167,6 +167,27 @@ export default function AdminRoomSchedulePage() {
                           <div key={i} className="border-r last:border-r-0" />
                         ))}
                       </div>
+                      {/* Hour tick labels (every 2 hours) */}
+                      <div className="absolute inset-x-0 top-0 hidden sm:block pointer-events-none">
+                        {Array.from({ length: 24 }).map((_, i) => {
+                          const dayStart = startOfDay(cursor);
+                          const t = new Date(dayStart);
+                          t.setHours(i, 0, 0, 0);
+                          const label = t.toLocaleTimeString([], { hour: 'numeric' });
+                          const leftPct = (i / 24) * 100;
+                          const showLabel = i % 2 === 0; // label every 2 hours to reduce clutter
+                          return (
+                            <div key={i} className="absolute" style={{ left: `${leftPct}%`, transform: 'translateX(-50%)' }}>
+                              <div className="w-px h-2 bg-gray-300" />
+                              {showLabel && (
+                                <div className="text-[10px] leading-3 text-gray-500 mt-0.5 text-center">
+                                  {label}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                       {/* bookings */}
                       {groupedByRoom[room.id]?.map((b:any, idx:number) => {
                         const s = new Date(b.start_time); const e = new Date(b.end_time);
