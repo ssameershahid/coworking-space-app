@@ -80,27 +80,29 @@ export default function CafeManagerDashboard() {
     }
   }, [user?.role]);
 
-  // SSE for real-time order updates (simplified)
-  // Real-time order notifications for cafe managers
-  useSSESimple({
-    endpoint: "/events",
-    onNewOrder: (order) => {
-      // Refresh orders list immediately
-      queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
-      
-      // Show prominent notification with audio
-      toast({
-        title: "🔔 NEW ORDER RECEIVED! 🔔",
-        description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${formatPrice(order.total_amount)}`,
-        duration: 30000, // 30 seconds to ensure manager sees it
-        variant: "destructive",
-      });
-    },
-    onOrderStatusUpdate: (order) => {
-      // Refresh orders list when status changes  
-      queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
-    },
-  });
+  // Page-scoped SSE is disabled if a global listener is active
+  const hasGlobalSSE = (typeof window !== 'undefined') && (window as any).__CK_GLOBAL_SSE_ACTIVE;
+  if (!hasGlobalSSE) {
+    // Real-time order notifications for cafe managers
+    useSSESimple({
+      endpoint: "/events",
+      onNewOrder: (order) => {
+        // Refresh orders list immediately
+        queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+        
+        // Show prominent notification with audio
+        toast({
+          title: "🔔 NEW ORDER RECEIVED! 🔔",
+          description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${formatPrice(order.total_amount)}`,
+          duration: 30000,
+          variant: "destructive",
+        });
+      },
+      onOrderStatusUpdate: () => {
+        queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+      },
+    });
+  }
 
 
   
