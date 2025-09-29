@@ -156,34 +156,24 @@ export default function AdminRoomSchedulePage() {
         <CardContent>
           {view === "day" && (
             <div className="space-y-6">
-              {/* Shared hour header with subtle ticks */}
-              <div className="border rounded-lg overflow-x-auto">
-                <div className="min-w-[1440px]">
-                  <div className="relative h-8 bg-white">
-                    <div className="absolute inset-0 grid grid-cols-24">
-                      {Array.from({ length: 24 }).map((_, i) => (
-                        <div key={i} className="relative border-l first:border-l-0" />
-                      ))}
-                      <div className="relative border-l" />
-                    </div>
-                    <div className="absolute inset-0 grid grid-cols-24 text-[10px] text-gray-500">
-                      {Array.from({ length: 24 }).map((_, i) => (
-                        <div key={i} className="flex items-center justify-center">
-                          {new Date(startOfDay(cursor).getTime() + i * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Room rows with horizontal timelines */}
               {rooms.map((room: any) => (
                 <div key={room.id} className="border rounded-lg">
                   <div className="px-3 py-2 font-semibold bg-gray-50">{room.name}</div>
                   <div className="p-3 overflow-x-auto">
+                    {/* Hour labels on the row (top) */}
+                    <div className="relative bg-transparent min-w-[1440px] h-6">
+                      <div className="absolute inset-0 grid grid-cols-24 text-[10px] text-gray-500">
+                        {Array.from({ length: 24 }).map((_, i) => (
+                          <div key={i} className="flex items-center justify-center">
+                            {new Date(startOfDay(cursor).getTime() + i * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
+                          </div>
+                        ))}
+                        <div className="relative" />
+                      </div>
+                    </div>
                     <div className="relative bg-white border rounded min-w-[1440px] h-16">
-                      {/* hour grid lines only (no labels in rows) */}
+                      {/* hour grid lines */}
                       <div className="absolute inset-0 grid grid-cols-24 pointer-events-none">
                         {Array.from({ length: 24 }).map((_, i) => (
                           <div key={i} className="border-l first:border-l-0" />
