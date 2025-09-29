@@ -153,7 +153,8 @@ export default function CafeManagerDashboard() {
 
 
   // Filter all orders to show only today's orders
-  const todaysOrders = orders.filter(order => 
+  const safeOrders: CafeOrder[] = Array.isArray(orders) ? orders : [];
+  const todaysOrders = safeOrders.filter(order => 
     new Date(order.created_at).toDateString() === new Date().toDateString()
   );
   // Only count orders that have been accepted or progressed further
