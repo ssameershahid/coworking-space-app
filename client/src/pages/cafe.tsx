@@ -442,7 +442,14 @@ export default function CafePage() {
           <CardContent>
             <div className="space-y-3">
               {myOrders.length > 0 ? (
-                myOrders.slice(0, 5).map((order) => (
+                myOrders
+                  .filter((order) => {
+                    if (order.status !== 'deleted') return true;
+                    const created = new Date(order.created_at).getTime();
+                    return Date.now() - created <= 24*3600e3;
+                  })
+                  .slice(0, 5)
+                  .map((order) => (
                   <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <Coffee className="h-5 w-5 text-orange-600" />
@@ -460,6 +467,9 @@ export default function CafePage() {
                               ).join(', ')
                             : 'No items'
                           }
+                          {order.status === 'deleted' && (
+                            <span className="ml-2 text-red-600">• deleted by {order.handled_by ? 'cafe manager' : 'you'}</span>
+                          )}
                         </p>
                       </div>
                     </div>

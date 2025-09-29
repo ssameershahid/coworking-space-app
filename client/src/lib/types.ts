@@ -71,7 +71,7 @@ export interface CafeOrder {
   id: number;
   user_id: number;
   total_amount: string;
-  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | 'deleted';
   billed_to: 'personal' | 'organization';
   org_id?: string;
   handled_by?: number;
