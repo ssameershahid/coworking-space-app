@@ -195,7 +195,6 @@ export default function AdminRoomSchedulePage() {
                         })}
                       </div>
                     </div>
-                    </div>
                   </div>
                 </div>
               ))}
