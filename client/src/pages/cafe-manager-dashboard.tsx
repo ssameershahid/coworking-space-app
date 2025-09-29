@@ -80,30 +80,27 @@ export default function CafeManagerDashboard() {
     }
   }, [user?.role]);
 
-  // Page-scoped SSE is disabled if a global listener is active
+  // Always mount the hook (React hooks must not be conditional). Use disabled flag instead.
   const hasGlobalSSE = (typeof window !== 'undefined') && (window as any).__CK_GLOBAL_SSE_ACTIVE;
-  if (!hasGlobalSSE) {
-    // Real-time order notifications for cafe managers
-    useSSESimple({
-      endpoint: "/events",
-      disabled: !(user?.role === 'cafe_manager'),
-      onNewOrder: (order) => {
-        // Refresh orders list immediately
-        queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
-        
-        // Show prominent notification with audio
-        toast({
-          title: "🔔 NEW ORDER RECEIVED! 🔔",
-          description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${formatPrice(order.total_amount)}`,
-          duration: 30000,
-          variant: "destructive",
-        });
-      },
-      onOrderStatusUpdate: () => {
-        queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
-      },
-    });
-  }
+  useSSESimple({
+    endpoint: "/events",
+    disabled: hasGlobalSSE || !(user?.role === 'cafe_manager'),
+    onNewOrder: (order) => {
+      // Refresh orders list immediately
+      queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+      
+      // Show prominent notification with audio
+      toast({
+        title: "🔔 NEW ORDER RECEIVED! 🔔",
+        description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${formatPrice(order.total_amount)}`,
+        duration: 30000,
+        variant: "destructive",
+      });
+    },
+    onOrderStatusUpdate: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+    },
+  });
 
 
   
