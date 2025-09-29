@@ -1075,7 +1075,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!(existing.status === 'pending' || existing.status === 'accepted')) {
         return res.status(400).json({ message: "Order can no longer be cancelled" });
       }
-      const updated = await storage.updateCafeOrderStatus(id, 'deleted');
+      // Mark deletion actor as the user themselves
+      const updated = await storage.updateCafeOrderStatus(id, 'deleted', user.id);
       // Broadcast update to cafe and user
       const cafeId = existing.site || (user.site || 'default');
       const orderWithDetails = await storage.getCafeOrderById(id);
