@@ -109,16 +109,18 @@ export default function CafeManagerDashboard() {
 
 
   // Fetch all orders for the cafe manager
-  const { data: orders = [], isLoading, dataUpdatedAt } = useQuery<CafeOrder[]>({
+  const { data: ordersData, isLoading, dataUpdatedAt } = useQuery<CafeOrder[]>({
     queryKey: ['/api/cafe/orders/all'],
     enabled: !!user && user.role === 'cafe_manager'
   });
+  const orders: CafeOrder[] = Array.isArray(ordersData) ? ordersData : [];
   
-  // Log orders data when it changes for debugging
+  // Log orders data when it changes for debugging (guard against non-array values)
+  const isOrdersArray = Array.isArray(orders);
   console.log('📊 ORDERS DATA UPDATED:', {
-    ordersCount: orders.length,
-    lastUpdated: new Date(dataUpdatedAt).toLocaleTimeString(),
-    latestOrder: orders[0] ? `#${orders[0].id}` : 'none'
+    ordersCount: isOrdersArray ? orders.length : 0,
+    lastUpdated: new Date(dataUpdatedAt || Date.now()).toLocaleTimeString(),
+    latestOrder: isOrdersArray && orders[0] ? `#${orders[0].id}` : 'none'
   });
 
 
