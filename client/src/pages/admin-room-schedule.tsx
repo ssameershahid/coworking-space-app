@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -16,8 +19,10 @@ function startOfMonth(d: Date) { const x = new Date(d.getFullYear(), d.getMonth(
 function endOfMonth(d: Date) { const x = new Date(d.getFullYear(), d.getMonth()+1, 0, 23,59,59,999); return x; }
 
 export default function AdminRoomSchedulePage() {
+  const { user } = useAuth();
   const [view, setView] = useState<ViewMode>("day");
   const [cursor, setCursor] = useState<Date>(new Date());
+  const [showExternalModal, setShowExternalModal] = useState(false);
   const range = useMemo(() => {
     if (view === "day") return { from: startOfDay(cursor), to: endOfDay(cursor) };
     if (view === "week") return { from: startOfWeek(cursor), to: endOfWeek(cursor) };
@@ -26,6 +31,25 @@ export default function AdminRoomSchedulePage() {
 
   const { data: rooms = [] } = useQuery({ queryKey: ["/api/rooms"], staleTime: 60_000 });
   const { data: bookings = [] } = useQuery({ queryKey: ["/api/admin/bookings"], staleTime: 30_000 });
+
+  // Extract all lifetime external bookings created by current admin/team user
+  const externalBookings = useMemo(() => {
+    const tag = "[EXTERNAL BOOKING]";
+    return (bookings || [])
+      .filter((b: any) => b?.user?.id && user?.id && b.user.id === user.id)
+      .filter((b: any) => typeof b?.notes === "string" && b.notes.includes(tag))
+      .sort((a: any, b: any) => +new Date(b.created_at || b.start_time) - +new Date(a.created_at || a.start_time));
+  }, [bookings, user?.id]);
+
+  const parseExternalGuest = (notes?: string) => {
+    if (!notes) return { name: "", email: "", phone: "" };
+    const m = notes.match(/\[EXTERNAL BOOKING\]\s*Name:\s*([^|]+)\s*\|\s*Email:\s*([^|]+)\s*\|\s*Phone:\s*([^|\n]+)/);
+    return {
+      name: m?.[1]?.trim() || "",
+      email: m?.[2]?.trim() || "",
+      phone: m?.[3]?.trim() || "",
+    };
+  };
 
   const filtered = useMemo(() => {
     const fromMs = range.from.getTime();
@@ -81,6 +105,11 @@ export default function AdminRoomSchedulePage() {
                 <SelectItem value="month">Monthly</SelectItem>
               </SelectContent>
             </Select>
+            {(user?.role === 'calmkaaj_admin' || user?.role === 'calmkaaj_team') && (
+              <Button variant="default" onClick={() => setShowExternalModal(true)}>
+                External Client Bookings
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -179,6 +208,56 @@ export default function AdminRoomSchedulePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* External bookings modal */}
+      <Dialog open={showExternalModal} onOpenChange={setShowExternalModal}>
+        <DialogContent className="max-w-5xl w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>External Client Bookings (Created by You)</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="whitespace-nowrap">Date</TableHead>
+                  <TableHead className="whitespace-nowrap">Start</TableHead>
+                  <TableHead className="whitespace-nowrap">End</TableHead>
+                  <TableHead className="whitespace-nowrap">Room</TableHead>
+                  <TableHead className="whitespace-nowrap">Credits</TableHead>
+                  <TableHead className="whitespace-nowrap">Guest Name</TableHead>
+                  <TableHead className="whitespace-nowrap">Guest Email</TableHead>
+                  <TableHead className="whitespace-nowrap">Guest Phone</TableHead>
+                  <TableHead className="whitespace-nowrap">Notes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {externalBookings.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-gray-500">No external bookings found.</TableCell>
+                  </TableRow>
+                ) : (
+                  externalBookings.map((b: any) => {
+                    const g = parseExternalGuest(b.notes);
+                    return (
+                      <TableRow key={b.id}>
+                        <TableCell>{new Date(b.start_time).toLocaleDateString('en-GB')}</TableCell>
+                        <TableCell>{new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                        <TableCell>{new Date(b.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                        <TableCell>{b.room?.name || '-'}</TableCell>
+                        <TableCell>{b.credits_used}</TableCell>
+                        <TableCell className="max-w-[220px] truncate" title={g.name}>{g.name || '-'}</TableCell>
+                        <TableCell className="max-w-[240px] truncate" title={g.email}>{g.email || '-'}</TableCell>
+                        <TableCell className="max-w-[160px] truncate" title={g.phone}>{g.phone || '-'}</TableCell>
+                        <TableCell className="max-w-[320px] truncate" title={b.notes}>{b.notes?.replace(/\n/g, ' ') || '-'}</TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
