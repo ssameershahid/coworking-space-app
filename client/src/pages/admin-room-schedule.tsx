@@ -162,24 +162,33 @@ export default function AdminRoomSchedulePage() {
                   <div className="px-3 py-2 font-semibold bg-gray-50">{room.name}</div>
                   <div className="p-3">
                     <div className="relative bg-white border rounded w-full h-20">
-                      {/* Hour grid with inline labels and subtle ticks */}
-                      <div className="absolute inset-0 pointer-events-none">
-                        <div className="grid grid-cols-24 h-full">
-                          {Array.from({ length: 24 }).map((_, i) => (
-                            <div key={i} className="relative">
-                              {/* vertical grid line */}
-                              <div className="absolute top-0 left-0 w-px h-full bg-gray-200" />
-                              {/* hour label centered over the column */}
-                              <div className="absolute top-0 left-1/2 -translate-x-1/2 text-[11px] text-gray-500 whitespace-nowrap">
-                                {new Date(startOfDay(cursor).getTime() + i * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
-                              </div>
-                              {/* subtle tick halfway down for visual rhythm */}
-                              <div className="absolute top-5 left-1/2 -translate-x-1/2 w-px h-3 bg-gray-300" />
+                      {/* Hour grid using repeating background for crisp ticks */}
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          backgroundImage:
+                            "repeating-linear-gradient(to right, rgba(0,0,0,0.09) 0, rgba(0,0,0,0.09) 1px, transparent 1px, transparent calc(100%/24))",
+                        }}
+                      />
+
+                      {/* Responsive hour labels laid out horizontally */}
+                      <div className="absolute top-0 left-0 right-0 px-2 text-gray-500">
+                        {/* Show every 2 hours on small screens to avoid crowding */}
+                        <div className="flex justify-between text-[11px] sm:hidden">
+                          {Array.from({ length: 13 }).map((_, i) => (
+                            <div key={i} className="whitespace-nowrap">
+                              {new Date(startOfDay(cursor).getTime() + i * 2 * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
                             </div>
                           ))}
                         </div>
-                        {/* rightmost boundary */}
-                        <div className="absolute top-0 right-0 w-px h-full bg-gray-200" />
+                        {/* Show every hour from md and up */}
+                        <div className="hidden sm:flex justify-between text-[11px]">
+                          {Array.from({ length: 25 }).map((_, i) => (
+                            <div key={i} className="whitespace-nowrap">
+                              {new Date(startOfDay(cursor).getTime() + i * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                       {/* bookings as horizontal blocks */}
