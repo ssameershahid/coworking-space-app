@@ -156,44 +156,65 @@ export default function AdminRoomSchedulePage() {
         <CardContent>
           {view === "day" && (
             <div className="space-y-6">
+              {/* Shared hour header with subtle ticks */}
+              <div className="border rounded-lg overflow-x-auto">
+                <div className="min-w-[1440px]">
+                  <div className="relative h-8 bg-white">
+                    <div className="absolute inset-0 grid grid-cols-24">
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <div key={i} className="relative border-l first:border-l-0" />
+                      ))}
+                      <div className="relative border-l" />
+                    </div>
+                    <div className="absolute inset-0 grid grid-cols-24 text-[10px] text-gray-500">
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <div key={i} className="flex items-center justify-center">
+                          {new Date(startOfDay(cursor).getTime() + i * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Room rows with horizontal timelines */}
               {rooms.map((room: any) => (
                 <div key={room.id} className="border rounded-lg">
                   <div className="px-3 py-2 font-semibold bg-gray-50">{room.name}</div>
-                  <div className="p-3">
-                    {/* Scrollable timeline canvas to avoid clipping and ensure equal spacing */}
-                    <div className="relative bg-white border rounded overflow-x-auto">
-                      <div className="relative h-24 min-w-[1200px]">
-                        {/* 24 equal hour columns with vertical ticks and labels */}
-                        <div className="absolute inset-0 grid grid-cols-24">
-                          {Array.from({ length: 24 }).map((_, i) => (
-                            <div key={i} className="relative border-l first:border-l rounded-none">
-                              {/* tick */}
-                              <div className="absolute top-0 left-0 w-px h-3 bg-gray-300" />
-                              {/* label every hour, clamped at edges */}
-                              <div
-                                className={`absolute -top-4 text-[10px] leading-3 text-gray-500 ${i===0 ? 'left-0 translate-x-0' : i===23 ? 'left-full -translate-x-full' : 'left-1/2 -translate-x-1/2'}`}
-                              >
-                                {new Date(startOfDay(cursor).getTime() + i * 3600e3).toLocaleTimeString([], { hour: 'numeric' })}
-                              </div>
-                            </div>
-                          ))}
-                          {/* rightmost boundary line */}
-                          <div className="relative border-l" />
-                        </div>
-
-                        {/* bookings absolutely positioned across the 24h canvas */}
-                        {groupedByRoom[room.id]?.map((b:any, idx:number) => {
-                        const s = new Date(b.start_time); const e = new Date(b.end_time);
-                        const dayStart = startOfDay(cursor).getTime();
-                          const leftPct = ((s.getTime()-dayStart)/(24*3600e3))*100;
-                          const widthPct = ((e.getTime()-s.getTime())/(24*3600e3))*100;
-                          return (
-                            <div key={idx} className="absolute top-5 bottom-2 bg-green-200 text-green-900 text-xs rounded px-2 overflow-hidden" style={{left: `${leftPct}%`, width: `${Math.max(2.5,widthPct)}%`}}>
-                              {new Date(b.start_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - {new Date(b.end_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} • {b.user?.first_name} {b.user?.last_name}
-                            </div>
-                          );
-                        })}
+                  <div className="p-3 overflow-x-auto">
+                    <div className="relative bg-white border rounded min-w-[1440px] h-16">
+                      {/* hour grid lines only (no labels in rows) */}
+                      <div className="absolute inset-0 grid grid-cols-24 pointer-events-none">
+                        {Array.from({ length: 24 }).map((_, i) => (
+                          <div key={i} className="border-l first:border-l-0" />
+                        ))}
+                        <div className="relative border-l" />
                       </div>
+
+                      {/* bookings as horizontal blocks */}
+                      {groupedByRoom[room.id]?.map((b: any, idx: number) => {
+                        const s = new Date(b.start_time);
+                        const e = new Date(b.end_time);
+                        const dayStart = startOfDay(cursor).getTime();
+                        const clampedStart = Math.max(s.getTime(), dayStart);
+                        const clampedEnd = Math.min(e.getTime(), dayStart + 24 * 3600e3);
+                        const leftPct = ((clampedStart - dayStart) / (24 * 3600e3)) * 100;
+                        const widthPct = Math.max(1, ((clampedEnd - clampedStart) / (24 * 3600e3)) * 100);
+                        return (
+                          <div
+                            key={idx}
+                            className="absolute top-2 bottom-2 bg-green-200 text-green-900 text-xs rounded px-2 flex items-center overflow-hidden"
+                            style={{ left: `${leftPct}%`, width: `${Math.max(2.5, widthPct)}%` }}
+                            title={`${new Date(b.start_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${new Date(b.end_time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`}
+                          >
+                            {new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {" - "}
+                            {new Date(b.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {" • "}
+                            {b.user?.first_name} {b.user?.last_name}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
