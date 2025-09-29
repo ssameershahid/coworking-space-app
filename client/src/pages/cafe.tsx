@@ -39,8 +39,8 @@ import {
 } from "lucide-react";
 import { MenuItem as MenuItemType, CafeOrder } from "@/lib/types";
 import { formatPriceWithCurrency } from "@/lib/format-price";
-// Use public asset path to avoid bundling issues in Docker/Railway builds
-const calmkaajLogo = "/logo-main.png";
+// Use CK logo for floating cart button (served from public)
+const calmkaajLogo = "/ck-logo.png";
 
 export default function CafePage() {
   const { user } = useAuth();
