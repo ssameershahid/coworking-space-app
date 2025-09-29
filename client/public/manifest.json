@@ -52,13 +52,13 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshot-wide.png",
+      "src": "/logo-main.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "/screenshot-narrow.png",
+      "src": "/logo-main.png",
       "sizes": "640x1136",
       "type": "image/png",
       "form_factor": "narrow"

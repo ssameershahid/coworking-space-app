@@ -38,10 +38,12 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // Set to false for development to ensure cookies work
+    // In production behind HTTPS, mark session cookie secure and sameSite=None
+    // In local development, fall back to lax and insecure
+    secure: process.env.NODE_ENV === 'production',
     maxAge: 70 * 24 * 60 * 60 * 1000, // 10 weeks
     httpOnly: true,
-    sameSite: "lax" as const, // More permissive for development
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   },
   name: 'connect.sid', // Explicit session name
 };

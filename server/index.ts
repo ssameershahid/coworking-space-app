@@ -4,6 +4,9 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// Ensure Express knows it's behind a proxy (Railway/NGINX) so secure cookies work
+app.set("trust proxy", 1);
+
 // CRITICAL DEBUG: Log ALL requests at the very beginning
 app.use('*', (req, res, next) => {
   console.log(`🌍 RAW REQUEST: ${req.method} ${req.url} at ${new Date().toISOString()}`);
