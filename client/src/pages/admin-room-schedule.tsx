@@ -143,8 +143,6 @@ export default function AdminRoomSchedulePage() {
               <SelectTrigger className="w-[130px]"><SelectValue placeholder="View" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="day">Daily</SelectItem>
-                <SelectItem value="week">Weekly</SelectItem>
-                <SelectItem value="month">Monthly</SelectItem>
               </SelectContent>
             </Select>
             {(user?.role === 'calmkaaj_admin' || user?.role === 'calmkaaj_team') && (
