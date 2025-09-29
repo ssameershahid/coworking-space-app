@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SITES } from "@/lib/constants";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -23,6 +24,9 @@ export default function AdminRoomSchedulePage() {
   const [view, setView] = useState<ViewMode>("day");
   const [cursor, setCursor] = useState<Date>(new Date());
   const [showExternalModal, setShowExternalModal] = useState(false);
+  const [siteFilter, setSiteFilter] = useState<'all' | 'blue_area' | 'i_10'>('all');
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const range = useMemo(() => {
     if (view === "day") return { from: startOfDay(cursor), to: endOfDay(cursor) };
     if (view === "week") return { from: startOfWeek(cursor), to: endOfWeek(cursor) };
@@ -30,16 +34,53 @@ export default function AdminRoomSchedulePage() {
   }, [view, cursor]);
 
   const { data: rooms = [] } = useQuery({ queryKey: ["/api/rooms"], staleTime: 60_000 });
-  const { data: bookings = [] } = useQuery({ queryKey: ["/api/admin/bookings"], staleTime: 30_000 });
+  const { data: bookings = [] } = useQuery({ queryKey: [siteFilter === 'all' ? "/api/admin/bookings" : `/api/admin/bookings?site=${siteFilter}`], staleTime: 30_000 });
 
   // Extract all lifetime external bookings created by current admin/team user
   const externalBookings = useMemo(() => {
     const tag = "[EXTERNAL BOOKING]";
     return (bookings || [])
-      .filter((b: any) => b?.user?.id && user?.id && b.user.id === user.id)
       .filter((b: any) => typeof b?.notes === "string" && b.notes.includes(tag))
       .sort((a: any, b: any) => +new Date(b.created_at || b.start_time) - +new Date(a.created_at || a.start_time));
-  }, [bookings, user?.id]);
+  }, [bookings]);
+
+  const filteredExternalBookings = useMemo(() => {
+    if (!dateFrom && !dateTo) return externalBookings;
+    const from = dateFrom ? new Date(dateFrom + 'T00:00:00') : null;
+    const to = dateTo ? new Date(dateTo + 'T23:59:59') : null;
+    return externalBookings.filter((b: any) => {
+      const d = new Date(b.start_time);
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      return true;
+    });
+  }, [externalBookings, dateFrom, dateTo]);
+
+  const exportCSV = () => {
+    const rows = filteredExternalBookings.map((b: any) => {
+      const g = parseExternalGuest(b.notes);
+      return [
+        new Date(b.start_time).toLocaleDateString('en-GB'),
+        new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        new Date(b.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        b.room?.name || '-',
+        b.credits_used,
+        g.name,
+        g.email,
+        g.phone,
+        (b.notes || '').replace(/\n/g, ' '),
+      ];
+    });
+    const header = ["Date","Start","End","Room","Credits","Guest Name","Guest Email","Guest Phone","Notes"];
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'external-bookings.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const parseExternalGuest = (notes?: string) => {
     if (!notes) return { name: "", email: "", phone: "" };
@@ -213,8 +254,32 @@ export default function AdminRoomSchedulePage() {
       <Dialog open={showExternalModal} onOpenChange={setShowExternalModal}>
         <DialogContent className="max-w-5xl w-[95vw]">
           <DialogHeader>
-            <DialogTitle>External Client Bookings (Created by You)</DialogTitle>
+            <DialogTitle>External Client Bookings (All)</DialogTitle>
           </DialogHeader>
+          <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-end">
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Site</label>
+              <select
+                className="border rounded px-3 py-2"
+                value={siteFilter}
+                onChange={(e)=> setSiteFilter(e.target.value as any)}
+              >
+                <option value="all">All Sites</option>
+                <option value={SITES.BLUE_AREA}>Blue Area</option>
+                <option value={SITES.I_10}>I-10</option>
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">From</label>
+              <input type="date" className="border rounded px-3 py-2" value={dateFrom} onChange={(e)=> setDateFrom(e.target.value)} />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">To</label>
+              <input type="date" className="border rounded px-3 py-2" value={dateTo} onChange={(e)=> setDateTo(e.target.value)} />
+            </div>
+            <div className="flex-1" />
+            <Button onClick={exportCSV}>Export CSV</Button>
+          </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -231,12 +296,12 @@ export default function AdminRoomSchedulePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {externalBookings.length === 0 ? (
+                {filteredExternalBookings.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center text-gray-500">No external bookings found.</TableCell>
                   </TableRow>
                 ) : (
-                  externalBookings.map((b: any) => {
+                  filteredExternalBookings.map((b: any) => {
                     const g = parseExternalGuest(b.notes);
                     return (
                       <TableRow key={b.id}>
