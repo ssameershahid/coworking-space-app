@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter, Calendar, CalendarDays, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { format, startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, isToday, parseISO } from "date-fns";
 import { formatLargeCurrencyAmount } from "@/lib/format-price";
@@ -69,6 +70,7 @@ const paymentStatusConfig = {
 };
 
 export default function BillingTransactions() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
@@ -87,6 +89,11 @@ export default function BillingTransactions() {
   const { data: orders = [], isLoading } = useQuery<CafeOrder[]>({
     queryKey: ['/api/cafe/orders/all'],
   });
+
+  // Role-based base list: cafe managers should not see cancelled/deleted in Billing
+  const baseOrders: CafeOrder[] = (user?.role === 'cafe_manager')
+    ? orders.filter(o => o.status !== 'cancelled' && o.status !== 'deleted')
+    : orders;
 
   // Update payment status mutation
   const updatePaymentMutation = useMutation({
@@ -252,11 +259,11 @@ export default function BillingTransactions() {
   const dateRange = getDateRange();
   
   // First filter by date for orders display
-  const dateFilteredOrders = orders.filter(order => isOrderInDateRange(order, dateRange));
+  const dateFilteredOrders = baseOrders.filter(order => isOrderInDateRange(order, dateRange));
   
   // If no orders for today and it's today filter, expand to recent days
   const ordersToDisplay = dateFilteredOrders.length === 0 && dateFilter === 'today' && isToday(selectedDate)
-    ? orders.filter(order => isOrderInDateRange(order, { start: startOfDay(subDays(new Date(), 7)), end: endOfDay(new Date()) }))
+    ? baseOrders.filter(order => isOrderInDateRange(order, { start: startOfDay(subDays(new Date(), 7)), end: endOfDay(new Date()) }))
     : dateFilteredOrders;
 
   const filteredOrders = ordersToDisplay.filter(order => {
@@ -276,7 +283,7 @@ export default function BillingTransactions() {
 
   // Calculate revenue totals (based on 7-day rolling window or custom range)
   const revenueRange = getRevenueRange();
-  const revenueOrders = orders.filter(order => isOrderInDateRange(order, revenueRange));
+  const revenueOrders = baseOrders.filter(order => isOrderInDateRange(order, revenueRange));
   
   const totalRevenue = revenueOrders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
   const paidRevenue = revenueOrders.filter(order => order.payment_status === 'paid').reduce((sum, order) => sum + parseFloat(order.total_amount), 0);
@@ -284,7 +291,7 @@ export default function BillingTransactions() {
   
   // Get display info for current filter
   const getDisplayInfo = () => {
-    const todayOrdersCount = orders.filter(order => isOrderInDateRange(order, { start: startOfDay(new Date()), end: endOfDay(new Date()) })).length;
+    const todayOrdersCount = baseOrders.filter(order => isOrderInDateRange(order, { start: startOfDay(new Date()), end: endOfDay(new Date()) })).length;
     
     if (dateFilter === 'today' && isToday(selectedDate)) {
       if (todayOrdersCount === 0 && ordersToDisplay.length > 0) {
@@ -530,7 +537,7 @@ export default function BillingTransactions() {
         <CardHeader>
           <CardTitle>All Transactions</CardTitle>
           <CardDescription>
-            Showing {filteredOrders.length} of {orders.length} orders
+            Showing {filteredOrders.length} of {baseOrders.length} orders
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -612,7 +619,7 @@ export default function BillingTransactions() {
                       id={`payment-${order.id}`}
                       checked={order.payment_status === 'paid'}
                       onCheckedChange={() => handlePaymentToggle(order.id, order.payment_status)}
-                      disabled={updatePaymentMutation.isPending || order.payment_status === 'paid'}
+                      disabled={updatePaymentMutation.isPending || order.payment_status === 'paid' || order.status === 'cancelled' || order.status === 'deleted'}
                     />
                   </div>
                 </div>
