@@ -103,6 +103,25 @@ export default function RoomsPage() {
     enabled: !!user,
   });
 
+  // Pagination for lifetime bookings list
+  const [bookingsPage, setBookingsPage] = useState(1);
+  const BOOKINGS_PAGE_SIZE = 5;
+  const sortedAllBookings = (myBookings || []).slice().sort((a, b) => {
+    return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
+  });
+  const totalBookingPages = Math.max(1, Math.ceil(sortedAllBookings.length / BOOKINGS_PAGE_SIZE));
+  const pagedBookings = sortedAllBookings.slice(
+    (bookingsPage - 1) * BOOKINGS_PAGE_SIZE,
+    bookingsPage * BOOKINGS_PAGE_SIZE
+  );
+
+  // Keep page in range if data changes
+  useEffect(() => {
+    if (bookingsPage > totalBookingPages) {
+      setBookingsPage(totalBookingPages);
+    }
+  }, [totalBookingPages, bookingsPage]);
+
   // WebSocket for real-time booking updates
   useWebSocket({
     onMessage: (message) => {
@@ -1244,7 +1263,7 @@ export default function RoomsPage() {
           </div>
         </DialogContent>
       </Dialog>
-      {/* Current Bookings - Moved to bottom */}
+      {/* Bookings Hub (lifetime) with pagination */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -1253,82 +1272,100 @@ export default function RoomsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {myBookings.filter(booking => {
-            if (booking.status !== 'confirmed') return false;
-            
-            // Show bookings that are in the future OR within 15 minutes of start time using Pakistan time
-            const now = getPakistanTime();
-            const startTime = new Date(booking.start_time);
-            const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000);
-            
-            return now < fifteenMinutesAfterStart; // Show until 15 minutes after start
-          }).length > 0 ? (
-            <div className="space-y-4">
-              {myBookings.filter(booking => {
-                if (booking.status !== 'confirmed') return false;
-                
-                const now = getPakistanTime();
-                const startTime = new Date(booking.start_time);
-                const fifteenMinutesAfterStart = new Date(startTime.getTime() + 15 * 60 * 1000);
-                
-                return now < fifteenMinutesAfterStart;
-              }).slice(0, 3).map((booking) => (
-                <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{booking.room?.name}</h4>
-                    <p className="text-sm text-gray-600">
-                      {new Date(booking.start_time).toLocaleDateString('en-GB', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: 'numeric' 
-                      })} • {' '}
-                      {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
-                      {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                    <p className="text-sm text-gray-500">{booking.credits_used} credit{booking.credits_used === 1 ? '' : 's'}</p>
-                    {booking.notes && (
-                      <p className="text-sm text-gray-600 mt-1 italic">Notes: {booking.notes}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-green-50 text-green-700">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Confirmed
-                    </Badge>
-                    {canCancelBooking(booking) ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCancelBooking(booking)}
-                        disabled={cancelBookingMutation.isPending}
-                      >
-                        Cancel
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled
-                        title="Cannot cancel more than 15 minutes after start time"
-                      >
-                        Too Late
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Empty state
-            (<div className="text-center py-12 px-4">
+          {sortedAllBookings.length === 0 ? (
+            <div className="text-center py-12 px-4">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                 <CalendarIcon className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No upcoming bookings</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
               <p className="text-gray-600 mb-4 max-w-sm mx-auto">
-                Your confirmed meeting room reservations will appear here. Book a room above to get started.
+                Your meeting room reservations will appear here after you make a booking.
               </p>
-            </div>)
+            </div>
+          ) : (
+            <>
+              <div className="space-y-4">
+                {pagedBookings.map((booking) => {
+                  const isConfirmed = booking.status === 'confirmed';
+                  const isCancelled = booking.status === 'cancelled';
+                  const isCompleted = booking.status === 'completed';
+                  return (
+                    <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h4 className="font-medium">{booking.room?.name}</h4>
+                        <p className="text-sm text-gray-600">
+                          {new Date(booking.start_time).toLocaleDateString('en-GB', { 
+                            day: '2-digit', 
+                            month: '2-digit', 
+                            year: 'numeric' 
+                          })} • {' '}
+                          {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
+                          {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        <p className="text-sm text-gray-500">{booking.credits_used} credit{booking.credits_used === 1 ? '' : 's'}</p>
+                        {booking.notes && (
+                          <p className="text-sm text-gray-600 mt-1 italic">Notes: {booking.notes}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isConfirmed && (
+                          <Badge variant="outline" className="bg-green-50 text-green-700">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Confirmed
+                          </Badge>
+                        )}
+                        {isCancelled && (
+                          <Badge variant="outline" className="bg-gray-100 text-gray-700">Cancelled</Badge>
+                        )}
+                        {isCompleted && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700">Completed</Badge>
+                        )}
+                        {isConfirmed && canCancelBooking(booking) ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCancelBooking(booking)}
+                            disabled={cancelBookingMutation.isPending}
+                          >
+                            Cancel
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination controls */}
+              {totalBookingPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-gray-600">
+                    Showing {(bookingsPage - 1) * BOOKINGS_PAGE_SIZE + 1}-{Math.min(bookingsPage * BOOKINGS_PAGE_SIZE, sortedAllBookings.length)} of {sortedAllBookings.length}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setBookingsPage(p => Math.max(1, p - 1))}
+                      disabled={bookingsPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <div className="text-sm">
+                      Page {bookingsPage} / {totalBookingPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setBookingsPage(p => Math.min(totalBookingPages, p + 1))}
+                      disabled={bookingsPage === totalBookingPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
