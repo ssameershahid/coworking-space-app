@@ -727,15 +727,29 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">{booking.credits_used} credits</p>
-                      <Badge 
-                        variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
-                        className={
-                          booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                          booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
-                        }
-                      >
-                        {booking.status}
-                      </Badge>
+                      <div className="flex flex-col gap-1 items-end">
+                        <Badge 
+                          variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
+                          className={
+                            booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
+                          }
+                        >
+                          {booking.status}
+                        </Badge>
+                        {/* Billing Badge */}
+                        {booking.billed_to === 'organization' ? (
+                          <Badge variant="secondary" className="bg-purple-100 text-purple-800 flex items-center gap-1">
+                            <Building className="h-3 w-3" />
+                            Charged to Organization
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800 flex items-center gap-1">
+                            <CreditCard className="h-3 w-3" />
+                            Charged to Personal Credits
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

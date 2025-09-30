@@ -44,7 +44,7 @@ import {
   Sun,
   Moon
 } from "lucide-react";
-import { MeetingRoom, MeetingBooking } from "@/lib/types";
+import { MeetingRoom, MeetingBooking, Organization } from "@/lib/types";
 import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime } from "@/lib/pakistan-time";
 import { format } from "date-fns";
 
@@ -101,6 +101,12 @@ export default function RoomsPage() {
   const { data: allBookings = [] } = useQuery<MeetingBooking[]>({
     queryKey: ["/api/bookings"],
     enabled: !!user,
+  });
+
+  // Fetch organization data if user is part of an organization
+  const { data: organization } = useQuery<Organization>({
+    queryKey: [user?.organization_id ? `/api/organizations/${user.organization_id}` : ""],
+    enabled: !!user?.organization_id,
   });
 
   // Show all bookings (both personal and organization)
@@ -479,6 +485,24 @@ export default function RoomsPage() {
   
   // Credit animation hook
   const { previousCredits, showAnimation } = useCreditAnimation(availableCredits);
+
+  // Calculate organization credits used this month
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  
+  const orgBookingsThisMonth = allBookings.filter((booking: MeetingBooking) => {
+    if (booking.billed_to !== 'organization') return false;
+    const bookingDate = new Date(booking.created_at);
+    return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
+  });
+  
+  const orgCreditsUsed = orgBookingsThisMonth.reduce((sum: number, booking: any) => {
+    return sum + parseFloat(booking.credits_used || 0);
+  }, 0);
+  
+  const monthlyOrgAllocation = organization?.monthly_credits || 0;
+  const availableOrgCredits = monthlyOrgAllocation - orgCreditsUsed;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -1168,13 +1192,28 @@ export default function RoomsPage() {
                 {isExternalBooking ? (
                   <div className="text-sm text-gray-700">External booking: bill this amount to the guest.</div>
                 ) : billingType === 'organization' ? (
-                  // Billing to organization
-                  <div className="text-sm text-purple-700">
-                    <div className="flex items-center gap-2 mt-2">
-                      <Building className="h-4 w-4" />
-                      <span>This booking will use your organization's shared credit pool.</span>
+                  // Billing to organization - Show 3-line breakdown like personal credits
+                  <>
+                    <div className="flex justify-between items-center mb-2">
+                      <span>Available Organization Credits:</span>
+                      <span className="font-semibold">{availableOrgCredits.toFixed(2)}</span>
                     </div>
-                  </div>
+                    <Separator className="my-2" />
+                    <div className="flex justify-between items-center font-bold">
+                      <span>Remaining After Booking:</span>
+                      <span className={(availableOrgCredits - calculateCredits()) < 0 ? "text-red-600" : "text-purple-600"}>
+                        {(availableOrgCredits - calculateCredits()).toFixed(2)}
+                      </span>
+                    </div>
+                    {(availableOrgCredits - calculateCredits()) < 0 && (
+                      <Alert className="mt-3">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          Organization will exceed monthly allocation. Excess usage will be charged.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </>
                 ) : (
                   // Billing personally
                   <>
@@ -1223,8 +1262,6 @@ export default function RoomsPage() {
                 </div>
               ) : isExternalBooking ? (
                 `Confirm External Booking • ${formatCredits(calculateCredits())} Credits`
-              ) : availableCredits - calculateCredits() < 0 ? (
-                `Book Anyway • ${formatCredits(calculateCredits())} Credits`
               ) : (
                 `Confirm Booking • ${formatCredits(calculateCredits())} Credits`
               )}
@@ -1330,29 +1367,43 @@ export default function RoomsPage() {
                           <p className="text-sm text-gray-600 mt-1 italic">Notes: {booking.notes}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        {isConfirmed && (
-                          <Badge variant="outline" className="bg-green-50 text-green-700">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Confirmed
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          {isConfirmed && (
+                            <Badge variant="outline" className="bg-green-50 text-green-700">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Confirmed
+                            </Badge>
+                          )}
+                          {isCancelled && (
+                            <Badge variant="outline" className="bg-gray-100 text-gray-700">Cancelled</Badge>
+                          )}
+                          {isCompleted && (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700">Completed</Badge>
+                          )}
+                          {isConfirmed && canCancelBooking(booking) ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancelBooking(booking)}
+                              disabled={cancelBookingMutation.isPending}
+                            >
+                              Cancel
+                            </Button>
+                          ) : null}
+                        </div>
+                        {/* Billing Badge */}
+                        {booking.billed_to === 'organization' ? (
+                          <Badge variant="secondary" className="bg-purple-100 text-purple-800 flex items-center gap-1">
+                            <Building className="h-3 w-3" />
+                            Charged to Organization
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800 flex items-center gap-1">
+                            <CreditCard className="h-3 w-3" />
+                            Charged to Personal Credits
                           </Badge>
                         )}
-                        {isCancelled && (
-                          <Badge variant="outline" className="bg-gray-100 text-gray-700">Cancelled</Badge>
-                        )}
-                        {isCompleted && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">Completed</Badge>
-                        )}
-                        {isConfirmed && canCancelBooking(booking) ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleCancelBooking(booking)}
-                            disabled={cancelBookingMutation.isPending}
-                          >
-                            Cancel
-                          </Button>
-                        ) : null}
                       </div>
                     </div>
                   );

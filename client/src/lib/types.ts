@@ -156,6 +156,7 @@ export interface Organization {
   phone?: string;
   address?: string;
   site: string;
+  monthly_credits?: number;
   created_at?: string;
 }
 
