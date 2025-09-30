@@ -468,7 +468,7 @@ export default function RoomsPage() {
     setDuration("1");
     setEndTime(""); // Clear end time
     setMeetingNotes("");
-    setBillingType("personal");
+    setBillingType(user?.role === 'member_organization' && user?.organization_id ? 'organization' : 'personal');
     setIsExternalBooking(false);
     setExternalGuestName("");
     setExternalGuestEmail("");
