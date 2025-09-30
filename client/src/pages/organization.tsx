@@ -96,7 +96,7 @@ export default function OrganizationPage() {
 
         <TabsContent value="overview" className="space-y-6">
           {/* Overview Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Active Members</CardTitle>
@@ -112,50 +112,29 @@ export default function OrganizationPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Credits Charged</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{creditsCharged.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">Includes {monthlyIncluded} free monthly credits</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">This Month Spent</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Total Cafe Charges</CardTitle>
+                <Coffee className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">Rs. {totalSpent.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {monthlyOrders.length} café orders
+                  {monthlyOrders.length} café orders this month
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Credits Used</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Credits Used</CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalCreditsUsed.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {monthlyBookings.length} room bookings
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Monthly Total</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">Rs. {totalSpent.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">
-                  + {totalCreditsUsed.toFixed(2)} credits used
+                  {totalCreditsUsed <= monthlyIncluded 
+                    ? `${totalCreditsUsed.toFixed(2)} of ${monthlyIncluded} free credits used`
+                    : `${monthlyIncluded} free + ${creditsCharged.toFixed(2)} charged`
+                  }
                 </p>
               </CardContent>
             </Card>
