@@ -43,7 +43,7 @@ const sessionConfig = {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 70 * 24 * 60 * 60 * 1000, // 10 weeks
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? ('none' as 'none') : ('lax' as 'lax'),
   },
   name: 'connect.sid', // Explicit session name
 };
