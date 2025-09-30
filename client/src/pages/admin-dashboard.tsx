@@ -1525,14 +1525,29 @@ export default function AdminDashboard() {
       company: '',
       rfid_number: ''
     });
+    const [hasPersonalCredits, setHasPersonalCredits] = useState<'yes' | 'no'>('no');
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const { member_type, monthly_credits, membership_fee, notes, ...cleanData } = formData;
+      
+      // Determine credits based on role and personal credits selection
+      let userCredits = 0;
+      const isOrgMember = cleanData.role === 'member_organization' || cleanData.role === 'member_organization_admin';
+      
+      if (isOrgMember) {
+        // For org members, only set personal credits if they selected "yes"
+        userCredits = hasPersonalCredits === 'yes' ? monthly_credits : 0;
+      } else if (cleanData.role !== 'cafe_manager') {
+        // For non-org, non-cafe_manager roles, use monthly_credits as personal credits
+        userCredits = monthly_credits;
+      }
+      // cafe_manager gets 0 credits
+      
       const submitData = {
         ...cleanData,
         organization_id: cleanData.organization_id || undefined,
-        credits: monthly_credits, // Map monthly_credits to the credits field
+        credits: userCredits,
         start_date: formData.start_date, // Include start_date
         phone: formData.phone || null,
         bio: formData.bio || null,
@@ -1643,19 +1658,76 @@ export default function AdminDashboard() {
           </Select>
         </div>
         {(formData.role === 'member_organization' || formData.role === 'member_organization_admin') && (
-          <div>
-            <Label htmlFor="organization_id">Organization</Label>
-            <Select value={formData.organization_id} onValueChange={(value) => setFormData({...formData, organization_id: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select organization" />
-              </SelectTrigger>
-              <SelectContent>
-                {(organizations || []).map((org) => (
-                  <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <>
+            <div>
+              <Label htmlFor="organization_id">Organization</Label>
+              <Select value={formData.organization_id} onValueChange={(value) => setFormData({...formData, organization_id: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(organizations || []).map((org) => (
+                    <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Personal Credits Section for Organization Members */}
+            <div className="space-y-3 p-4 border rounded-lg bg-blue-50">
+              <Label className="text-base font-semibold">Personal Meeting Room Credits</Label>
+              <p className="text-sm text-muted-foreground">
+                Does this member get personal meeting room credits? (Separate from organization credits)
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="personal-credits-no"
+                    name="personal-credits"
+                    value="no"
+                    checked={hasPersonalCredits === 'no'}
+                    onChange={(e) => setHasPersonalCredits(e.target.value as 'yes' | 'no')}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="personal-credits-no" className="font-normal cursor-pointer">
+                    No - This member will only use organization credits
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="personal-credits-yes"
+                    name="personal-credits"
+                    value="yes"
+                    checked={hasPersonalCredits === 'yes'}
+                    onChange={(e) => setHasPersonalCredits(e.target.value as 'yes' | 'no')}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="personal-credits-yes" className="font-normal cursor-pointer">
+                    Yes - Assign personal credits to this member
+                  </Label>
+                </div>
+              </div>
+              
+              {hasPersonalCredits === 'yes' && (
+                <div className="mt-3">
+                  <Label htmlFor="personal_monthly_credits">How many personal credits per month?</Label>
+                  <Input
+                    id="personal_monthly_credits"
+                    type="number"
+                    placeholder="10"
+                    value={formData.monthly_credits}
+                    onChange={(e) => setFormData({...formData, monthly_credits: parseInt(e.target.value) || 0})}
+                    required
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Personal credits this member can use (in addition to organization credits).
+                  </p>
+                </div>
+              )}
+            </div>
+          </>
         )}
         <div>
           <Label htmlFor="office_type">Space Selected</Label>
@@ -1682,7 +1754,7 @@ export default function AdminDashboard() {
             />
           </div>
         )}
-        {(formData.role !== 'cafe_manager') && (
+        {(formData.role !== 'cafe_manager' && formData.role !== 'member_organization' && formData.role !== 'member_organization_admin') && (
           <>
             <div>
               <Label htmlFor="monthly_credits">Monthly Meeting Credits</Label>

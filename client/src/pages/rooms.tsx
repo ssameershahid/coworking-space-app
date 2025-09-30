@@ -1080,22 +1080,33 @@ export default function RoomsPage() {
             {canChargeToOrg && !isExternalBooking && (
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Billing Options</Label>
-                <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="personal" id="personal-room" />
-                    <Label htmlFor="personal-room" className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4" />
-                      Charge Me Personally
-                    </Label>
+                {user && user.credits > 0 ? (
+                  // Org member WITH personal credits: Show both options
+                  <RadioGroup value={billingType} onValueChange={(value) => setBillingType(value as "personal" | "organization")}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="personal" id="personal-room" />
+                      <Label htmlFor="personal-room" className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Charge Me Personally
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="organization" id="organization-room" />
+                      <Label htmlFor="organization-room" className="flex items-center gap-2">
+                        <Building className="h-4 w-4" />
+                        Charge My Organization
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                ) : (
+                  // Org member WITHOUT personal credits: Only show organization option
+                  <div className="flex items-center space-x-2 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <Building className="h-5 w-5 text-purple-600" />
+                    <span className="text-sm font-medium text-purple-900">
+                      This booking will be charged to your organization
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="organization" id="organization-room" />
-                    <Label htmlFor="organization-room" className="flex items-center gap-2">
-                      <Building className="h-4 w-4" />
-                      Charge My Organization
-                    </Label>
-                  </div>
-                </RadioGroup>
+                )}
               </div>
             )}
 
@@ -1149,17 +1160,26 @@ export default function RoomsPage() {
 
             {/* Credit Check */}
             {selectedRoom && (duration || endTime) && (
-              <div className="bg-green-50 p-4 rounded-lg">
+              <div className={`p-4 rounded-lg ${billingType === 'organization' ? 'bg-purple-50' : 'bg-green-50'}`}>
                 <div className="flex justify-between items-center mb-2">
                   <span>Credits Required:</span>
                   <span className="font-semibold">{formatCredits(calculateCredits())}</span>
                 </div>
                 {isExternalBooking ? (
                   <div className="text-sm text-gray-700">External booking: bill this amount to the guest.</div>
+                ) : billingType === 'organization' ? (
+                  // Billing to organization
+                  <div className="text-sm text-purple-700">
+                    <div className="flex items-center gap-2 mt-2">
+                      <Building className="h-4 w-4" />
+                      <span>This booking will use your organization's shared credit pool.</span>
+                    </div>
+                  </div>
                 ) : (
+                  // Billing personally
                   <>
                     <div className="flex justify-between items-center mb-2">
-                      <span>Available Credits:</span>
+                      <span>Available Personal Credits:</span>
                       <CreditAnimation 
                         currentCredits={availableCredits}
                         previousCredits={previousCredits}

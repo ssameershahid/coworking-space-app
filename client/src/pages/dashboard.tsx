@@ -224,64 +224,148 @@ export default function Dashboard() {
 
         {/* Credits Widget - Hidden for cafe managers */}
         {user.role !== 'cafe_manager' && (
-          <Card className={`bg-gradient-to-br ${isNegativeBalance ? 'from-red-50 to-orange-50 border-red-200' : 'from-green-50 to-emerald-50 border-green-200'}`}>
-            <CardHeader className="pb-3">
-              <CardTitle className={`flex items-center gap-2 ${isNegativeBalance ? 'text-red-800' : 'text-green-800'}`}>
-                <CreditCard className="h-5 w-5" />
-                Your Credits
-                {isNegativeBalance && (
-                  <Badge variant="destructive" className="ml-2 text-xs">
-                    Negative Balance
-                  </Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className={isNegativeBalance ? "text-red-700" : "text-green-700"}>
-                    Used: {user.used_credits}
-                  </span>
-                  <span className="font-medium">
-                    Available: <CreditAnimation 
-                      currentCredits={availableCredits}
-                      previousCredits={previousCredits}
-                      showAnimation={showAnimation}
-                      className={availableCredits < 0 ? "text-red-700" : "text-green-700"}
+          <>
+            {/* For org members WITH personal credits: Show Personal Credits Card */}
+            {(user.role === 'member_organization' || user.role === 'member_organization_admin') && user.credits > 0 && (
+              <Card className={`bg-gradient-to-br ${isNegativeBalance ? 'from-red-50 to-orange-50 border-red-200' : 'from-blue-50 to-sky-50 border-blue-200'}`}>
+                <CardHeader className="pb-3">
+                  <CardTitle className={`flex items-center gap-2 ${isNegativeBalance ? 'text-red-800' : 'text-blue-800'}`}>
+                    <CreditCard className="h-5 w-5" />
+                    Personal Credits
+                    {isNegativeBalance && (
+                      <Badge variant="destructive" className="ml-2 text-xs">
+                        Negative Balance
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className={isNegativeBalance ? "text-red-700" : "text-blue-700"}>
+                        Used: {user.used_credits}
+                      </span>
+                      <span className="font-medium">
+                        Available: <CreditAnimation 
+                          currentCredits={availableCredits}
+                          previousCredits={previousCredits}
+                          showAnimation={showAnimation}
+                          className={availableCredits < 0 ? "text-red-700" : "text-blue-700"}
+                        />
+                      </span>
+                    </div>
+                    <Progress 
+                      value={creditsUsedPercentage} 
+                      className={`h-2 ${isNegativeBalance ? 'bg-red-100' : 'bg-blue-100'}`}
                     />
-                  </span>
-                </div>
-                <Progress 
-                  value={creditsUsedPercentage} 
-                  className={`h-2 ${isNegativeBalance ? 'bg-red-100' : ''}`}
-                />
-                <div className="flex justify-between items-center">
-                  <p className={`text-xs ${isNegativeBalance ? 'text-red-600' : 'text-green-600'}`}>
-                    Credits Assigned: {user.credits}
-                  </p>
-                  {isNegativeBalance && (
-                    <p className="text-xs text-red-600 font-medium">
-                      Extra Usage: {Math.abs(availableCredits)} credits
-                    </p>
-                  )}
-                </div>
-                {isNegativeBalance && (
-                  <Alert>
-                    <DollarSign className="h-4 w-4" />
-                    <AlertDescription className="text-sm">
-                      Your account has a negative balance and will appear on your monthly invoice for billing.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                    <div className="flex justify-between items-center">
+                      <p className={`text-xs ${isNegativeBalance ? 'text-red-600' : 'text-blue-600'}`}>
+                        Credits Assigned: {user.credits}
+                      </p>
+                      {isNegativeBalance && (
+                        <p className="text-xs text-red-600 font-medium">
+                          Extra Usage: {Math.abs(availableCredits)} credits
+                        </p>
+                      )}
+                    </div>
+                    {isNegativeBalance && (
+                      <Alert>
+                        <DollarSign className="h-4 w-4" />
+                        <AlertDescription className="text-sm">
+                          Your account has a negative balance and will appear on your monthly invoice for billing.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* For non-org members (or org members without personal credits): Show standard Credits Card */}
+            {!(user.role === 'member_organization' || user.role === 'member_organization_admin') && (
+              <Card className={`bg-gradient-to-br ${isNegativeBalance ? 'from-red-50 to-orange-50 border-red-200' : 'from-green-50 to-emerald-50 border-green-200'}`}>
+                <CardHeader className="pb-3">
+                  <CardTitle className={`flex items-center gap-2 ${isNegativeBalance ? 'text-red-800' : 'text-green-800'}`}>
+                    <CreditCard className="h-5 w-5" />
+                    Your Credits
+                    {isNegativeBalance && (
+                      <Badge variant="destructive" className="ml-2 text-xs">
+                        Negative Balance
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className={isNegativeBalance ? "text-red-700" : "text-green-700"}>
+                        Used: {user.used_credits}
+                      </span>
+                      <span className="font-medium">
+                        Available: <CreditAnimation 
+                          currentCredits={availableCredits}
+                          previousCredits={previousCredits}
+                          showAnimation={showAnimation}
+                          className={availableCredits < 0 ? "text-red-700" : "text-green-700"}
+                        />
+                      </span>
+                    </div>
+                    <Progress 
+                      value={creditsUsedPercentage} 
+                      className={`h-2 ${isNegativeBalance ? 'bg-red-100' : ''}`}
+                    />
+                    <div className="flex justify-between items-center">
+                      <p className={`text-xs ${isNegativeBalance ? 'text-red-600' : 'text-green-600'}`}>
+                        Credits Assigned: {user.credits}
+                      </p>
+                      {isNegativeBalance && (
+                        <p className="text-xs text-red-600 font-medium">
+                          Extra Usage: {Math.abs(availableCredits)} credits
+                        </p>
+                      )}
+                    </div>
+                    {isNegativeBalance && (
+                      <Alert>
+                        <DollarSign className="h-4 w-4" />
+                        <AlertDescription className="text-sm">
+                          Your account has a negative balance and will appear on your monthly invoice for billing.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
       </div>
 
-      
-
-      
+      {/* Organization Credits Card - For org members only */}
+      {(user.role === 'member_organization' || user.role === 'member_organization_admin') && user.organization_id && organization && (
+        <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-purple-800">
+              <Building className="h-5 w-5" />
+              Organization Credits - {organization.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-purple-700">
+                  Monthly Allocation
+                </span>
+                <span className="font-medium text-purple-900">
+                  {organization.monthly_credits || 0} credits
+                </span>
+              </div>
+              <div className="text-xs text-purple-600">
+                These credits are shared across your organization for meeting room bookings.
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Stats & PDF Downloads */}
       <Card>
