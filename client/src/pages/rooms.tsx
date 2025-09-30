@@ -93,7 +93,7 @@ export default function RoomsPage() {
 
   // Default billing behavior: members of an organization charge the organization by default for rooms
   useEffect(() => {
-    if (user && user.role === 'organization_member' && user.organization_id) {
+    if (user && user.role === 'member_organization' && user.organization_id) {
       setBillingType('organization');
     }
   }, [user?.role, user?.organization_id]);

@@ -23,21 +23,21 @@ export default function Navigation() {
   if (!user) return null;
 
   const showCafeAndRooms = [
-    "individual_member",
-    "organization_member",
-    "organization_admin",
+    "member_individual",
+    "member_organization",
+    "member_organization_admin",
     "calmkaaj_admin",
     "calmkaaj_team",
   ].includes(user.role);
   const showRooms = [
-    "individual_member",
-    "organization_member",
-    "organization_admin",
+    "member_individual",
+    "member_organization",
+    "member_organization_admin",
     "calmkaaj_admin",
     "calmkaaj_team",
   ].includes(user.role);
-  const showCommunity = ["individual_member", "organization_member", "organization_admin", "calmkaaj_admin", "calmkaaj_team"].includes(user.role);
-  const showOrganization = user.role === "organization_admin";
+  const showCommunity = ["member_individual", "member_organization", "member_organization_admin", "calmkaaj_admin", "calmkaaj_team"].includes(user.role);
+  const showOrganization = user.role === "member_organization_admin";
   const isCafeManager = user.role === "cafe_manager";
   const isAdminUser = user.role === "calmkaaj_admin" || user.role === "calmkaaj_team";
 
