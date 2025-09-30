@@ -589,14 +589,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       req.logIn(user, (err: any) => {
         if (err) {
+          console.error('❌ LOGIN ERROR:', err);
           return next(err);
         }
         
-        // Log session info for testing 3-week duration
-        const sessionExpiry = new Date(Date.now() + (21 * 24 * 60 * 60 * 1000));
+        // EMERGENCY DEBUG: Log everything about session and cookies
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log(`✅ User ${user.email} (${user.role}) logged in successfully`);
-        console.log(`📅 Session will expire on: ${sessionExpiry.toLocaleString('en-PK', {timeZone: 'Asia/Karachi'})}`);
-        console.log(`⏰ Session duration: 21 days (3 weeks) - APPLIES TO ALL ROLES`);
+        console.log(`🔐 Session ID: ${req.sessionID}`);
+        console.log(`🍪 Session cookie config:`, {
+          secure: sessionConfig.cookie.secure,
+          sameSite: sessionConfig.cookie.sameSite,
+          httpOnly: sessionConfig.cookie.httpOnly,
+          domain: sessionConfig.cookie.domain,
+          maxAge: sessionConfig.cookie.maxAge,
+        });
+        console.log(`🌐 Request headers:`, {
+          origin: req.headers.origin,
+          host: req.headers.host,
+          referer: req.headers.referer,
+        });
+        console.log(`📦 NODE_ENV: ${process.env.NODE_ENV}`);
+        console.log(`🔗 DATABASE_URL: ${process.env.DATABASE_URL ? 'SET ✅' : 'NOT SET ❌'}`);
+        console.log(`🔑 SESSION_SECRET: ${process.env.SESSION_SECRET ? 'SET ✅' : 'NOT SET ❌'}`);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
         // Remove password from response
         const { password, ...userWithoutPassword } = user;
