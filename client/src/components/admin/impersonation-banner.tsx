@@ -13,13 +13,16 @@ export function ImpersonationBanner() {
   const [isReverting, setIsReverting] = useState(false);
 
   // Check impersonation status from the server
+  // Note: Don't check for admin role here, because when impersonating,
+  // the user object becomes the impersonated user, not the admin!
   const { data: impersonationStatus } = useQuery({
     queryKey: ['/api/admin/impersonation-status'],
-    enabled: !!user && user.role === 'calmkaaj_admin',
+    enabled: !!user, // Only check if user exists, backend will handle the rest
+    refetchOnMount: true, // Always check on mount to detect impersonation after refresh
     refetchInterval: false, // Disable auto-polling to reduce compute costs
     retry: 1,
     retryDelay: 1000,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    staleTime: 0, // Don't cache, always fetch fresh to ensure banner shows after refresh
   });
 
   const isImpersonating = (impersonationStatus as any)?.isImpersonating || false;
