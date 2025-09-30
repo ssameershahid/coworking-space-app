@@ -63,14 +63,17 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   cookie: {
-    // In production behind HTTPS, mark session cookie secure and sameSite=None
-    // In local development, fall back to lax and insecure
-    secure: process.env.NODE_ENV === 'production',
+    // EMERGENCY FIX: Use lax + insecure for Railway development environment
+    // Even if NODE_ENV=production, this should work for app.calmkaaj.org
+    secure: false,  // Changed from process.env.NODE_ENV === 'production'
     maxAge: 70 * 24 * 60 * 60 * 1000, // 10 weeks
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? ('none' as 'none') : ('lax' as 'lax'),
+    sameSite: 'lax' as 'lax',  // Changed from conditional
+    domain: undefined,  // Let Express handle domain automatically
+    path: '/',  // Ensure cookie is sent for all paths
   },
   name: 'connect.sid', // Explicit session name
+  proxy: true,  // Trust Railway proxy
 };
 
 // Configure web-push for notifications

@@ -1,0 +1,87 @@
+═══════════════════════════════════════════════════════════════
+    RAILWAY VARIABLES - SUPER SIMPLE REFERENCE
+═══════════════════════════════════════════════════════════════
+
+YOU HAVE 2 SERVICES IN RAILWAY:
+
+┌─────────────────────────────────────────────────────────────┐
+│ 1. POSTGRES SERVICE (Database)                              │
+│                                                             │
+│ ❌ DO NOT TOUCH THIS!                                       │
+│ ❌ DO NOT ADD VARIABLES HERE!                               │
+│ ✅ Railway manages it automatically                         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ 2. APP SERVICE (Your Application)                           │
+│                                                             │
+│ ✅ ADD VARIABLES HERE!                                      │
+│                                                             │
+│ Add these 3 variables:                                      │
+│                                                             │
+│ ┌───────────────────────────────────────────────────────┐ │
+│ │ Variable 1: DATABASE_URL                              │ │
+│ │                                                       │ │
+│ │ postgresql://postgres:RqdIigUKofpdcISYdWCFuzEXrFlQIKO│ │
+│ │ r@metro.proxy.rlwy.net:59467/railway                  │ │
+│ │                                                       │ │
+│ │ (95 characters total - copy the whole thing!)        │ │
+│ └───────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌───────────────────────────────────────────────────────┐ │
+│ │ Variable 2: SESSION_SECRET                            │ │
+│ │                                                       │ │
+│ │ 3fe8b8d7b811ec9c56c97120942a7d32c7cdb603fa9ecb94a70e│ │
+│ │ 120f0dbea44a                                          │ │
+│ │                                                       │ │
+│ │ (64 characters total - copy the whole thing!)        │ │
+│ └───────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌───────────────────────────────────────────────────────┐ │
+│ │ Variable 3: NODE_ENV                                  │ │
+│ │                                                       │ │
+│ │ development                                           │ │
+│ │                                                       │ │
+│ │ (Must be lowercase!)                                  │ │
+│ └───────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════
+    WHERE TO ADD THEM
+═══════════════════════════════════════════════════════════════
+
+1. Go to: https://railway.app/project/calmkaaj
+
+2. At the TOP, select: "development" (NOT production)
+
+3. You'll see 2 boxes:
+   - One says "Postgres" ← IGNORE THIS
+   - One is your app    ← CLICK THIS
+
+4. Click "Variables" tab
+
+5. Click "+ New Variable" button
+
+6. Add each of the 3 variables above
+
+7. Wait for deployment (3 minutes)
+
+8. Check: https://app.calmkaaj.org/api/health
+   Should show: "status": "healthy"
+
+9. Login: https://app.calmkaaj.org
+   You'll see all your data!
+
+═══════════════════════════════════════════════════════════════
+    COPY-PASTE VALUES (for easy copying)
+═══════════════════════════════════════════════════════════════
+
+DATABASE_URL=postgresql://postgres:RqdIigUKofpdcISYdWCFuzEXrFlQIKOr@metro.proxy.rlwy.net:59467/railway
+
+SESSION_SECRET=3fe8b8d7b811ec9c56c97120942a7d32c7cdb603fa9ecb94a70e120f0dbea44a
+
+NODE_ENV=development
+
+═══════════════════════════════════════════════════════════════
+
+THAT'S IT! Just add those 3 variables to your APP service!
