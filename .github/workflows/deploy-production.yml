@@ -4,15 +4,6 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deployment environment'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-          - production
-          - staging
 
 jobs:
   build:
@@ -117,10 +108,15 @@ jobs:
 
       - name: Deploy to Railway
         id: deploy
-        if: secrets.RAILWAY_TOKEN != ''
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "⚠️ RAILWAY_TOKEN not set. Skipping Railway deployment."
+            echo "To deploy to Railway, add RAILWAY_TOKEN to repository secrets."
+            exit 0
+          fi
+          
           echo "🚀 Deploying to Railway..."
           railway up --ci
           
@@ -128,69 +124,3 @@ jobs:
           DEPLOY_URL=$(railway domain 2>/dev/null || echo "https://your-app.railway.app")
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
           echo "✅ Deployed to: $DEPLOY_URL"
-      
-      - name: Skip Railway deployment
-        if: secrets.RAILWAY_TOKEN == ''
-        run: |
-          echo "⚠️ RAILWAY_TOKEN not set. Skipping Railway deployment."
-          echo "To deploy to Railway, add RAILWAY_TOKEN to repository secrets."
-
-  deploy-render:
-    name: Deploy to Render
-    needs: docker-build-push
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Trigger Render Deploy
-        if: secrets.RENDER_DEPLOY_HOOK != ''
-        env:
-          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          echo "🚀 Triggering Render deployment..."
-          curl -X POST "$RENDER_DEPLOY_HOOK"
-          echo "✅ Render deployment triggered"
-      
-      - name: Skip Render deployment
-        if: secrets.RENDER_DEPLOY_HOOK == ''
-        run: echo "⚠️ RENDER_DEPLOY_HOOK not set. Skipping Render deployment."
-
-  deploy-fly:
-    name: Deploy to Fly.io
-    needs: docker-build-push
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Fly CLI
-        uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Deploy to Fly.io
-        if: secrets.FLY_API_TOKEN != ''
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        run: |
-          echo "🚀 Deploying to Fly.io..."
-          flyctl deploy --remote-only
-          echo "✅ Deployed to Fly.io"
-      
-      - name: Skip Fly.io deployment
-        if: secrets.FLY_API_TOKEN == ''
-        run: echo "⚠️ FLY_API_TOKEN not set. Skipping Fly.io deployment."
-
-  notify:
-    name: Deployment Notification
-    needs: [deploy-railway, deploy-render, deploy-fly]
-    runs-on: ubuntu-latest
-    if: always()
-    
-    steps:
-      - name: Send deployment notification
-        run: |
-          echo "📢 Deployment workflow completed"
-          echo "Railway: ${{ needs.deploy-railway.result }}"
-          echo "Render: ${{ needs.deploy-render.result }}"
-          echo "Fly.io: ${{ needs.deploy-fly.result }}"
