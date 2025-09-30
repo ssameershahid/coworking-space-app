@@ -493,6 +493,7 @@ export default function RoomsPage() {
   
   const orgBookingsThisMonth = allBookings.filter((booking: MeetingBooking) => {
     if (booking.billed_to !== 'organization') return false;
+    if (booking.status === 'cancelled') return false; // Don't count cancelled bookings
     const bookingDate = new Date(booking.created_at);
     return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
   });

@@ -34,8 +34,8 @@ export default function OrganizationPage() {
     enabled: !!user?.organization_id,
   });
 
-  // Credits charged calculation for current month - only count organization-billed bookings
-  const orgBilledBookings = orgBookings.filter((b: any) => b.billed_to === 'organization');
+  // Credits charged calculation for current month - only count organization-billed bookings (exclude cancelled)
+  const orgBilledBookings = orgBookings.filter((b: any) => b.billed_to === 'organization' && b.status !== 'cancelled');
   const totalCreditsThisMonth = orgBilledBookings.reduce((sum: number, b: any) => sum + parseFloat(b.credits_used || 0), 0);
   const monthlyIncluded = organization?.monthly_credits ?? 30;
   const creditsCharged = Math.max(0, totalCreditsThisMonth - monthlyIncluded);
