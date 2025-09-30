@@ -11,15 +11,15 @@
   "lang": "en-US",
   "categories": ["productivity", "business", "social"],
   "icons": [
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "72x72",   "type": "image/png", "purpose": "any maskable" },
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "96x96",   "type": "image/png", "purpose": "any maskable" },
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "128x128", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "144x144", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "152x152", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/CalmKaaj_Orange_Logo.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "72x72",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "96x96",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "128x128", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "144x144", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "152x152", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/CalmKaaj_Circular_Logo.png?v=1", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "shortcuts": [
     {

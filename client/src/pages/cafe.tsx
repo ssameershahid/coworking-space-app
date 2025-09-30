@@ -39,8 +39,8 @@ import {
 } from "lucide-react";
 import { MenuItem as MenuItemType, CafeOrder } from "@/lib/types";
 import { formatPriceWithCurrency } from "@/lib/format-price";
-// Use CK logo for floating cart button (served from public)
-const calmkaajLogo = "/CalmKaaj_Orange_Logo.png?v=2";
+// Use CK circular logo for floating cart button (served from public)
+const calmkaajLogo = "/CalmKaaj_Circular_Logo.png?v=1";
 
 export default function CafePage() {
   const { user } = useAuth();
