@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter, Calendar, CalendarDays, Download } from "lucide-react";
+import { Receipt, CreditCard, Clock, CheckCircle, AlertCircle, Search, Filter, Calendar, CalendarDays, Download, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -568,13 +568,22 @@ export default function BillingTransactions() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={statusConfig[order.status].color}>
                     {statusConfig[order.status].label}
                   </Badge>
                   <Badge variant={order.billed_to === 'organization' ? 'default' : 'secondary'}>
                     {order.billed_to === 'organization' ? 'Organization' : 'Personal'}
                   </Badge>
+                  {order.billed_to === 'organization' && (
+                    <Badge 
+                      variant="secondary"
+                      className="bg-orange-100 text-orange-800 flex items-center gap-1"
+                    >
+                      <Building className="h-3 w-3" />
+                      Charge organization
+                    </Badge>
+                  )}
                   {order.created_by && (
                     <Badge variant="outline">
                       Created by Staff

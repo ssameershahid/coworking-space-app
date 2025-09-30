@@ -476,26 +476,37 @@ export default function CafePage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
-                      <div className="flex items-center gap-2 justify-end">
-                        <Badge 
-                          variant={order.status === 'delivered' ? 'default' : 'secondary'}
-                          className={
-                            order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                            order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'cancelled' || order.status === 'deleted' ? 'bg-red-100 text-red-800' : ''
-                          }
-                        >
-                          {order.status}
-                        </Badge>
-                        {(order.status === 'pending' || order.status === 'accepted') && (
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => cancelOrderMutation.mutate(order.id)}
-                            disabled={cancelOrderMutation.isPending}
+                      <div className="flex flex-col gap-1 items-end">
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant={order.status === 'delivered' ? 'default' : 'secondary'}
+                            className={
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'cancelled' || order.status === 'deleted' ? 'bg-red-100 text-red-800' : ''
+                            }
                           >
-                            Delete
-                          </Button>
+                            {order.status}
+                          </Badge>
+                          {(order.status === 'pending' || order.status === 'accepted') && (
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => cancelOrderMutation.mutate(order.id)}
+                              disabled={cancelOrderMutation.isPending}
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </div>
+                        {order.billed_to === 'organization' && (
+                          <Badge 
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-800 flex items-center gap-1"
+                          >
+                            <Building className="h-3 w-3" />
+                            Order charged to your organization
+                          </Badge>
                         )}
                       </div>
                     </div>

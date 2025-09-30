@@ -426,6 +426,15 @@ export default function Dashboard() {
                             {paymentStatusConfig[order.payment_status]?.label || order.payment_status}
                           </Badge>
                         )}
+                        {order.billed_to === 'organization' && (
+                          <Badge 
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-800 flex items-center gap-1"
+                          >
+                            <Building className="h-3 w-3" />
+                            Order charged to your organization
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
