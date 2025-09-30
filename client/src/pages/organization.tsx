@@ -54,7 +54,9 @@ export default function OrganizationPage() {
   const monthlyOrders = orgOrders.filter((order: any) => {
     const orderDate = new Date(order.created_at);
     const now = new Date();
-    return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+    return orderDate.getMonth() === now.getMonth() && 
+           orderDate.getFullYear() === now.getFullYear() &&
+           order.status !== 'deleted';
   });
 
   const monthlyBookings = orgBookings.filter((booking: any) => {
@@ -234,7 +236,7 @@ export default function OrganizationPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orgOrders.slice(0, 5).map((order: any) => (
+                    {orgOrders.filter((order: any) => order.status !== 'deleted').slice(0, 5).map((order: any) => (
                       <TableRow key={order.id}>
                         <TableCell>
                           <div>
