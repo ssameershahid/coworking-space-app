@@ -103,8 +103,8 @@ export default function RoomsPage() {
     enabled: !!user,
   });
 
-  // Filter to show only personal bookings (not organization-billed)
-  const myBookings = allBookings.filter((booking: MeetingBooking) => booking.billed_to === 'personal');
+  // Show all bookings (both personal and organization)
+  const myBookings = allBookings;
 
   // Pagination for lifetime bookings list
   const [bookingsPage, setBookingsPage] = useState(1);

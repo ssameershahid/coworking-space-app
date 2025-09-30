@@ -150,8 +150,8 @@ export default function Dashboard() {
     enabled: !!user.organization_id,
   });
 
-  // Filter bookings to show only personal bookings (not organization-billed)
-  const recentBookings = allBookings.filter((booking: MeetingBooking) => booking.billed_to === 'personal');
+  // Show all bookings (both personal and organization)
+  const recentBookings = allBookings;
 
   const availableCredits = user.credits - user.used_credits;
   const creditsUsedPercentage = user.credits > 0 ? Math.min((user.used_credits / user.credits) * 100, 100) : 0;
@@ -341,31 +341,82 @@ export default function Dashboard() {
       </div>
 
       {/* Organization Credits Card - For org members only */}
-      {(user.role === 'member_organization' || user.role === 'member_organization_admin') && user.organization_id && organization && (
-        <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-purple-800">
-              <Building className="h-5 w-5" />
-              Organization Credits - {organization.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-purple-700">
-                  Monthly Allocation
-                </span>
-                <span className="font-medium text-purple-900">
-                  {organization.monthly_credits || 0} credits
-                </span>
+      {(user.role === 'member_organization' || user.role === 'member_organization_admin') && user.organization_id && organization && (() => {
+        // Calculate organization credits used this month
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+        
+        const orgBookingsThisMonth = allBookings.filter((booking: MeetingBooking) => {
+          if (booking.billed_to !== 'organization') return false;
+          const bookingDate = new Date(booking.created_at);
+          return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
+        });
+        
+        const orgCreditsUsed = orgBookingsThisMonth.reduce((sum: number, booking: any) => {
+          return sum + parseFloat(booking.credits_used || 0);
+        }, 0);
+        
+        const monthlyAllocation = organization.monthly_credits || 0;
+        const orgCreditsAvailable = monthlyAllocation - orgCreditsUsed;
+        const orgCreditsPercentage = monthlyAllocation > 0 ? Math.min((orgCreditsUsed / monthlyAllocation) * 100, 100) : 0;
+        const isOrgNegative = orgCreditsAvailable < 0;
+
+        return (
+          <Card className={`bg-gradient-to-br ${isOrgNegative ? 'from-red-50 to-orange-50 border-red-200' : 'from-purple-50 to-indigo-50 border-purple-200'}`}>
+            <CardHeader className="pb-3">
+              <CardTitle className={`flex items-center gap-2 ${isOrgNegative ? 'text-red-800' : 'text-purple-800'}`}>
+                <Building className="h-5 w-5" />
+                Organization Credits - {organization.name}
+                {isOrgNegative && (
+                  <Badge variant="destructive" className="ml-2 text-xs">
+                    Over Limit
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className={isOrgNegative ? "text-red-700" : "text-purple-700"}>
+                    Used: {orgCreditsUsed.toFixed(2)}
+                  </span>
+                  <span className="font-medium">
+                    Available: <span className={orgCreditsAvailable < 0 ? "text-red-700" : "text-purple-700"}>
+                      {orgCreditsAvailable.toFixed(2)}
+                    </span>
+                  </span>
+                </div>
+                <Progress 
+                  value={orgCreditsPercentage} 
+                  className={`h-2 ${isOrgNegative ? 'bg-red-100' : 'bg-purple-100'}`}
+                />
+                <div className="flex justify-between items-center">
+                  <p className={`text-xs ${isOrgNegative ? 'text-red-600' : 'text-purple-600'}`}>
+                    Monthly Allocation: {monthlyAllocation} credits
+                  </p>
+                  {isOrgNegative && (
+                    <p className="text-xs text-red-600 font-medium">
+                      Excess: {Math.abs(orgCreditsAvailable).toFixed(2)} credits
+                    </p>
+                  )}
+                </div>
+                <div className="text-xs text-purple-600">
+                  These credits are shared across your organization for meeting room bookings.
+                </div>
+                {isOrgNegative && (
+                  <Alert>
+                    <DollarSign className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      Your organization has exceeded the monthly allocation and will be charged for excess usage.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
-              <div className="text-xs text-purple-600">
-                These credits are shared across your organization for meeting room bookings.
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Quick Stats & PDF Downloads */}
       <Card>
