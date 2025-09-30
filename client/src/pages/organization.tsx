@@ -64,7 +64,8 @@ export default function OrganizationPage() {
     const now = new Date();
     return bookingDate.getMonth() === now.getMonth() && 
            bookingDate.getFullYear() === now.getFullYear() &&
-           booking.billed_to === 'organization';
+           booking.billed_to === 'organization' &&
+           booking.status !== 'cancelled';
   });
 
   const totalSpent = monthlyOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
@@ -257,7 +258,7 @@ export default function OrganizationPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orgBookings.slice(0, 5).map((booking: any) => (
+                    {orgBookings.filter((booking: any) => booking.billed_to === 'organization' && booking.status !== 'cancelled').slice(0, 5).map((booking: any) => (
                       <TableRow key={booking.id}>
                         <TableCell>
                           <div>
