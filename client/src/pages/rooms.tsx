@@ -98,10 +98,13 @@ export default function RoomsPage() {
     }
   }, [user?.role, user?.organization_id]);
 
-  const { data: myBookings = [] } = useQuery<MeetingBooking[]>({
+  const { data: allBookings = [] } = useQuery<MeetingBooking[]>({
     queryKey: ["/api/bookings"],
     enabled: !!user,
   });
+
+  // Filter to show only personal bookings (not organization-billed)
+  const myBookings = allBookings.filter((booking: MeetingBooking) => booking.billed_to === 'personal');
 
   // Pagination for lifetime bookings list
   const [bookingsPage, setBookingsPage] = useState(1);

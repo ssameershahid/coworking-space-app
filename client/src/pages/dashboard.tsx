@@ -128,7 +128,7 @@ export default function Dashboard() {
     gcTime: 0, // Don't cache results
   });
 
-  const { data: recentBookings = [] } = useQuery<MeetingBooking[]>({
+  const { data: allBookings = [] } = useQuery<MeetingBooking[]>({
     queryKey: ["/api/bookings"],
     enabled: !!user,
   });
@@ -149,6 +149,9 @@ export default function Dashboard() {
     queryKey: [user.organization_id ? `/api/organizations/${user.organization_id}` : ""],
     enabled: !!user.organization_id,
   });
+
+  // Filter bookings to show only personal bookings (not organization-billed)
+  const recentBookings = allBookings.filter((booking: MeetingBooking) => booking.billed_to === 'personal');
 
   const availableCredits = user.credits - user.used_credits;
   const creditsUsedPercentage = user.credits > 0 ? Math.min((user.used_credits / user.credits) * 100, 100) : 0;
