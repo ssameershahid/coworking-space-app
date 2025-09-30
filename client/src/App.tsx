@@ -104,7 +104,7 @@ function Router() {
       <Route path="/cafe" component={CafePage} />
       <Route path="/rooms" component={RoomsPage} />
       <Route path="/community" component={CommunityPage} />
-      {user.role === 'member_organization_admin' && (
+      {user.role === 'organization_admin' && (
         <Route path="/organization" component={OrganizationPage} />
       )}
       <Route path="/profile" component={ProfilePage} />

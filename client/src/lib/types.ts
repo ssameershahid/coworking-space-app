@@ -4,7 +4,7 @@ export interface User {
   first_name: string;
   last_name: string;
   phone?: string;
-  role: 'member_individual' | 'member_organization' | 'member_organization_admin' | 'cafe_manager' | 'calmkaaj_team' | 'calmkaaj_admin';
+  role: 'individual_member' | 'organization_member' | 'organization_admin' | 'cafe_manager' | 'calmkaaj_team' | 'calmkaaj_admin';
   organization_id?: string;
   site: 'blue_area' | 'i_10';
   credits: number;

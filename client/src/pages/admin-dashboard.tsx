@@ -349,11 +349,11 @@ export default function AdminDashboard() {
         const userData = await response.json();
         const userRole = userData.user?.role;
         
-        if (userRole === 'member_individual') {
+        if (userRole === 'individual_member') {
           window.location.href = '/';
-        } else if (userRole === 'member_organization_admin') {
+        } else if (userRole === 'organization_admin') {
           window.location.href = '/organization';
-        } else if (userRole === 'member_organization') {
+        } else if (userRole === 'organization_member') {
           window.location.href = '/';
         } else if (userRole === 'cafe_manager') {
           window.location.href = '/';
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
   const handleViewAsOrgAdmin = async (orgId: string) => {
     try {
       // Find the admin user for this organization
-      const orgAdmin = (users || []).find(u => u.organization_id === orgId && u.role === 'member_organization_admin');
+      const orgAdmin = (users || []).find(u => u.organization_id === orgId && u.role === 'organization_admin');
       if (orgAdmin) {
         await handleViewAsUser(orgAdmin.id);
       } else {
@@ -662,7 +662,7 @@ export default function AdminDashboard() {
   const toggleOrgStatus = useMutation({
     mutationFn: async ({ orgId, isActive }: { orgId: string; isActive: boolean }) => {
       // Find the organization admin to toggle their status
-      const orgAdmin = users.find(u => u.organization_id === orgId && u.role === 'member_organization_admin');
+      const orgAdmin = users.find(u => u.organization_id === orgId && u.role === 'organization_admin');
       if (!orgAdmin) {
         throw new Error('Organization admin not found');
       }
@@ -925,7 +925,7 @@ export default function AdminDashboard() {
 
     // Initialize admin details
     useEffect(() => {
-      const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'member_organization_admin');
+      const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'organization_admin');
       if (orgAdmin) {
         setOrgData(prev => ({
           ...prev,
@@ -966,7 +966,7 @@ export default function AdminDashboard() {
         await updateOrg.mutateAsync({ orgId: organization.id, updates: submitData });
         
         // Also update the admin user if the details changed
-        const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'member_organization_admin');
+        const orgAdmin = users.find(u => u.organization_id === organization.id && u.role === 'organization_admin');
         if (orgAdmin && (orgAdmin.first_name !== orgData.admin_first_name || orgAdmin.last_name !== orgData.admin_last_name || orgAdmin.email !== orgData.admin_email || orgAdmin.phone !== orgData.admin_phone)) {
           await updateUser.mutateAsync({ 
             userId: orgAdmin.id, 
@@ -1178,10 +1178,10 @@ export default function AdminDashboard() {
       first_name: user.first_name || '',
       last_name: user.last_name || '',
       phone: user.phone || '',
-      role: user.role || 'member_individual',
+      role: user.role || 'individual_member',
       site: user.site || 'blue_area',
       organization_id: user.organization_id || '',
-      member_type: user.role === 'member_organization' || user.role === 'member_organization_admin' ? 'organization_employee' : 'individual',
+      member_type: user.role === 'organization_member' || user.role === 'organization_admin' ? 'organization_employee' : 'individual',
       office_type: user.office_type || 'hot_desk',
       office_number: user.office_number || '',
       monthly_credits: user.credits || 10,
@@ -1305,7 +1305,7 @@ export default function AdminDashboard() {
         </div>
         <div>
           <Label htmlFor="edit_member_type">Member Type</Label>
-          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value, role: value === 'organization_employee' ? 'member_organization' : 'member_individual', monthly_credits: value === 'organization_employee' ? 0 : 10, membership_fee: value === 'organization_employee' ? 0 : 1500})}>
+          <Select value={formData.member_type} onValueChange={(value) => setFormData({...formData, member_type: value, role: value === 'organization_employee' ? 'organization_member' : 'individual_member', monthly_credits: value === 'organization_employee' ? 0 : 10, membership_fee: value === 'organization_employee' ? 0 : 1500})}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -1362,9 +1362,9 @@ export default function AdminDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="member_individual">Member Individual</SelectItem>
-              <SelectItem value="member_organization">Member Organization</SelectItem>
-              <SelectItem value="member_organization_admin">Member Organization Admin</SelectItem>
+              <SelectItem value="individual_member">Individual Member</SelectItem>
+              <SelectItem value="organization_member">Organization Member</SelectItem>
+              <SelectItem value="organization_admin">Organization Admin</SelectItem>
               <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
               <SelectItem value="calmkaaj_team">CalmKaaj Team</SelectItem>
               <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
@@ -1508,7 +1508,7 @@ export default function AdminDashboard() {
       first_name: '',
       last_name: '',
       phone: '',
-      role: 'member_individual',
+      role: 'individual_member',
       site: 'blue_area',
       organization_id: '',
       member_type: 'individual',
@@ -1620,7 +1620,7 @@ export default function AdminDashboard() {
           <Label htmlFor="role">Role</Label>
           <Select value={formData.role} onValueChange={(value) => {
             // Auto-set member_type based on role
-            const memberType = value === 'member_organization' || value === 'member_organization_admin' ? 'organization_employee' : 'individual';
+            const memberType = value === 'organization_member' || value === 'organization_admin' ? 'organization_employee' : 'individual';
             setFormData({
               ...formData, 
               role: value,
@@ -1633,16 +1633,16 @@ export default function AdminDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="member_individual">Member Individual</SelectItem>
-              <SelectItem value="member_organization">Member Organization</SelectItem>
-              <SelectItem value="member_organization_admin">Member Organization Admin</SelectItem>
+              <SelectItem value="individual_member">Individual Member</SelectItem>
+              <SelectItem value="organization_member">Organization Member</SelectItem>
+              <SelectItem value="organization_admin">Organization Admin</SelectItem>
               <SelectItem value="cafe_manager">Cafe Manager</SelectItem>
               <SelectItem value="calmkaaj_team">CalmKaaj Team</SelectItem>
               <SelectItem value="calmkaaj_admin">CalmKaaj Admin</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        {(formData.role === 'member_organization' || formData.role === 'member_organization_admin') && (
+        {(formData.role === 'organization_member' || formData.role === 'organization_admin') && (
           <div>
             <Label htmlFor="organization_id">Organization</Label>
             <Select value={formData.organization_id} onValueChange={(value) => setFormData({...formData, organization_id: value})}>
@@ -3047,7 +3047,7 @@ export default function AdminDashboard() {
                 </TableHeader>
                 <TableBody>
                   {(organizations || []).map((org) => {
-                    const orgAdmin = (users || []).find(u => u.organization_id === org.id && u.role === 'member_organization_admin');
+                    const orgAdmin = (users || []).find(u => u.organization_id === org.id && u.role === 'organization_admin');
                     const isActive = orgAdmin?.is_active || false;
                     
                     return (
@@ -3478,11 +3478,11 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{(users || []).filter(u => u.role === 'member_individual').length}</div>
+                      <div className="text-2xl font-bold text-blue-600">{(users || []).filter(u => u.role === 'individual_member').length}</div>
                       <div className="text-sm text-gray-600">Individual Members</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{(users || []).filter(u => u.role === 'member_organization_admin').length}</div>
+                      <div className="text-2xl font-bold text-green-600">{(users || []).filter(u => u.role === 'organization_admin').length}</div>
                       <div className="text-sm text-gray-600">Org Admins</div>
                     </div>
                     <div className="text-center">

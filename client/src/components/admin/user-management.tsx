@@ -70,9 +70,9 @@ export default function UserManagement({ users }: UserManagementProps) {
         return 'bg-orange-100 text-orange-800';
       case 'cafe_manager':
         return 'bg-green-100 text-green-800';
-      case 'member_organization':
+      case 'organization_member':
         return 'bg-green-100 text-green-800';
-      case 'member_individual':
+      case 'individual_member':
         return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';

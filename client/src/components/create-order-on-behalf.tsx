@@ -346,7 +346,7 @@ export default function CreateOrderOnBehalf() {
                           <p className="text-sm text-gray-600">{user.email}</p>
                         </div>
                         <Badge variant="secondary" className="ml-2">
-                          {user.role.replace('member_', '').replace('_', ' ')}
+                          {user.role.replace('_member', '').replace('_', ' ')}
                         </Badge>
                       </div>
                     </div>

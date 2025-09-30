@@ -992,7 +992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { org_id } = req.query;
       
       let orders;
-      if (user.role === "member_organization_admin" && org_id) {
+      if (user.role === "organization_admin" && org_id) {
         orders = await storage.getCafeOrders(undefined, org_id as string);
       } else if (user.role === "cafe_manager") {
         // Cafe managers only see orders from their location
@@ -1278,9 +1278,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Allowed roles
           or(
             inArray(schema.users.role, [
-              "member_individual",
-              "member_organization",
-              "member_organization_admin",
+              "individual_member",
+              "organization_member",
+              "organization_admin",
               "calmkaaj_team",
               "calmkaaj_admin",
             ] as any),
@@ -1438,7 +1438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const creditsNeeded = Math.round(durationHours * 100) / 100; // Round to 2 decimal places
 
       // Determine default billing: members of an organization charge the organization by default for rooms
-      const effectiveBilledTo = (billed_to || (user.role === 'member_organization' && user.organization_id ? 'organization' : 'personal')) as any;
+      const effectiveBilledTo = (billed_to || (user.role === 'organization_member' && user.organization_id ? 'organization' : 'personal')) as any;
 
       // Check credit availability based on billing type
       if (effectiveBilledTo === 'organization' && user.organization_id) {
@@ -1524,7 +1524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { org_id } = req.query;
       
       let bookings;
-      if (user.role === "member_organization_admin" && org_id) {
+      if (user.role === "organization_admin" && org_id) {
         bookings = await storage.getMeetingBookings(undefined, org_id as string);
       } else if (user.role === "calmkaaj_admin") {
         bookings = await storage.getMeetingBookings();
@@ -1809,7 +1809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           password: hashedPassword,
           first_name: admin_first_name,
           last_name: admin_last_name,
-          role: 'member_organization_admin',
+          role: 'organization_admin',
           organization_id: organization.id,
           site: site,
           credits: 30,
@@ -1839,7 +1839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             password: hashedPassword,
             first_name: memberName,
             last_name: '',
-            role: 'member_organization',
+            role: 'organization_member',
             organization_id: organization.id,
             site: site,
             credits: 30,
@@ -1885,7 +1885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/organizations/employees/:id/permissions", requireAuth, requireRole(["member_organization_admin", "calmkaaj_admin"]), async (req, res) => {
+  app.patch("/api/organizations/employees/:id/permissions", requireAuth, requireRole(["organization_admin", "calmkaaj_admin"]), async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
       const { can_charge_cafe_to_org, can_charge_room_to_org } = req.body;
@@ -2295,7 +2295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Organization invoice generation (returns PDF for selected month/year)
-  app.post("/api/organizations/:id/invoice", requireAuth, requireRole(["member_organization_admin", "calmkaaj_admin"]), async (req, res) => {
+  app.post("/api/organizations/:id/invoice", requireAuth, requireRole(["organization_admin", "calmkaaj_admin"]), async (req, res) => {
     try {
       const user = req.user as schema.User;
       const orgId = req.params.id;

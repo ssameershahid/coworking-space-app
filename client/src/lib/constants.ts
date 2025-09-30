@@ -4,9 +4,9 @@ export const SITES = {
 } as const;
 
 export const USER_ROLES = {
-  MEMBER_INDIVIDUAL: 'member_individual',
-  MEMBER_ORGANIZATION: 'member_organization',
-  MEMBER_ORGANIZATION_ADMIN: 'member_organization_admin',
+  INDIVIDUAL_MEMBER: 'individual_member',
+  ORGANIZATION_MEMBER: 'organization_member',
+  ORGANIZATION_ADMIN: 'organization_admin',
   CAFE_MANAGER: 'cafe_manager',
   CALMKAAJ_TEAM: 'calmkaaj_team',
   CALMKAAJ_ADMIN: 'calmkaaj_admin',
