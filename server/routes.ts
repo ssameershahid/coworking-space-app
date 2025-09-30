@@ -25,6 +25,31 @@ const __dirname = path.dirname(__filename);
 // Create PostgreSQL session store for persistent sessions
 const PgSession = connectPgSimple(session);
 
+// CRITICAL: Validate environment variables for session store
+if (!process.env.DATABASE_URL) {
+  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.error("🚨 CRITICAL ERROR: DATABASE_URL is not set!");
+  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.error("");
+  console.error("❌ Sessions CANNOT work without DATABASE_URL!");
+  console.error("❌ Users will see login issues and 401 errors!");
+  console.error("");
+  console.error("📋 TO FIX THIS IN RAILWAY:");
+  console.error("1. Go to https://railway.app/project/calmkaaj");
+  console.error("2. Click your service");
+  console.error("3. Go to 'Variables' tab");
+  console.error("4. Add: DATABASE_URL = postgresql://...");
+  console.error("5. Add: SESSION_SECRET = (random 32+ char string)");
+  console.error("6. Redeploy");
+  console.error("");
+  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+}
+
+if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === "your-secret-key-here") {
+  console.warn("⚠️  WARNING: Using default SESSION_SECRET - NOT SECURE for production!");
+  console.warn("   Set SESSION_SECRET environment variable in Railway!");
+}
+
 // Session configuration - Extended for PWA usage with PostgreSQL persistence
 const sessionConfig = {
   store: new PgSession({
@@ -244,14 +269,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded images
   app.use('/uploads', express.static(uploadsDir));
 
-  // Health check endpoint for Docker
+  // Health check endpoint for Docker and Railway - Enhanced to show configuration status
   app.get("/api/health", (req, res) => {
     const pakistanTime = getPakistanTime();
-    res.status(200).json({ 
-      status: "healthy", 
+    const hasDatabase = !!process.env.DATABASE_URL;
+    const hasSessionSecret = !!process.env.SESSION_SECRET && process.env.SESSION_SECRET !== "your-secret-key-here";
+    const isConfigured = hasDatabase && hasSessionSecret;
+    
+    res.status(isConfigured ? 200 : 503).json({ 
+      status: isConfigured ? "healthy" : "misconfigured", 
       timestamp: pakistanTime.toISOString(),
       version: "1.0.0",
-      database: process.env.DATABASE_URL ? "connected" : "not configured"
+      config: {
+        database: hasDatabase ? "✅ connected" : "❌ DATABASE_URL not set",
+        session: hasSessionSecret ? "✅ secure" : "⚠️  Using insecure default or not set",
+        environment: process.env.NODE_ENV || "development"
+      },
+      message: isConfigured ? "All systems operational" : "⚠️  Environment variables missing - sessions will NOT work!"
     });
   });
 
