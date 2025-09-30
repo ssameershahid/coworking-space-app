@@ -1,19 +1,41 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16.8
+    container_name: calmkaaj_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: calmkaaj_secure_password_2025
+      POSTGRES_DB: calmkaaj_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./calmkaaj_full_backup.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     ports:
       - "5000:5000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://postgres:calmkaaj_secure_password_2025@postgres:5432/calmkaaj_db
       - RESEND_API_KEY=${RESEND_API_KEY}
       - SESSION_SECRET=${SESSION_SECRET:-calmkaaj-secret-key-change-in-production}
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
     volumes:
       - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
@@ -23,5 +45,7 @@ services:
       start_period: 40s
 
 volumes:
+  postgres_data:
+    driver: local
   uploads_data:
     driver: local
