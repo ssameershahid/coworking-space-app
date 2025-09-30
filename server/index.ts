@@ -4,6 +4,9 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// Use port 5001 to avoid conflict with macOS AirPlay on port 5000
+const PORT = process.env.PORT || 5001;
+
 // Ensure Express knows it's behind a proxy (Railway/NGINX) so secure cookies work
 app.set("trust proxy", 1);
 
@@ -160,13 +163,14 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Serve the app on the port provided by the environment (default 5000)
-  const port = Number(process.env.PORT || 5000);
+  // Serve the app on the port provided by the environment (default 5001 to avoid macOS AirPlay conflict)
+  const port = Number(process.env.PORT || 5001);
 
   server.listen({
     port,
     host: "0.0.0.0",
   }, () => {
-    log(`serving on port ${port}`);
+    log(`🚀 Server running on http://localhost:${port}`);
+    log(`📊 Database: ${process.env.DATABASE_URL ? 'Railway' : 'Not configured'}`);
   });
 })();
