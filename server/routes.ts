@@ -1524,11 +1524,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { org_id } = req.query;
       
       let bookings;
-      if (user.role === "member_organization_admin" && org_id) {
-        bookings = await storage.getMeetingBookings(undefined, org_id as string);
-      } else if (user.role === "calmkaaj_admin") {
+      
+      // CalmKaaj Admin sees ALL bookings
+      if (user.role === "calmkaaj_admin") {
         bookings = await storage.getMeetingBookings();
-      } else {
+      } 
+      // Organization members (both regular and admin) see ALL org bookings + their personal bookings
+      else if ((user.role === "member_organization" || user.role === "member_organization_admin") && user.organization_id) {
+        // Fetch all bookings for this organization
+        const orgBookings = await storage.getMeetingBookings(undefined, user.organization_id);
+        // Also fetch user's personal bookings (in case they have personal bookings not billed to org)
+        const personalBookings = await storage.getMeetingBookings(user.id);
+        
+        // Merge and deduplicate (use a Map to avoid duplicates by booking id)
+        const bookingsMap = new Map();
+        [...orgBookings, ...personalBookings].forEach(booking => {
+          bookingsMap.set(booking.id, booking);
+        });
+        bookings = Array.from(bookingsMap.values());
+      } 
+      // Regular users see only their own bookings
+      else {
         bookings = await storage.getMeetingBookings(user.id);
       }
       
