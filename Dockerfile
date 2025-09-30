@@ -47,8 +47,7 @@ USER node
 # Expose port
 EXPOSE 5000
 
-# Env
-ENV NODE_ENV=production
+# Env - PORT default, but NODE_ENV should come from Railway variables
 ENV PORT=5000
 
 # Healthcheck
