@@ -103,10 +103,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
-    environment:
-      name: production
-      url: ${{ steps.deploy.outputs.url }}
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -121,15 +117,10 @@ jobs:
 
       - name: Deploy to Railway
         id: deploy
+        if: secrets.RAILWAY_TOKEN != ''
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          if [ -z "$RAILWAY_TOKEN" ]; then
-            echo "⚠️ RAILWAY_TOKEN not set. Skipping Railway deployment."
-            echo "To deploy to Railway, add RAILWAY_TOKEN to repository secrets."
-            exit 0
-          fi
-          
           echo "🚀 Deploying to Railway..."
           railway up --ci
           
@@ -137,6 +128,12 @@ jobs:
           DEPLOY_URL=$(railway domain 2>/dev/null || echo "https://your-app.railway.app")
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
           echo "✅ Deployed to: $DEPLOY_URL"
+      
+      - name: Skip Railway deployment
+        if: secrets.RAILWAY_TOKEN == ''
+        run: |
+          echo "⚠️ RAILWAY_TOKEN not set. Skipping Railway deployment."
+          echo "To deploy to Railway, add RAILWAY_TOKEN to repository secrets."
 
   deploy-render:
     name: Deploy to Render
@@ -146,17 +143,17 @@ jobs:
     
     steps:
       - name: Trigger Render Deploy
+        if: secrets.RENDER_DEPLOY_HOOK != ''
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
-            echo "⚠️ RENDER_DEPLOY_HOOK not set. Skipping Render deployment."
-            exit 0
-          fi
-          
           echo "🚀 Triggering Render deployment..."
           curl -X POST "$RENDER_DEPLOY_HOOK"
           echo "✅ Render deployment triggered"
+      
+      - name: Skip Render deployment
+        if: secrets.RENDER_DEPLOY_HOOK == ''
+        run: echo "⚠️ RENDER_DEPLOY_HOOK not set. Skipping Render deployment."
 
   deploy-fly:
     name: Deploy to Fly.io
@@ -172,17 +169,17 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy to Fly.io
+        if: secrets.FLY_API_TOKEN != ''
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
-          if [ -z "$FLY_API_TOKEN" ]; then
-            echo "⚠️ FLY_API_TOKEN not set. Skipping Fly.io deployment."
-            exit 0
-          fi
-          
           echo "🚀 Deploying to Fly.io..."
           flyctl deploy --remote-only
           echo "✅ Deployed to Fly.io"
+      
+      - name: Skip Fly.io deployment
+        if: secrets.FLY_API_TOKEN == ''
+        run: echo "⚠️ FLY_API_TOKEN not set. Skipping Fly.io deployment."
 
   notify:
     name: Deployment Notification
