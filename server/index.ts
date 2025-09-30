@@ -174,7 +174,8 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
   }, () => {
-    log(`🚀 Server running on http://localhost:${port}`);
-    log(`📊 Database: ${process.env.DATABASE_URL ? 'Railway' : 'Not configured'}`);
+  log(`🚀 Server running on http://localhost:${port}`);
+  log(`📊 Database: ${process.env.DATABASE_URL ? 'Railway' : 'Not configured'}`);
+  log(`🔐 Session: ${process.env.SESSION_SECRET ? 'Configured' : 'Missing'}`);
   });
 })();
