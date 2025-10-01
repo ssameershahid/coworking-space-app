@@ -1412,7 +1412,12 @@ export default function RoomsPage() {
               <div className={`p-4 rounded-lg ${billingType === 'organization' ? 'bg-purple-50' : 'bg-green-50'}`}>
                 <div className="flex justify-between items-center mb-2">
                   <span>Credits Required:</span>
-                  <span className="font-semibold">{formatCredits(calculateCredits())}</span>
+                  <CreditAnimation 
+                    currentCredits={calculateCredits()}
+                    previousCredits={undefined}
+                    showAnimation={false}
+                    className="font-semibold"
+                  />
                 </div>
                 {isExternalBooking ? (
                   <div className="text-sm text-gray-700">External booking: bill this amount to the guest.</div>
@@ -1421,14 +1426,22 @@ export default function RoomsPage() {
                   <>
                     <div className="flex justify-between items-center mb-2">
                       <span>Available Organization Credits:</span>
-                      <span className="font-semibold">{availableOrgCredits.toFixed(2)}</span>
+                      <CreditAnimation 
+                        currentCredits={parseFloat(availableOrgCredits.toFixed(2))}
+                        previousCredits={undefined}
+                        showAnimation={false}
+                        className="font-semibold"
+                      />
                     </div>
                     <Separator className="my-2" />
                     <div className="flex justify-between items-center font-bold">
                       <span>Remaining After Booking:</span>
-                      <span className={(availableOrgCredits - calculateCredits()) < 0 ? "text-red-600" : "text-purple-600"}>
-                        {(availableOrgCredits - calculateCredits()).toFixed(2)}
-                      </span>
+                      <CreditAnimation 
+                        currentCredits={parseFloat((availableOrgCredits - calculateCredits()).toFixed(2))}
+                        previousCredits={undefined}
+                        showAnimation={false}
+                        className={(availableOrgCredits - calculateCredits()) < 0 ? "text-red-600" : "text-purple-600"}
+                      />
                     </div>
                     {(availableOrgCredits - calculateCredits()) < 0 && (
                       <Alert className="mt-3">
