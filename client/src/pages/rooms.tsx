@@ -527,7 +527,7 @@ export default function RoomsPage() {
       {/* Credits Display */}
       {/* For org members WITH personal credits: Show BOTH Personal Credits AND Organization Credits */}
       {(user?.role === 'member_organization' || user?.role === 'member_organization_admin') && user.credits > 0 && (
-        <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Personal Credits Card */}
           <Card className={`bg-gradient-to-r ${availableCredits < 0 ? 'from-red-50 to-orange-50 border-red-200' : 'from-blue-50 to-sky-50 border-blue-200'}`}>
             <CardContent className="p-6">
@@ -644,7 +644,7 @@ export default function RoomsPage() {
               </Card>
             );
           })()}
-        </>
+        </div>
       )}
 
       {/* For org members WITHOUT personal credits: Show Organization Credits only */}
