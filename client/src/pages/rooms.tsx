@@ -117,10 +117,10 @@ export default function RoomsPage() {
   const [bookingsPage, setBookingsPage] = useState(1);
   const BOOKINGS_PAGE_SIZE = 5;
   
-  // Filter for UPCOMING bookings only (future meetings)
+  // Filter for UPCOMING bookings only (future meetings, exclude cancelled)
   const now = new Date();
   const upcomingBookings = (myBookings || []).filter((booking: MeetingBooking) => {
-    return new Date(booking.start_time) > now;
+    return new Date(booking.start_time) > now && booking.status !== 'cancelled';
   });
   
   // Sort by nearest date first (ascending)
