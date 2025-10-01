@@ -42,7 +42,8 @@ import {
   Volume2,
   Projector,
   Sun,
-  Moon
+  Moon,
+  DollarSign
 } from "lucide-react";
 import { MeetingRoom, MeetingBooking, Organization } from "@/lib/types";
 import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime } from "@/lib/pakistan-time";
@@ -516,31 +517,246 @@ export default function RoomsPage() {
         </p>
       </div>
       {/* Credits Display */}
-      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-green-800 mb-1">Your Credits</h3>
-              <p className="text-green-600">Available for room bookings</p>
+      {/* For org members WITH personal credits: Show BOTH Personal Credits AND Organization Credits */}
+      {(user?.role === 'member_organization' || user?.role === 'member_organization_admin') && user.credits > 0 && (
+        <>
+          {/* Personal Credits Card */}
+          <Card className={`bg-gradient-to-r ${availableCredits < 0 ? 'from-red-50 to-orange-50 border-red-200' : 'from-blue-50 to-sky-50 border-blue-200'}`}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className={`text-lg font-semibold mb-1 ${availableCredits < 0 ? 'text-red-800' : 'text-blue-800'}`}>
+                    Personal Credits
+                    {availableCredits < 0 && (
+                      <Badge variant="destructive" className="ml-2 text-xs">
+                        Negative Balance
+                      </Badge>
+                    )}
+                  </h3>
+                  <p className={availableCredits < 0 ? 'text-red-600' : 'text-blue-600'}>Available for room bookings</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className={availableCredits < 0 ? "text-red-700" : "text-blue-700"}>
+                    Used: {user.used_credits}
+                  </span>
+                  <span className="font-medium">
+                    Available: <CreditAnimation 
+                      currentCredits={availableCredits}
+                      previousCredits={previousCredits}
+                      showAnimation={showAnimation}
+                      className={availableCredits < 0 ? "text-red-700" : "text-blue-700"}
+                    />
+                  </span>
+                </div>
+                <Progress 
+                  value={user.credits > 0 ? Math.min((user.used_credits / user.credits) * 100, 100) : 0}
+                  className={`h-2 ${availableCredits < 0 ? 'bg-red-100' : 'bg-blue-100'}`}
+                />
+                <div className="flex justify-between items-center">
+                  <p className={`text-xs ${availableCredits < 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                    Credits Assigned: {user.credits}
+                  </p>
+                  {availableCredits < 0 && (
+                    <p className="text-xs text-red-600 font-medium">
+                      Extra Usage: {Math.abs(availableCredits)} credits
+                    </p>
+                  )}
+                </div>
+                {availableCredits < 0 && (
+                  <Alert>
+                    <DollarSign className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      Your account has a negative balance and will appear on your monthly invoice for billing.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Organization Credits Card */}
+          {user.organization_id && organization && (() => {
+            const isOrgNegative = availableOrgCredits < 0;
+            return (
+              <Card className={`bg-gradient-to-r ${isOrgNegative ? 'from-red-50 to-orange-50 border-red-200' : 'from-purple-50 to-indigo-50 border-purple-200'}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className={`text-lg font-semibold mb-1 ${isOrgNegative ? 'text-red-800' : 'text-purple-800'}`}>
+                        Organization Credits - {organization.name}
+                        {isOrgNegative && (
+                          <Badge variant="destructive" className="ml-2 text-xs">
+                            Over Limit
+                          </Badge>
+                        )}
+                      </h3>
+                      <p className={isOrgNegative ? 'text-red-600' : 'text-purple-600'}>Shared credit pool</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className={isOrgNegative ? "text-red-700" : "text-purple-700"}>
+                        Used: {orgCreditsUsed.toFixed(2)}
+                      </span>
+                      <span className="font-medium">
+                        Available: <span className={availableOrgCredits < 0 ? "text-red-700" : "text-purple-700"}>
+                          {availableOrgCredits.toFixed(2)}
+                        </span>
+                      </span>
+                    </div>
+                    <Progress 
+                      value={monthlyOrgAllocation > 0 ? Math.min((orgCreditsUsed / monthlyOrgAllocation) * 100, 100) : 0}
+                      className={`h-2 ${isOrgNegative ? 'bg-red-100' : 'bg-purple-100'}`}
+                    />
+                    <div className="flex justify-between items-center">
+                      <p className={`text-xs ${isOrgNegative ? 'text-red-600' : 'text-purple-600'}`}>
+                        Monthly Allocation: {monthlyOrgAllocation} credits
+                      </p>
+                      {isOrgNegative && (
+                        <p className="text-xs text-red-600 font-medium">
+                          Excess: {Math.abs(availableOrgCredits).toFixed(2)} credits
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-xs text-purple-600">
+                      These credits are shared across your organization for meeting room bookings.
+                    </div>
+                    {isOrgNegative && (
+                      <Alert>
+                        <DollarSign className="h-4 w-4" />
+                        <AlertDescription className="text-sm">
+                          Your organization has exceeded the monthly allocation and will be charged for excess usage.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+        </>
+      )}
+
+      {/* For org members WITHOUT personal credits: Show Organization Credits only */}
+      {(user?.role === 'member_organization' || user?.role === 'member_organization_admin') && user.credits === 0 && user.organization_id && organization && (() => {
+        const isOrgNegative = availableOrgCredits < 0;
+        return (
+          <Card className={`bg-gradient-to-r ${isOrgNegative ? 'from-red-50 to-orange-50 border-red-200' : 'from-purple-50 to-indigo-50 border-purple-200'}`}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className={`text-lg font-semibold mb-1 ${isOrgNegative ? 'text-red-800' : 'text-purple-800'}`}>
+                    Organization Credits - {organization.name}
+                    {isOrgNegative && (
+                      <Badge variant="destructive" className="ml-2 text-xs">
+                        Over Limit
+                      </Badge>
+                    )}
+                  </h3>
+                  <p className={isOrgNegative ? 'text-red-600' : 'text-purple-600'}>Available for room bookings</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className={isOrgNegative ? "text-red-700" : "text-purple-700"}>
+                    Used: {orgCreditsUsed.toFixed(2)}
+                  </span>
+                  <span className="font-medium">
+                    Available: <span className={availableOrgCredits < 0 ? "text-red-700" : "text-purple-700"}>
+                      {availableOrgCredits.toFixed(2)}
+                    </span>
+                  </span>
+                </div>
+                <Progress 
+                  value={monthlyOrgAllocation > 0 ? Math.min((orgCreditsUsed / monthlyOrgAllocation) * 100, 100) : 0}
+                  className={`h-2 ${isOrgNegative ? 'bg-red-100' : 'bg-purple-100'}`}
+                />
+                <div className="flex justify-between items-center">
+                  <p className={`text-xs ${isOrgNegative ? 'text-red-600' : 'text-purple-600'}`}>
+                    Monthly Allocation: {monthlyOrgAllocation} credits
+                  </p>
+                  {isOrgNegative && (
+                    <p className="text-xs text-red-600 font-medium">
+                      Excess: {Math.abs(availableOrgCredits).toFixed(2)} credits
+                    </p>
+                  )}
+                </div>
+                <div className="text-xs text-purple-600">
+                  These credits are shared across your organization for meeting room bookings.
+                </div>
+                {isOrgNegative && (
+                  <Alert>
+                    <DollarSign className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      Your organization has exceeded the monthly allocation and will be charged for excess usage.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      {/* For non-org members: Show standard Your Credits card */}
+      {!(user?.role === 'member_organization' || user?.role === 'member_organization_admin') && (
+        <Card className={`bg-gradient-to-r ${availableCredits < 0 ? 'from-red-50 to-orange-50 border-red-200' : 'from-green-50 to-emerald-50 border-green-200'}`}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className={`text-lg font-semibold mb-1 ${availableCredits < 0 ? 'text-red-800' : 'text-green-800'}`}>
+                  Your Credits
+                  {availableCredits < 0 && (
+                    <Badge variant="destructive" className="ml-2 text-xs">
+                      Negative Balance
+                    </Badge>
+                  )}
+                </h3>
+                <p className={availableCredits < 0 ? 'text-red-600' : 'text-green-600'}>Available for room bookings</p>
+              </div>
             </div>
-            <div className="text-right">
-              <CreditAnimation 
-                currentCredits={availableCredits}
-                previousCredits={previousCredits}
-                showAnimation={showAnimation}
-                className="text-3xl font-bold text-green-800"
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className={availableCredits < 0 ? "text-red-700" : "text-green-700"}>
+                  Used: {user?.used_credits || 0}
+                </span>
+                <span className="font-medium">
+                  Available: <CreditAnimation 
+                    currentCredits={availableCredits}
+                    previousCredits={previousCredits}
+                    showAnimation={showAnimation}
+                    className={availableCredits < 0 ? "text-red-700" : "text-green-700"}
+                  />
+                </span>
+              </div>
+              <Progress 
+                value={user?.credits ? Math.min(((user.used_credits || 0) / user.credits) * 100, 100) : 0}
+                className={`h-2 ${availableCredits < 0 ? 'bg-red-100' : ''}`}
               />
-              <p className="text-sm text-green-600">of {user?.credits || 0} total</p>
+              <div className="flex justify-between items-center">
+                <p className={`text-xs ${availableCredits < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  Credits Assigned: {user?.credits || 0}
+                </p>
+                {availableCredits < 0 && (
+                  <p className="text-xs text-red-600 font-medium">
+                    Extra Usage: {Math.abs(availableCredits)} credits
+                  </p>
+                )}
+              </div>
+              {availableCredits < 0 && (
+                <Alert>
+                  <DollarSign className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    Your account has a negative balance and will appear on your monthly invoice for billing.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
-          </div>
-          <div className="mt-4">
-            <Progress 
-              value={user?.credits ? ((user.credits - availableCredits) / user.credits) * 100 : 0} 
-              className="h-2" 
-            />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
       {/* Date Selector */}
       <Card>
         <CardHeader>
