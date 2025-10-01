@@ -530,20 +530,19 @@ export default function RoomsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Personal Credits Card */}
           <Card className={`bg-gradient-to-r ${availableCredits < 0 ? 'from-red-50 to-orange-50 border-red-200' : 'from-blue-50 to-sky-50 border-blue-200'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className={`text-lg font-semibold mb-1 ${availableCredits < 0 ? 'text-red-800' : 'text-blue-800'}`}>
-                    Personal Credits
-                    {availableCredits < 0 && (
-                      <Badge variant="destructive" className="ml-2 text-xs">
-                        Negative Balance
-                      </Badge>
-                    )}
-                  </h3>
-                  <p className={availableCredits < 0 ? 'text-red-600' : 'text-blue-600'}>Available for room bookings</p>
-                </div>
-              </div>
+            <CardHeader className="pb-3">
+              <CardTitle className={`flex items-center gap-2 ${availableCredits < 0 ? 'text-red-800' : 'text-blue-800'}`}>
+                <CreditCard className="h-5 w-5" />
+                Personal Credits
+                {availableCredits < 0 && (
+                  <Badge variant="destructive" className="ml-2 text-xs">
+                    Negative Balance
+                  </Badge>
+                )}
+              </CardTitle>
+              <p className={`text-sm ${availableCredits < 0 ? 'text-red-600' : 'text-blue-600'}`}>Available for room bookings</p>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className={availableCredits < 0 ? "text-red-700" : "text-blue-700"}>
@@ -589,20 +588,19 @@ export default function RoomsPage() {
             const isOrgNegative = availableOrgCredits < 0;
             return (
               <Card className={`bg-gradient-to-r ${isOrgNegative ? 'from-red-50 to-orange-50 border-red-200' : 'from-purple-50 to-indigo-50 border-purple-200'}`}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className={`text-lg font-semibold mb-1 ${isOrgNegative ? 'text-red-800' : 'text-purple-800'}`}>
-                        Organization Credits - {organization.name}
-                        {isOrgNegative && (
-                          <Badge variant="destructive" className="ml-2 text-xs">
-                            Over Limit
-                          </Badge>
-                        )}
-                      </h3>
-                      <p className={isOrgNegative ? 'text-red-600' : 'text-purple-600'}>Shared credit pool</p>
-                    </div>
-                  </div>
+                <CardHeader className="pb-3">
+                  <CardTitle className={`flex items-center gap-2 ${isOrgNegative ? 'text-red-800' : 'text-purple-800'}`}>
+                    <Building className="h-5 w-5" />
+                    Organization Credits - {organization.name}
+                    {isOrgNegative && (
+                      <Badge variant="destructive" className="ml-2 text-xs">
+                        Over Limit
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <p className={`text-sm ${isOrgNegative ? 'text-red-600' : 'text-purple-600'}`}>Shared credit pool</p>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className={isOrgNegative ? "text-red-700" : "text-purple-700"}>
@@ -652,20 +650,19 @@ export default function RoomsPage() {
         const isOrgNegative = availableOrgCredits < 0;
         return (
           <Card className={`bg-gradient-to-r ${isOrgNegative ? 'from-red-50 to-orange-50 border-red-200' : 'from-purple-50 to-indigo-50 border-purple-200'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className={`text-lg font-semibold mb-1 ${isOrgNegative ? 'text-red-800' : 'text-purple-800'}`}>
-                    Organization Credits - {organization.name}
-                    {isOrgNegative && (
-                      <Badge variant="destructive" className="ml-2 text-xs">
-                        Over Limit
-                      </Badge>
-                    )}
-                  </h3>
-                  <p className={isOrgNegative ? 'text-red-600' : 'text-purple-600'}>Available for room bookings</p>
-                </div>
-              </div>
+            <CardHeader className="pb-3">
+              <CardTitle className={`flex items-center gap-2 ${isOrgNegative ? 'text-red-800' : 'text-purple-800'}`}>
+                <Building className="h-5 w-5" />
+                Organization Credits - {organization.name}
+                {isOrgNegative && (
+                  <Badge variant="destructive" className="ml-2 text-xs">
+                    Over Limit
+                  </Badge>
+                )}
+              </CardTitle>
+              <p className={`text-sm ${isOrgNegative ? 'text-red-600' : 'text-purple-600'}`}>Shared credit pool</p>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className={isOrgNegative ? "text-red-700" : "text-purple-700"}>
@@ -711,20 +708,19 @@ export default function RoomsPage() {
       {/* For non-org members: Show standard Your Credits card */}
       {!(user?.role === 'member_organization' || user?.role === 'member_organization_admin') && (
         <Card className={`bg-gradient-to-r ${availableCredits < 0 ? 'from-red-50 to-orange-50 border-red-200' : 'from-green-50 to-emerald-50 border-green-200'}`}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className={`text-lg font-semibold mb-1 ${availableCredits < 0 ? 'text-red-800' : 'text-green-800'}`}>
-                  Your Credits
-                  {availableCredits < 0 && (
-                    <Badge variant="destructive" className="ml-2 text-xs">
-                      Negative Balance
-                    </Badge>
-                  )}
-                </h3>
-                <p className={availableCredits < 0 ? 'text-red-600' : 'text-green-600'}>Available for room bookings</p>
-              </div>
-            </div>
+          <CardHeader className="pb-3">
+            <CardTitle className={`flex items-center gap-2 ${availableCredits < 0 ? 'text-red-800' : 'text-green-800'}`}>
+              <CreditCard className="h-5 w-5" />
+              Your Credits
+              {availableCredits < 0 && (
+                <Badge variant="destructive" className="ml-2 text-xs">
+                  Negative Balance
+                </Badge>
+              )}
+            </CardTitle>
+            <p className={`text-sm ${availableCredits < 0 ? 'text-red-600' : 'text-green-600'}`}>Available for room bookings</p>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className={availableCredits < 0 ? "text-red-700" : "text-green-700"}>
