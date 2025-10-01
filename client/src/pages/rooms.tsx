@@ -113,10 +113,18 @@ export default function RoomsPage() {
   // Show all bookings (both personal and organization)
   const myBookings = allBookings;
 
-  // Pagination for lifetime bookings list
+  // Pagination for upcoming bookings list (future only)
   const [bookingsPage, setBookingsPage] = useState(1);
   const BOOKINGS_PAGE_SIZE = 5;
-  const sortedAllBookings = (myBookings || []).slice().sort((a, b) => {
+  
+  // Filter for UPCOMING bookings only (future meetings)
+  const now = new Date();
+  const upcomingBookings = (myBookings || []).filter((booking: MeetingBooking) => {
+    return new Date(booking.start_time) > now;
+  });
+  
+  // Sort by nearest date first (ascending)
+  const sortedAllBookings = upcomingBookings.slice().sort((a, b) => {
     return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
   });
   const totalBookingPages = Math.max(1, Math.ceil(sortedAllBookings.length / BOOKINGS_PAGE_SIZE));
