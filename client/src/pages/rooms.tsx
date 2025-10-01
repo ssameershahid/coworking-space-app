@@ -917,6 +917,7 @@ export default function RoomsPage() {
                   onClick={() => {
                     setSelectedRoom(room);
                     setIsExternalBooking(false);
+                    setBookingDate(selectedDateView); // Pre-populate with selected date
                     setShowBookingModal(true);
                   }}
                 >
@@ -930,6 +931,7 @@ export default function RoomsPage() {
                     onClick={() => {
                       setSelectedRoom(room);
                       setIsExternalBooking(true);
+                      setBookingDate(selectedDateView); // Pre-populate with selected date
                       setShowBookingModal(true);
                     }}
                   >
