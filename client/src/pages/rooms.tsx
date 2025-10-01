@@ -110,8 +110,8 @@ export default function RoomsPage() {
     enabled: !!user?.organization_id,
   });
 
-  // Show all bookings (both personal and organization)
-  const myBookings = allBookings;
+  // Show only MY bookings (filter by user_id), but keep allBookings for org credit calculations
+  const myBookings = allBookings.filter((booking: MeetingBooking) => booking.user_id === user?.id);
 
   // Pagination for upcoming bookings list (future only)
   const [bookingsPage, setBookingsPage] = useState(1);

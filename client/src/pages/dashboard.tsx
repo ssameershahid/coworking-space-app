@@ -150,8 +150,11 @@ export default function Dashboard() {
     enabled: !!user.organization_id,
   });
 
-  // Show all bookings (both personal and organization), exclude cancelled
-  const recentBookings = allBookings.filter((booking: MeetingBooking) => booking.status !== 'cancelled');
+  // Show only MY bookings (filter by user_id), exclude cancelled
+  // Note: allBookings still contains all org bookings for credit calculations
+  const recentBookings = allBookings.filter((booking: MeetingBooking) => 
+    booking.user_id === user?.id && booking.status !== 'cancelled'
+  );
 
   const availableCredits = user.credits - user.used_credits;
   const creditsUsedPercentage = user.credits > 0 ? Math.min((user.used_credits / user.credits) * 100, 100) : 0;
