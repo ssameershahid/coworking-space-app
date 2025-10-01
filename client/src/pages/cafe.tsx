@@ -479,11 +479,14 @@ export default function CafePage() {
                       <div className="flex flex-col gap-1 items-end">
                         <div className="flex items-center gap-2">
                           <Badge 
-                            variant={order.status === 'delivered' ? 'default' : 'secondary'}
+                            variant="secondary"
                             className={
-                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                              order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                              order.status === 'cancelled' || order.status === 'deleted' ? 'bg-red-100 text-red-800' : ''
+                              order.status === 'pending' ? 'bg-gray-100 text-gray-800' :
+                              order.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                              order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'ready' ? 'bg-yellow-100 text-yellow-800' :
+                              order.status === 'delivered' ? 'bg-gray-100 text-gray-800' :
+                              order.status === 'cancelled' || order.status === 'deleted' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
                             }
                           >
                             {order.status}

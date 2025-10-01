@@ -43,8 +43,8 @@ import { formatPriceWithCurrency } from "@/lib/format-price";
 
 // Payment status configuration
 const paymentStatusConfig = {
-  paid: { label: "Paid", color: "bg-green-100 text-green-800", icon: CheckCircle },
-  unpaid: { label: "Unpaid", color: "bg-red-100 text-red-800", icon: AlertCircle }
+  paid: { label: "paid", color: "bg-green-600 text-white", icon: CheckCircle },
+  unpaid: { label: "unpaid", color: "bg-red-100 text-red-800", icon: AlertCircle }
 };
 
 export default function Dashboard() {
@@ -616,11 +616,14 @@ export default function Dashboard() {
                       <p className="font-semibold">{formatPriceWithCurrency(parseFloat(order.total_amount) || 0)}</p>
                       <div className="flex flex-col gap-1 items-end">
                         <Badge 
-                          variant={order.status === 'delivered' ? 'default' : 'secondary'}
+                          variant="secondary"
                           className={
-                            order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                            order.status === 'ready' || order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
+                            order.status === 'pending' ? 'bg-gray-100 text-gray-800' :
+                            order.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                            order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                            order.status === 'ready' ? 'bg-yellow-100 text-yellow-800' :
+                            order.status === 'delivered' ? 'bg-gray-100 text-gray-800' :
+                            order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
                           }
                         >
                           {order.status}

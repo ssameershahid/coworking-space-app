@@ -13,13 +13,15 @@ interface RecentActivityProps {
 export default function RecentActivity({ recentOrders, recentBookings }: RecentActivityProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case ORDER_STATUSES.DELIVERED:
-        return "bg-green-100 text-green-800";
-      case ORDER_STATUSES.READY:
-        return "bg-blue-100 text-blue-800";
-      case ORDER_STATUSES.PREPARING:
-        return "bg-yellow-100 text-yellow-800";
       case ORDER_STATUSES.PENDING:
+        return "bg-gray-100 text-gray-800";
+      case ORDER_STATUSES.ACCEPTED:
+        return "bg-green-100 text-green-800";
+      case ORDER_STATUSES.PREPARING:
+        return "bg-blue-100 text-blue-800";
+      case ORDER_STATUSES.READY:
+        return "bg-yellow-100 text-yellow-800";
+      case ORDER_STATUSES.DELIVERED:
         return "bg-gray-100 text-gray-800";
       case ORDER_STATUSES.CANCELLED:
         return "bg-red-100 text-red-800";
@@ -85,7 +87,7 @@ export default function RecentActivity({ recentOrders, recentBookings }: RecentA
                     </div>
                   </div>
                   <Badge className={getStatusColor(order.status)}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    {order.status}
                   </Badge>
                 </div>
               ))}

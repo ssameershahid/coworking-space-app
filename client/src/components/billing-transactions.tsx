@@ -55,18 +55,18 @@ interface CafeOrder {
 }
 
 const statusConfig = {
-  pending: { label: "Pending", color: "bg-orange-100 text-orange-800", icon: Clock },
-  accepted: { label: "Accepted", color: "bg-yellow-100 text-yellow-800", icon: CheckCircle },
-  preparing: { label: "Preparing", color: "bg-blue-100 text-blue-800", icon: Clock },
-  ready: { label: "Ready", color: "bg-green-100 text-green-800", icon: CheckCircle },
-  delivered: { label: "Delivered", color: "bg-gray-100 text-gray-800", icon: CheckCircle },
-  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800", icon: AlertCircle },
-  deleted: { label: "Deleted", color: "bg-red-200 text-red-900", icon: AlertCircle }
+  pending: { label: "pending", color: "bg-gray-100 text-gray-800", icon: Clock },
+  accepted: { label: "accepted", color: "bg-green-100 text-green-800", icon: CheckCircle },
+  preparing: { label: "preparing", color: "bg-blue-100 text-blue-800", icon: Clock },
+  ready: { label: "ready", color: "bg-yellow-100 text-yellow-800", icon: CheckCircle },
+  delivered: { label: "delivered", color: "bg-gray-100 text-gray-800", icon: CheckCircle },
+  cancelled: { label: "cancelled", color: "bg-red-100 text-red-800", icon: AlertCircle },
+  deleted: { label: "deleted", color: "bg-red-200 text-red-900", icon: AlertCircle }
 };
 
 const paymentStatusConfig = {
-  paid: { label: "Paid", color: "bg-green-100 text-green-800", icon: CheckCircle },
-  unpaid: { label: "Unpaid", color: "bg-red-100 text-red-800", icon: AlertCircle }
+  paid: { label: "paid", color: "bg-green-600 text-white", icon: CheckCircle },
+  unpaid: { label: "unpaid", color: "bg-red-100 text-red-800", icon: AlertCircle }
 };
 
 export default function BillingTransactions() {

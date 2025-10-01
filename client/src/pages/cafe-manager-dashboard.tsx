@@ -58,13 +58,13 @@ interface CafeOrder {
 }
 
 const statusConfig = {
-  pending: { label: "New Order", color: "bg-orange-100 text-orange-800", icon: Clock },
-  accepted: { label: "Accepted", color: "bg-yellow-100 text-yellow-800", icon: CheckCircle },
-  preparing: { label: "Preparing", color: "bg-blue-100 text-blue-800", icon: Package },
-  ready: { label: "Ready", color: "bg-green-100 text-green-800", icon: CheckCircle },
-  delivered: { label: "Delivered", color: "bg-gray-100 text-gray-800", icon: Truck },
-  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800", icon: Clock },
-  deleted: { label: "Deleted", color: "bg-red-200 text-red-900", icon: Clock }
+  pending: { label: "pending", color: "bg-gray-100 text-gray-800", icon: Clock },
+  accepted: { label: "accepted", color: "bg-green-100 text-green-800", icon: CheckCircle },
+  preparing: { label: "preparing", color: "bg-blue-100 text-blue-800", icon: Package },
+  ready: { label: "ready", color: "bg-yellow-100 text-yellow-800", icon: CheckCircle },
+  delivered: { label: "delivered", color: "bg-gray-100 text-gray-800", icon: Truck },
+  cancelled: { label: "cancelled", color: "bg-red-100 text-red-800", icon: Clock },
+  deleted: { label: "deleted", color: "bg-red-200 text-red-900", icon: Clock }
 };
 
 export default function CafeManagerDashboard() {
