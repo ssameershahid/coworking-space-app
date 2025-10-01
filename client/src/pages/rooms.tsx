@@ -117,7 +117,7 @@ export default function RoomsPage() {
   const [bookingsPage, setBookingsPage] = useState(1);
   const BOOKINGS_PAGE_SIZE = 5;
   const sortedAllBookings = (myBookings || []).slice().sort((a, b) => {
-    return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
+    return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
   });
   const totalBookingPages = Math.max(1, Math.ceil(sortedAllBookings.length / BOOKINGS_PAGE_SIZE));
   const pagedBookings = sortedAllBookings.slice(
