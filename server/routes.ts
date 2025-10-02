@@ -2118,13 +2118,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/users/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const updates = req.body;
+      let updates = req.body;
       
       console.log("🔍 API: updateUser called with userId:", userId);
       console.log("🔍 API: raw updates:", updates);
       
+      // Normalize fields that may come as strings from the client before validating
+      const normalizedUpdates: any = { ...updates };
+      
+      // Handle start_date conversion: may arrive as an ISO string from the date input
+      if (Object.prototype.hasOwnProperty.call(normalizedUpdates, "start_date")) {
+        const sd = normalizedUpdates.start_date;
+        if (sd === undefined || sd === null || sd === "") {
+          delete normalizedUpdates.start_date;
+        } else if (typeof sd === "string") {
+          const parsed = new Date(sd);
+          if (!isNaN(parsed.getTime())) {
+            normalizedUpdates.start_date = parsed;
+          } else {
+            // If invalid string, drop the field to avoid validation errors
+            delete normalizedUpdates.start_date;
+          }
+        } // if it's already a Date, leave as-is
+      }
+      
       // Validate the updates using the schema
-      const validationResult = schema.updateUserSchema.safeParse(updates);
+      const validationResult = schema.updateUserSchema.safeParse(normalizedUpdates);
       if (!validationResult.success) {
         console.error("❌ API: Validation failed:", validationResult.error);
         return res.status(400).json({ 
