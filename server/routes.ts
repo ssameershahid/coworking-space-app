@@ -1830,7 +1830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: 'member_organization_admin',
           organization_id: organization.id,
           site: site,
-          credits: 30,
+          credits: 0, // Organization members get 0 personal credits by default
           can_charge_cafe_to_org: true,
           can_charge_room_to_org: true,
           start_date: start_date ? new Date(start_date) : new Date()
@@ -1860,7 +1860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             role: 'member_organization',
             organization_id: organization.id,
             site: site,
-            credits: 30,
+            credits: 0, // Organization members get 0 personal credits by default
             can_charge_cafe_to_org: false,
             can_charge_room_to_org: true,
             start_date: start_date ? new Date(start_date) : new Date()
