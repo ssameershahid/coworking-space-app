@@ -814,18 +814,24 @@ export default function RoomsPage() {
           </div>
           
           {/* Day Grind/Night Hustle Toggle */}
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
+          <div className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-300 ${
+            isNightShift 
+              ? 'bg-gradient-to-r from-slate-800 to-indigo-900 border-slate-700' 
+              : 'bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200'
+          }`}>
             <div className="flex items-center gap-3">
               {isNightShift ? (
-                <Moon className="h-5 w-5 text-orange-600" />
+                <Moon className={`h-5 w-5 ${isNightShift ? 'text-indigo-300' : 'text-orange-600'}`} />
               ) : (
-                <Sun className="h-5 w-5 text-orange-600" />
+                <Sun className={`h-5 w-5 ${isNightShift ? 'text-indigo-300' : 'text-orange-600'}`} />
               )}
               <div>
-                <Label htmlFor="shift-toggle" className="text-sm font-medium text-gray-900 cursor-pointer">
+                <Label htmlFor="shift-toggle" className={`text-sm font-medium cursor-pointer ${
+                  isNightShift ? 'text-white' : 'text-gray-900'
+                }`}>
                   {isNightShift ? 'Night Hustle' : 'Day Grind'} Shift
                 </Label>
-                <p className="text-sm text-gray-600">
+                <p className={`text-sm ${isNightShift ? 'text-indigo-200' : 'text-gray-600'}`}>
                   {isNightShift ? '8:00 PM - 7:00 AM' : '8:00 AM - 7:00 PM'} available times
                 </p>
               </div>
