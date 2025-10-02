@@ -1601,7 +1601,7 @@ export default function AdminDashboard() {
       member_type: 'individual',
       office_type: 'hot_desk',
       office_number: '',
-      monthly_credits: 10,
+      monthly_credits: 30, // Default for individual members (org members default to 0)
       membership_fee: 0,
       start_date: new Date().toISOString().split('T')[0],
       notes: '',
@@ -1723,11 +1723,17 @@ export default function AdminDashboard() {
           <Select value={formData.role} onValueChange={(value) => {
             // Auto-set member_type based on role
             const memberType = value === 'member_organization' || value === 'member_organization_admin' ? 'organization_employee' : 'individual';
+            // Organization members default to 0 personal credits (they use org credits)
+            // Individual members get 30 by default
+            // Cafe managers get 0
+            const defaultCredits = value === 'cafe_manager' ? 0 
+              : (value === 'member_organization' || value === 'member_organization_admin') ? 0 
+              : 30;
             setFormData({
               ...formData, 
               role: value,
               member_type: memberType,
-              monthly_credits: value === 'cafe_manager' ? 0 : 30,
+              monthly_credits: defaultCredits,
               membership_fee: value === 'cafe_manager' ? 0 : 1500
             });
           }}>
