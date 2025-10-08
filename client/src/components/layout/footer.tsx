@@ -132,7 +132,7 @@ export default function Footer() {
       </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-200 mt-4 pt-4 md:mt-8 md:pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 space-y-2 md:space-y-0">
+        <div className="border-t border-gray-200 mt-4 pt-4 pb-6 md:mt-8 md:pt-6 md:pb-0 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 space-y-2 md:space-y-0">
           <p>© 2025 CalmKaaj. All rights reserved.</p>
           <p>App developed with 🧡 by Artyreal</p>
         </div>
