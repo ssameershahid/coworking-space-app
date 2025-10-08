@@ -37,6 +37,8 @@ export const users = pgTable("users", {
   role: userRoleEnum("role").notNull(),
   organization_id: uuid("organization_id").references(() => organizations.id),
   site: siteEnum("site").notNull().default("blue_area"),
+  office_type: text("office_type").default("hot_desk"), // Space selection (hot_desk, dedicated_desk, private_office)
+  office_number: text("office_number"), // Office/desk number
   credits: integer("credits").default(30),
   used_credits: decimal("used_credits", { precision: 10, scale: 2 }).default("0"),
   is_active: boolean("is_active").default(true),

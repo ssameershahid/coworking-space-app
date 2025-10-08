@@ -1830,6 +1830,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: 'member_organization_admin',
           organization_id: organization.id,
           site: site,
+          office_type: office_type || 'hot_desk', // Cascade from organization
+          office_number: office_number || null, // Cascade from organization
           credits: 0, // Organization members get 0 personal credits by default
           can_charge_cafe_to_org: true,
           can_charge_room_to_org: true,
@@ -1860,6 +1862,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             role: 'member_organization',
             organization_id: organization.id,
             site: site,
+            office_type: office_type || 'hot_desk', // Cascade from organization
+            office_number: office_number || null, // Cascade from organization
             credits: 0, // Organization members get 0 personal credits by default
             can_charge_cafe_to_org: false,
             can_charge_room_to_org: true,
