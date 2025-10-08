@@ -9,18 +9,18 @@ export default function Footer() {
   const showRoomBooking = user && user.role !== 'cafe_manager';
   return (
     <footer className="bg-gray-100 border-t border-gray-200 w-full">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Mobile Layout */}
+      <div className="max-w-7xl mx-auto px-4 py-6 md:py-12">
+        {/* Mobile Layout - Compact and Centered */}
       <div className="md:hidden">
-          {/* Brand Section */}
-          <div className="space-y-4 mb-8">
-            <div className="flex items-center">
-              <img src="/logo-main.png" alt="CalmKaaj" className="h-8 w-auto" />
+          {/* Brand Section - Centered */}
+          <div className="space-y-3 text-center flex flex-col items-center">
+            <div className="flex items-center justify-center">
+              <img src="/logo-main.png" alt="CalmKaaj" className="h-7 w-auto" />
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-sm text-gray-600 leading-relaxed max-w-sm">
               Your ideal workspace solution combining productivity, comfort, and a vibrant community environment.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 justify-center">
               <a href="https://www.instagram.com/calm_kaaj/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
@@ -33,53 +33,6 @@ export default function Footer() {
               <a href="https://open.spotify.com/user/31db4uqj6bkwonltubo7e5j7bsk4?si=dwgmoGs4SVGyyXNZKv7rDA" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
                 <SiSpotify className="h-5 w-5" />
               </a>
-            </div>
-          </div>
-
-          {/* Quick Actions and Company in 2 columns */}
-          <div className="grid grid-cols-2 gap-8">
-            {/* Quick Actions Section */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li>
-                  <a href="/dashboard" className="hover:text-orange-500 transition-colors">Dashboard</a>
-                </li>
-                <li>
-                  <a href="/cafe" className="hover:text-orange-500 transition-colors">Cafe Ordering</a>
-                </li>
-                {showRoomBooking && (
-                  <li>
-                    <a href="/rooms" className="hover:text-orange-500 transition-colors">
-                      Meeting Rooms
-                    </a>
-                  </li>
-                )}
-                <li>
-                  <a href="/community" className="hover:text-orange-500 transition-colors">
-                    Community
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company Section */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li>
-                  <a href="https://www.calmkaaj.org/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Home</a>
-                </li>
-                <li>
-                  <a href="https://www.calmkaaj.org/our-services/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Services</a>
-                </li>
-                <li>
-                  <a href="https://www.calmkaaj.org/about-us/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">About</a>
-                </li>
-                <li>
-                  <a href="https://www.calmkaaj.org/contact/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">Contact</a>
-                </li>
-              </ul>
             </div>
           </div>
       </div>
@@ -179,7 +132,7 @@ export default function Footer() {
       </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+        <div className="border-t border-gray-200 mt-4 pt-4 md:mt-8 md:pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 space-y-2 md:space-y-0">
           <p>© 2025 CalmKaaj. All rights reserved.</p>
           <p>App developed with 🧡 by Artyreal</p>
         </div>
