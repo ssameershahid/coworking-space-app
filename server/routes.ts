@@ -2232,29 +2232,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("🔍 API: sanitized updates:", sanitizedUpdates);
+      console.log("🔍 API: office_type in updates:", sanitizedUpdates.office_type);
+      console.log("🔍 API: office_number in updates:", sanitizedUpdates.office_number);
       
       const organization = await storage.updateOrganization(orgId, sanitizedUpdates);
       console.log("✅ API: Organization updated successfully");
       
       // AUTO-SYNC: If office_type or office_number changed, update all employees
+      console.log("🔍 API: Checking auto-sync conditions...");
       if (sanitizedUpdates.office_type !== undefined || sanitizedUpdates.office_number !== undefined) {
+        console.log("🚀 API: AUTO-SYNC TRIGGERED!");
         const employeeUpdates: any = {};
         
         if (sanitizedUpdates.office_type !== undefined) {
           employeeUpdates.office_type = sanitizedUpdates.office_type;
+          console.log("📝 API: Will update employee office_type to:", employeeUpdates.office_type);
         }
         
         if (sanitizedUpdates.office_number !== undefined) {
           employeeUpdates.office_number = sanitizedUpdates.office_number;
+          console.log("📝 API: Will update employee office_number to:", employeeUpdates.office_number);
         }
         
         // Update all employees of this organization
-        await db
+        const result = await db
           .update(schema.users)
           .set(employeeUpdates)
           .where(eq(schema.users.organization_id, orgId));
         
         console.log(`✅ API: Synced office fields to all employees of organization ${orgId}`, employeeUpdates);
+        console.log(`✅ API: Number of employees updated:`, result);
+      } else {
+        console.log("⚠️ API: AUTO-SYNC SKIPPED - office fields not in updates");
       }
       
       res.json(organization);
