@@ -1988,6 +1988,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: schema.users.role,
           organization_id: schema.users.organization_id,
           site: schema.users.site,
+          office_type: schema.users.office_type,
+          office_number: schema.users.office_number,
           credits: schema.users.credits,
           used_credits: schema.users.used_credits,
           is_active: schema.users.is_active,
