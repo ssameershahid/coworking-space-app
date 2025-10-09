@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Users, Coins } from "lucide-react";
-import { MeetingRoom } from "@/lib/types";
+import { MeetingRoom, Organization, MeetingBooking } from "@/lib/types";
 
 interface BookingModalProps {
   room: MeetingRoom | null;
@@ -33,6 +33,37 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
   const queryClient = useQueryClient();
   const [billingType, setBillingType] = useState<"personal" | "organization">("personal");
   const [notes, setNotes] = useState("");
+
+  // Fetch organization data if user is part of an organization
+  const { data: organization } = useQuery<Organization>({
+    queryKey: [user?.organization_id ? `/api/organizations/${user.organization_id}` : ""],
+    enabled: !!user?.organization_id,
+  });
+
+  // Fetch all bookings to calculate organization credits used
+  const { data: allBookings = [] } = useQuery<MeetingBooking[]>({
+    queryKey: ["/api/bookings"],
+    enabled: !!user?.organization_id,
+  });
+
+  // Calculate organization credits used this month
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  
+  const orgBookingsThisMonth = allBookings.filter((booking: MeetingBooking) => {
+    if (booking.billed_to !== 'organization') return false;
+    if (booking.status === 'cancelled') return false;
+    const bookingDate = new Date(booking.created_at);
+    return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
+  });
+
+  const orgCreditsUsed = orgBookingsThisMonth.reduce((sum: number, booking: MeetingBooking) => {
+    return sum + parseFloat(booking.credits_used || '0');
+  }, 0);
+  
+  const monthlyOrgAllocation = organization?.monthly_credits || 0;
+  const availableOrgCredits = monthlyOrgAllocation - orgCreditsUsed;
 
   const calculateCreditsNeeded = () => {
     if (!room) return 0;
@@ -88,9 +119,15 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
     if (!room || !user) return;
 
     const creditsNeeded = calculateCreditsNeeded();
-    const availableCredits = user.credits - user.used_credits;
+    
+    // Determine which credits to check based on billing type
+    const availableCredits = billingType === "organization" 
+      ? availableOrgCredits 
+      : user.credits - user.used_credits;
 
-    if (creditsNeeded > availableCredits) {
+    // Only check credit sufficiency for personal billing
+    // Organization billing can go negative (will be charged)
+    if (billingType === "personal" && creditsNeeded > availableCredits) {
       toast({
         title: "Insufficient Credits",
         description: `You need ${creditsNeeded} credits but only have ${availableCredits} available`,
@@ -138,7 +175,11 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
   if (!room) return null;
 
   const creditsNeeded = calculateCreditsNeeded();
-  const availableCredits = user ? user.credits - user.used_credits : 0;
+  
+  // Determine which credits to display based on billing type
+  const availableCredits = billingType === "organization" 
+    ? availableOrgCredits 
+    : (user ? user.credits - user.used_credits : 0);
 
   return (
     <Dialog open={!!room} onOpenChange={onClose}>
@@ -201,11 +242,26 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
                 <span className="text-sm font-medium">{creditsNeeded}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm">Available credits:</span>
+                <span className="text-sm">
+                  {billingType === "organization" ? "Available Organization Credits:" : "Available Personal Credits:"}
+                </span>
                 <span className={`text-sm font-medium ${availableCredits >= creditsNeeded ? 'text-green-600' : 'text-red-600'}`}>
-                  {availableCredits}
+                  {billingType === "organization" ? availableCredits.toFixed(2) : availableCredits}
                 </span>
               </div>
+              <div className="flex justify-between items-center font-bold pt-2 border-t">
+                <span className="text-sm">Remaining After Booking:</span>
+                <span className={`text-sm font-medium ${(availableCredits - creditsNeeded) < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  {billingType === "organization" 
+                    ? (availableCredits - creditsNeeded).toFixed(2) 
+                    : (availableCredits - creditsNeeded)}
+                </span>
+              </div>
+              {billingType === "organization" && (availableCredits - creditsNeeded) < 0 && (
+                <p className="text-xs text-orange-600 mt-2">
+                  ⚠️ Insufficient credits. Negative balance will appear on your account for manual billing at month-end.
+                </p>
+              )}
             </div>
           </div>
           
@@ -249,7 +305,7 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
             </Button>
             <Button
               onClick={handleBookRoom}
-              disabled={bookRoomMutation.isPending || creditsNeeded > availableCredits}
+              disabled={bookRoomMutation.isPending || (billingType === "personal" && creditsNeeded > availableCredits)}
               className="flex-1"
             >
               {bookRoomMutation.isPending ? "Booking..." : "Book Room"}
