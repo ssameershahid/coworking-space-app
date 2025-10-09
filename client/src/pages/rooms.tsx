@@ -94,7 +94,7 @@ export default function RoomsPage() {
 
   // Default billing behavior: members of an organization charge the organization by default for rooms
   useEffect(() => {
-    if (user && user.role === 'member_organization' && user.organization_id) {
+    if (user && (user.role === 'member_organization' || user.role === 'member_organization_admin') && user.organization_id) {
       setBillingType('organization');
     }
   }, [user?.role, user?.organization_id]);
@@ -483,7 +483,7 @@ export default function RoomsPage() {
     setDuration("1");
     setEndTime(""); // Clear end time
     setMeetingNotes("");
-    setBillingType(user?.role === 'member_organization' && user?.organization_id ? 'organization' : 'personal');
+    setBillingType((user?.role === 'member_organization' || user?.role === 'member_organization_admin') && user?.organization_id ? 'organization' : 'personal');
     setIsExternalBooking(false);
     setExternalGuestName("");
     setExternalGuestEmail("");
