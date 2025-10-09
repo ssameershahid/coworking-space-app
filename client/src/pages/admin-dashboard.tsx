@@ -70,6 +70,10 @@ interface User {
   phone?: string;
   role: string;
   organization_id?: string;
+  organization?: {
+    id: string;
+    name: string;
+  };
   site: string;
   is_active: boolean;
   start_date?: string;
@@ -3083,6 +3087,7 @@ export default function AdminDashboard() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Organization</TableHead>
                     <TableHead>Site</TableHead>
                     <TableHead>Member Since</TableHead>
                     <TableHead>Status</TableHead>
@@ -3096,6 +3101,11 @@ export default function AdminDashboard() {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{user.role.replace('_', ' ')}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-gray-600">
+                          {user.organization?.name || 'Individual'}
+                        </span>
                       </TableCell>
                       <TableCell>{user.site}</TableCell>
                       <TableCell>
