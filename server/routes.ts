@@ -1943,8 +1943,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           organization_id: schema.users.organization_id,
           community_visible: schema.users.community_visible,
           email_visible: schema.users.email_visible,
+          organization: {
+            id: schema.organizations.id,
+            name: schema.organizations.name,
+          },
         })
         .from(schema.users)
+        .leftJoin(schema.organizations, eq(schema.users.organization_id, schema.organizations.id))
         .where(and(
           eq(schema.users.is_active, true),
           eq(schema.users.community_visible, true)

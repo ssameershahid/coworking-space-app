@@ -142,7 +142,9 @@ const CommunitySection = () => {
       user.last_name.toLowerCase().includes(searchLower) ||
       user.email.toLowerCase().includes(searchLower) ||
       (user.job_title && user.job_title.toLowerCase().includes(searchLower)) ||
-      (user.company && user.company.toLowerCase().includes(searchLower))
+      (user.company && user.company.toLowerCase().includes(searchLower)) ||
+      (user.organization?.name && user.organization.name.toLowerCase().includes(searchLower)) ||
+      user.role.toLowerCase().includes(searchLower)
     );
   });
 
@@ -244,11 +246,11 @@ const CommunitySection = () => {
                       {user.first_name} {user.last_name}
                     </h3>
                     
-                    {/* Company */}
-                    {user.company && (
+                    {/* Organization/Company */}
+                    {(user.organization?.name || user.company) && (
                       <p className="text-sm text-gray-600 flex items-center gap-1 mb-1">
                         <Building2 className="h-4 w-4" />
-                        {user.company}
+                        {user.organization?.name || user.company}
                       </p>
                     )}
                     
