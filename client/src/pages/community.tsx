@@ -278,12 +278,14 @@ export default function Community() {
                       </p>
                     )}
                     
-                    {/* Job Title */}
-                    <div className="mb-3">
-                      <span className="text-sm font-medium text-gray-900">
-                        {user.job_title || formatRole(user.role)}
-                      </span>
-                    </div>
+                    {/* Job Title - only show if custom job title exists */}
+                    {user.job_title && (
+                      <div className="mb-3">
+                        <span className="text-sm font-medium text-gray-900">
+                          {user.job_title}
+                        </span>
+                      </div>
+                    )}
                     
                     {/* Bio */}
                     {user.bio && (
