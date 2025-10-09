@@ -1821,6 +1821,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tempPassword = Math.random().toString(36).slice(-8);
         const hashedPassword = await bcrypt.hash(tempPassword, 10);
         
+        console.log("🔍 API: Creating admin with office_type:", office_type, "office_number:", office_number);
+        
         const adminUser = await storage.createUser({
           email: admin_email,
           password: hashedPassword,
@@ -1830,13 +1832,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: 'member_organization_admin',
           organization_id: organization.id,
           site: site,
-          office_type: office_type || 'hot_desk', // Cascade from organization
-          office_number: office_number || null, // Cascade from organization
+          office_type: office_type || organization.office_type || 'hot_desk', // Cascade from organization
+          office_number: office_number || organization.office_number || null, // Cascade from organization
           credits: 0, // Organization members get 0 personal credits by default
           can_charge_cafe_to_org: true,
           can_charge_room_to_org: true,
           start_date: start_date ? new Date(start_date) : new Date()
         });
+        
+        console.log("✅ API: Admin created with office_type:", adminUser.office_type, "office_number:", adminUser.office_number);
 
         // Try to send welcome email to admin
         try {
@@ -1847,6 +1851,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create team member user accounts
+      console.log("🔍 API: Creating team members with office_type:", office_type, "office_number:", office_number);
+      
       for (const memberEmail of team_members) {
         if (memberEmail && memberEmail.trim()) {
           const tempPassword = Math.random().toString(36).slice(-8);
@@ -1854,7 +1860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           const memberName = memberEmail.split('@')[0]; // Use email prefix as name
           
-          await storage.createUser({
+          const memberUser = await storage.createUser({
             email: memberEmail.trim(),
             password: hashedPassword,
             first_name: memberName,
@@ -1862,13 +1868,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             role: 'member_organization',
             organization_id: organization.id,
             site: site,
-            office_type: office_type || 'hot_desk', // Cascade from organization
-            office_number: office_number || null, // Cascade from organization
+            office_type: office_type || organization.office_type || 'hot_desk', // Cascade from organization
+            office_number: office_number || organization.office_number || null, // Cascade from organization
             credits: 0, // Organization members get 0 personal credits by default
             can_charge_cafe_to_org: false,
             can_charge_room_to_org: true,
             start_date: start_date ? new Date(start_date) : new Date()
           });
+          
+          console.log("✅ API: Team member created:", memberUser.email, "with office_type:", memberUser.office_type);
 
           // Try to send welcome email to team member
           try {
