@@ -2231,6 +2231,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const organization = await storage.updateOrganization(orgId, sanitizedUpdates);
       console.log("✅ API: Organization updated successfully");
       
+      // AUTO-SYNC: If office_type or office_number changed, update all employees
+      if (sanitizedUpdates.office_type !== undefined || sanitizedUpdates.office_number !== undefined) {
+        const employeeUpdates: any = {};
+        
+        if (sanitizedUpdates.office_type !== undefined) {
+          employeeUpdates.office_type = sanitizedUpdates.office_type;
+        }
+        
+        if (sanitizedUpdates.office_number !== undefined) {
+          employeeUpdates.office_number = sanitizedUpdates.office_number;
+        }
+        
+        // Update all employees of this organization
+        await db
+          .update(schema.users)
+          .set(employeeUpdates)
+          .where(eq(schema.users.organization_id, orgId));
+        
+        console.log(`✅ API: Synced office fields to all employees of organization ${orgId}`, employeeUpdates);
+      }
+      
       res.json(organization);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
