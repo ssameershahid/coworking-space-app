@@ -411,7 +411,7 @@ export default function AdminDashboard() {
     queryKey: ['/api/admin/stats', selectedSite],
     queryFn: async () => {
       const url = selectedSite === 'all' ? '/api/admin/stats' : `/api/admin/stats?site=${selectedSite}`;
-      const response = await fetch(url);
+      const response = await fetch(url, { credentials: 'include' });
       return response.json();
     },
     enabled: !!user && user.role === 'calmkaaj_admin'
@@ -422,7 +422,7 @@ export default function AdminDashboard() {
     queryFn: async () => {
       try {
         const url = selectedSite === 'all' ? '/api/admin/users' : `/api/admin/users?site=${selectedSite}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { credentials: 'include' });
         if (!response.ok) return [];
         const data = await response.json();
         return Array.isArray(data) ? data : [];
@@ -439,7 +439,7 @@ export default function AdminDashboard() {
     queryFn: async () => {
       try {
         const url = selectedSite === 'all' ? '/api/organizations' : `/api/organizations?site=${selectedSite}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { credentials: 'include' });
         if (!response.ok) return [];
         const data = await response.json();
         return Array.isArray(data) ? data : [];
@@ -460,7 +460,7 @@ export default function AdminDashboard() {
         await Promise.all(
           organizations.map(async (org) => {
             try {
-              const response = await fetch(`/api/organizations/${org.id}/team-count`);
+              const response = await fetch(`/api/organizations/${org.id}/team-count`, { credentials: 'include' });
               if (response.ok) {
                 const data = await response.json();
                 counts[org.id] = data.count || 0;
@@ -487,7 +487,7 @@ export default function AdminDashboard() {
     queryFn: async () => {
       try {
         const url = selectedSite === 'all' ? '/api/admin/menu/items' : `/api/admin/menu/items?site=${selectedSite}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { credentials: 'include' });
         if (!response.ok) return [];
         const data = await response.json();
         return Array.isArray(data) ? data : [];
@@ -504,7 +504,7 @@ export default function AdminDashboard() {
     queryFn: async () => {
       try {
         const url = selectedSite === 'all' ? '/api/rooms' : `/api/rooms?site=${selectedSite}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { credentials: 'include' });
         if (!response.ok) return [];
         const data = await response.json();
         return Array.isArray(data) ? data : [];
@@ -521,7 +521,7 @@ export default function AdminDashboard() {
     queryFn: async () => {
       try {
         const url = selectedSite === 'all' ? '/api/announcements' : `/api/announcements?site=${selectedSite}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { credentials: 'include' });
         if (!response.ok) return [];
         const data = await response.json();
         return Array.isArray(data) ? data : [];
@@ -538,7 +538,7 @@ export default function AdminDashboard() {
     queryFn: async () => {
       try {
         const url = selectedSite === 'all' ? '/api/cafe/orders/all' : `/api/cafe/orders/all?site=${selectedSite}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { credentials: 'include' });
         if (!response.ok) return [];
         const data = await response.json();
         return Array.isArray(data) ? data : [];
@@ -555,7 +555,7 @@ export default function AdminDashboard() {
     queryFn: async () => {
       try {
         const url = selectedSite === 'all' ? '/api/admin/bookings' : `/api/admin/bookings?site=${selectedSite}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { credentials: 'include' });
         if (!response.ok) return [];
         const data = await response.json();
         return Array.isArray(data) ? data : [];
