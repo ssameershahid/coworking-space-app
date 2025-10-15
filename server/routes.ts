@@ -1758,7 +1758,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
+  app.post("/api/organizations", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), (req, res, next) => {
+    // Increase timeout for creating organizations with many team members
+    req.setTimeout?.(180000); // 3 minutes
+    next();
+  }, async (req, res) => {
     try {
       console.log("🔍 API: Creating organization with data:", req.body);
       
