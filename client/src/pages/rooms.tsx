@@ -102,6 +102,9 @@ export default function RoomsPage() {
   const { data: allBookings = [] } = useQuery<MeetingBooking[]>({
     queryKey: ["/api/bookings"],
     enabled: !!user,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 
   // Fetch organization data if user is part of an organization
@@ -171,10 +174,12 @@ export default function RoomsPage() {
         title: "Booking Confirmed!",
         description: `Your meeting room has been booked successfully.`,
       });
-      // Invalidate all booking-related queries for real-time updates
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["room-bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Invalidate all booking-related queries for real-time updates and force refetch
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ["room-bookings"], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"], refetchType: 'active' });
+      // Also explicitly refetch bookings to ensure fresh data
+      queryClient.refetchQueries({ queryKey: ["/api/bookings"] });
     },
     onError: (error: any) => {
       console.error('Booking error:', error);
@@ -208,10 +213,12 @@ export default function RoomsPage() {
         title: "Booking Cancelled",
         description: "Your booking has been cancelled and credits have been refunded.",
       });
-      // Invalidate all booking-related queries for real-time updates
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["room-bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Invalidate all booking-related queries for real-time updates and force refetch
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ["room-bookings"], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"], refetchType: 'active' });
+      // Also explicitly refetch bookings to ensure fresh data
+      queryClient.refetchQueries({ queryKey: ["/api/bookings"] });
       setShowCancelModal(false);
       setBookingToCancel(null);
     },
