@@ -631,6 +631,9 @@ export class DatabaseStorage implements IStorage {
   async getMeetingBookings(userId?: number, orgId?: string, site?: string): Promise<any[]> {
     let query = db.select({
       id: schema.meeting_bookings.id,
+      user_id: schema.meeting_bookings.user_id,  // ← ADDED THIS!
+      room_id: schema.meeting_bookings.room_id,  // ← ADDED THIS TOO!
+      org_id: schema.meeting_bookings.org_id,    // ← AND THIS!
       start_time: schema.meeting_bookings.start_time,
       end_time: schema.meeting_bookings.end_time,
       credits_used: schema.meeting_bookings.credits_used,
@@ -638,6 +641,7 @@ export class DatabaseStorage implements IStorage {
       billed_to: schema.meeting_bookings.billed_to,
       notes: schema.meeting_bookings.notes,
       created_at: schema.meeting_bookings.created_at,
+      site: schema.meeting_bookings.site,        // ← AND THIS!
       user: {
         id: schema.users.id,
         first_name: schema.users.first_name,

@@ -114,15 +114,7 @@ export default function RoomsPage() {
   });
 
   // Show only MY bookings (filter by user_id), but keep allBookings for org credit calculations
-  const myBookings = allBookings.filter((booking: MeetingBooking) => {
-    const matches = booking.user_id === user?.id;
-    if (!matches && user?.role === 'calmkaaj_admin') {
-      console.log(`🔍 Booking ${booking.id} filtered out: booking.user_id=${booking.user_id} (${typeof booking.user_id}), user.id=${user?.id} (${typeof user?.id})`);
-    }
-    return matches;
-  });
-  
-  console.log(`🔍 Debug - Total bookings: ${allBookings.length}, My bookings: ${myBookings.length}, User ID: ${user?.id}`);
+  const myBookings = allBookings.filter((booking: MeetingBooking) => booking.user_id === user?.id);
 
   // Pagination for upcoming bookings list (future only)
   const [bookingsPage, setBookingsPage] = useState(1);
@@ -131,19 +123,8 @@ export default function RoomsPage() {
   // Filter for UPCOMING bookings only (future meetings, exclude cancelled)
   const now = new Date();
   const upcomingBookings = (myBookings || []).filter((booking: MeetingBooking) => {
-    const bookingTime = new Date(booking.start_time);
-    const isUpcoming = bookingTime > now;
-    const isNotCancelled = booking.status !== 'cancelled';
-    const shouldShow = isUpcoming && isNotCancelled;
-    
-    if (user?.role === 'calmkaaj_admin') {
-      console.log(`🔍 Booking ${booking.id}: start=${bookingTime.toISOString()}, now=${now.toISOString()}, isUpcoming=${isUpcoming}, status=${booking.status}, shouldShow=${shouldShow}`);
-    }
-    
-    return shouldShow;
+    return new Date(booking.start_time) > now && booking.status !== 'cancelled';
   });
-  
-  console.log(`🔍 Debug - Upcoming bookings: ${upcomingBookings.length}`);
   
   // Sort by nearest date first (ascending)
   const sortedAllBookings = upcomingBookings.slice().sort((a, b) => {
