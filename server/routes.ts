@@ -992,15 +992,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { org_id } = req.query;
       
       let orders;
+      // Check if this is a request for organizational orders (only for organization page)
       if (user.role === "member_organization_admin" && org_id) {
+        // Organization admins can see all orders from their organization
+        // This is used on the Organization page, not the Cafe page
         orders = await storage.getCafeOrders(undefined, org_id as string);
       } else if (user.role === "cafe_manager") {
         // Cafe managers only see orders from their location
         orders = await storage.getCafeOrders(undefined, undefined, user.site);
       } else if (user.role === "calmkaaj_admin") {
-        // Admins can see all orders
+        // CalmKaaj admins can see all orders
         orders = await storage.getCafeOrders();
       } else {
+        // For all other users (including organization admins on the Cafe page),
+        // show only their own orders
         orders = await storage.getCafeOrders(user.id);
       }
       

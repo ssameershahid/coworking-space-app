@@ -68,7 +68,9 @@ export default function OrganizationPage() {
            booking.status !== 'cancelled';
   });
 
-  const totalSpent = monthlyOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
+  const totalSpent = monthlyOrders
+    .filter((order: any) => order.billed_to === 'organization')
+    .reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
   const totalCreditsUsed = monthlyBookings.reduce((sum: number, booking: any) => sum + parseFloat(booking.credits_used || 0), 0);
   const activeMembers = employees.filter((emp: any) => emp.is_active).length;
 
@@ -119,7 +121,7 @@ export default function OrganizationPage() {
               <CardContent>
                 <div className="text-2xl font-bold">Rs. {totalSpent.toFixed(2)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {monthlyOrders.length} café orders this month
+                  {monthlyOrders.filter((order: any) => order.billed_to === 'organization').length} café orders this month
                 </p>
               </CardContent>
             </Card>
@@ -149,7 +151,7 @@ export default function OrganizationPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {monthlyOrders.slice(0, 3).map((order: any) => (
+                  {monthlyOrders.filter((order: any) => order.billed_to === 'organization').slice(0, 3).map((order: any) => (
                     <div key={order.id} className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -161,7 +163,7 @@ export default function OrganizationPage() {
                       <Badge variant="outline">Rs. {order.total_amount}</Badge>
                     </div>
                   ))}
-                  {monthlyOrders.length === 0 && (
+                  {monthlyOrders.filter((order: any) => order.billed_to === 'organization').length === 0 && (
                     <p className="text-sm text-gray-500">No café orders this month</p>
                   )}
                 </div>
@@ -216,7 +218,13 @@ export default function OrganizationPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {orgOrders.filter((order: any) => order.status !== 'deleted').slice(0, 5).map((order: any) => (
+                    {orgOrders
+                      .filter((order: any) => 
+                        order.status !== 'deleted' && 
+                        order.billed_to === 'organization'
+                      )
+                      .slice(0, 5)
+                      .map((order: any) => (
                       <TableRow key={order.id}>
                         <TableCell>
                           <div>
@@ -235,7 +243,7 @@ export default function OrganizationPage() {
                     ))}
                   </TableBody>
                 </Table>
-                {orgOrders.length === 0 && (
+                {orgOrders.filter((order: any) => order.billed_to === 'organization').length === 0 && (
                   <div className="text-center py-4">
                     <p className="text-sm text-gray-500">No organization café orders found</p>
                   </div>
