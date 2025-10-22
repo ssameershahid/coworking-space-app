@@ -40,6 +40,7 @@ import { CafeOrder, MeetingBooking, Announcement } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { CreditAnimation, useCreditAnimation } from "@/components/ui/credit-animation";
 import { formatPriceWithCurrency } from "@/lib/format-price";
+import { getPakistanTime } from "@/lib/pakistan-time";
 
 // Payment status configuration
 const paymentStatusConfig = {
@@ -286,16 +287,18 @@ export default function Dashboard() {
 
             {/* For org members WITHOUT personal credits: Show Organization Credits Card in grid */}
             {(user.role === 'member_organization' || user.role === 'member_organization_admin') && user.credits === 0 && user.organization_id && organization && (() => {
-              // Calculate organization credits used this month
-              const currentDate = new Date();
-              const currentMonth = currentDate.getMonth();
-              const currentYear = currentDate.getFullYear();
+              // Calculate organization credits used this month (using Pakistan time)
+              const pakistanNow = getPakistanTime();
+              const currentMonth = pakistanNow.getMonth();
+              const currentYear = pakistanNow.getFullYear();
               
               const orgBookingsThisMonth = allBookings.filter((booking: MeetingBooking) => {
                 if (booking.billed_to !== 'organization') return false;
                 if (booking.status === 'cancelled') return false; // Don't count cancelled bookings
                 const bookingDate = new Date(booking.created_at);
-                return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
+                // Convert to Pakistan time for month/year comparison
+                const bookingPakistanTime = new Date(bookingDate.getTime() + (5 * 60 * 60 * 1000));
+                return bookingPakistanTime.getMonth() === currentMonth && bookingPakistanTime.getFullYear() === currentYear;
               });
               
               const orgCreditsUsed = orgBookingsThisMonth.reduce((sum: number, booking: any) => {
@@ -413,16 +416,18 @@ export default function Dashboard() {
 
       {/* Organization Credits Card - For org members WITH personal credits only (below grid) */}
       {(user.role === 'member_organization' || user.role === 'member_organization_admin') && user.credits > 0 && user.organization_id && organization && (() => {
-        // Calculate organization credits used this month
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth();
-        const currentYear = currentDate.getFullYear();
+        // Calculate organization credits used this month (using Pakistan time)
+        const pakistanNow = getPakistanTime();
+        const currentMonth = pakistanNow.getMonth();
+        const currentYear = pakistanNow.getFullYear();
         
         const orgBookingsThisMonth = allBookings.filter((booking: MeetingBooking) => {
           if (booking.billed_to !== 'organization') return false;
           if (booking.status === 'cancelled') return false; // Don't count cancelled bookings
           const bookingDate = new Date(booking.created_at);
-          return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
+          // Convert to Pakistan time for month/year comparison
+          const bookingPakistanTime = new Date(bookingDate.getTime() + (5 * 60 * 60 * 1000));
+          return bookingPakistanTime.getMonth() === currentMonth && bookingPakistanTime.getFullYear() === currentYear;
         });
         
         const orgCreditsUsed = orgBookingsThisMonth.reduce((sum: number, booking: any) => {

@@ -10,12 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { FileText, Download, Calendar, DollarSign, Coffee, Users } from "lucide-react";
+import { getPakistanTime } from "@/lib/pakistan-time";
 
 export default function InvoiceGeneration() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const pakistanNow = getPakistanTime();
+  const [selectedMonth, setSelectedMonth] = useState(pakistanNow.getMonth());
+  const [selectedYear, setSelectedYear] = useState(pakistanNow.getFullYear());
 
   const { data: orgOrders = [] } = useQuery({
     queryKey: ["/api/cafe/orders", user?.organization_id],
@@ -62,15 +64,19 @@ export default function InvoiceGeneration() {
     }
   });
 
-  // Filter orders and bookings for selected month/year
+  // Filter orders and bookings for selected month/year (using Pakistan time)
   const filteredOrders = orgOrders.filter((order: any) => {
     const orderDate = new Date(order.created_at);
-    return orderDate.getMonth() === selectedMonth && orderDate.getFullYear() === selectedYear;
+    // Convert to Pakistan time for month/year comparison
+    const orderPakistanTime = new Date(orderDate.getTime() + (5 * 60 * 60 * 1000));
+    return orderPakistanTime.getMonth() === selectedMonth && orderPakistanTime.getFullYear() === selectedYear;
   });
 
   const filteredBookings = orgBookings.filter((booking: any) => {
     const bookingDate = new Date(booking.created_at);
-    return bookingDate.getMonth() === selectedMonth && bookingDate.getFullYear() === selectedYear;
+    // Convert to Pakistan time for month/year comparison
+    const bookingPakistanTime = new Date(bookingDate.getTime() + (5 * 60 * 60 * 1000));
+    return bookingPakistanTime.getMonth() === selectedMonth && bookingPakistanTime.getFullYear() === selectedYear;
   });
 
   const totalCafeAmount = filteredOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
@@ -82,7 +88,7 @@ export default function InvoiceGeneration() {
     "July", "August", "September", "October", "November", "December"
   ];
 
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  const years = Array.from({ length: 5 }, (_, i) => pakistanNow.getFullYear() - i);
 
   const handleGenerateInvoice = () => {
     generateInvoiceMutation.mutate({
