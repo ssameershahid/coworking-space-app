@@ -48,6 +48,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { SimpleMenuEdit } from "@/components/simple-menu-edit";
 import { format } from "date-fns";
 import { formatLargeCurrencyAmount } from "@/lib/format-price";
+import { getPakistanTime } from "@/lib/pakistan-time";
 
 interface AdminStats {
   totalUsers: number;
@@ -3605,11 +3606,19 @@ export default function AdminDashboard() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <Activity className="h-4 w-4 text-green-600" />
-                        <span>{(allOrders || []).filter(o => new Date(o.created_at).toDateString() === new Date().toDateString()).length} orders today</span>
+                        <span>{(allOrders || []).filter(o => {
+                          const orderDate = new Date(o.created_at);
+                          const orderPakistanTime = new Date(orderDate.getTime() + (5 * 60 * 60 * 1000));
+                          return orderPakistanTime.toDateString() === getPakistanTime().toDateString();
+                        }).length} orders today</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4 text-blue-600" />
-                        <span>{(allBookings || []).filter(b => new Date(b.created_at).toDateString() === new Date().toDateString()).length} bookings today</span>
+                        <span>{(allBookings || []).filter(b => {
+                          const bookingDate = new Date(b.created_at);
+                          const bookingPakistanTime = new Date(bookingDate.getTime() + (5 * 60 * 60 * 1000));
+                          return bookingPakistanTime.toDateString() === getPakistanTime().toDateString();
+                        }).length} bookings today</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Users className="h-4 w-4 text-purple-600" />

@@ -14,6 +14,7 @@ import {
   initializeAudioNotifications, 
   playNotificationSound
 } from "@/lib/audio-notifications";
+import { getPakistanTime } from "@/lib/pakistan-time";
 
 
 
@@ -152,11 +153,16 @@ export default function CafeManagerDashboard() {
 
 
 
-  // Filter all orders to show only today's orders
+  // Filter all orders to show only today's orders (using Pakistan time)
   const safeOrders: CafeOrder[] = Array.isArray(orders) ? orders : [];
-  const todaysOrders = safeOrders.filter(order => 
-    new Date(order.created_at).toDateString() === new Date().toDateString()
-  );
+  const pakistanNow = getPakistanTime();
+  const todaysOrders = safeOrders.filter(order => {
+    // Convert order creation time to Pakistan time for comparison
+    const orderDate = new Date(order.created_at);
+    // Add 5 hours to convert to Pakistan time (UTC+5)
+    const orderPakistanTime = new Date(orderDate.getTime() + (5 * 60 * 60 * 1000));
+    return orderPakistanTime.toDateString() === pakistanNow.toDateString();
+  });
   // Only count orders that have been accepted or progressed further
   const todaysCountedOrders = todaysOrders.filter(order => 
     order.status === 'accepted' || order.status === 'preparing' || order.status === 'ready' || order.status === 'delivered'
