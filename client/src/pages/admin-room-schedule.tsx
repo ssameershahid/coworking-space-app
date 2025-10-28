@@ -130,7 +130,8 @@ export default function AdminRoomSchedulePage() {
     return (bookings || []).filter((b: any) => {
       const s = new Date(b.start_time).getTime();
       const e = new Date(b.end_time).getTime();
-      return e >= fromMs && s <= toMs; // overlap test
+      // Only show confirmed bookings on the schedule (hide cancelled ones)
+      return e >= fromMs && s <= toMs && b.status !== 'cancelled';
     });
   }, [bookings, range]);
 
