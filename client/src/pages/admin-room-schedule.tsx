@@ -358,21 +358,19 @@ export default function AdminRoomSchedulePage() {
                   </div>
                 )}
               </div>
-              {selectedBooking.status !== 'cancelled' && (
-                <DialogFooter>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      setBookingToDelete(selectedBooking);
-                      setShowDeleteModal(true);
-                    }}
-                    className="w-full sm:w-auto"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Booking
-                  </Button>
-                </DialogFooter>
-              )}
+              <DialogFooter>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setBookingToDelete(selectedBooking);
+                    setShowDeleteModal(true);
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Booking
+                </Button>
+              </DialogFooter>
             </>
           )}
         </DialogContent>

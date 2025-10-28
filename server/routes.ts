@@ -1645,32 +1645,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking not found" });
       }
 
-      // Check if booking is already cancelled
-      if (booking.status === 'cancelled') {
-        return res.status(400).json({ message: "Booking is already cancelled" });
-      }
+      // Track if booking was already cancelled (to avoid double refund)
+      const wasAlreadyCancelled = booking.status === 'cancelled';
 
-      // Cancel the booking with admin's ID as cancelled_by
+      // Cancel the booking with admin's ID as cancelled_by (even if already cancelled)
       const cancelledBooking = await storage.updateMeetingBookingStatus(id, 'cancelled', adminUserId);
 
-      // Refund credits based on billing type and booking type
-      const isExternalBooking = typeof booking.notes === 'string' && booking.notes.includes('[EXTERNAL BOOKING]');
-      
-      if (booking.billed_to === 'personal' && !isExternalBooking) {
-        // Refund to user's personal credits
-        const user = await storage.getUserById(booking.user_id);
-        if (user) {
-          const currentUsedCredits = parseFloat(user.used_credits || "0");
-          const refundAmount = parseFloat(booking.credits_used || "0");
-          const newUsedCredits = Math.max(0, currentUsedCredits - refundAmount);
-          await storage.updateUser(booking.user_id, { used_credits: newUsedCredits.toString() });
+      // Only refund credits if booking was NOT already cancelled (avoid double refund)
+      if (!wasAlreadyCancelled) {
+        const isExternalBooking = typeof booking.notes === 'string' && booking.notes.includes('[EXTERNAL BOOKING]');
+        
+        if (booking.billed_to === 'personal' && !isExternalBooking) {
+          // Refund to user's personal credits
+          const user = await storage.getUserById(booking.user_id);
+          if (user) {
+            const currentUsedCredits = parseFloat(user.used_credits || "0");
+            const refundAmount = parseFloat(booking.credits_used || "0");
+            const newUsedCredits = Math.max(0, currentUsedCredits - refundAmount);
+            await storage.updateUser(booking.user_id, { used_credits: newUsedCredits.toString() });
+          }
         }
+        // Note: Organization credits are calculated monthly from bookings, no need to refund explicitly
       }
-      // Note: Organization credits are calculated monthly from bookings, no need to refund explicitly
 
       res.json({ 
         booking: cancelledBooking,
-        message: "Booking deleted successfully and credits refunded"
+        message: wasAlreadyCancelled 
+          ? "Booking removed successfully" 
+          : "Booking deleted successfully and credits refunded"
       });
     } catch (error) {
       console.error("Error deleting booking:", error);
