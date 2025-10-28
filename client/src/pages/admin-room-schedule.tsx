@@ -359,19 +359,28 @@ export default function AdminRoomSchedulePage() {
                   </div>
                 )}
               </div>
-              <DialogFooter>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setBookingToDelete(selectedBooking);
-                    setShowDeleteModal(true);
-                  }}
-                  className="w-full sm:w-auto"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Booking
-                </Button>
-              </DialogFooter>
+              {/* Only show delete button for future bookings */}
+              {new Date(selectedBooking.start_time) > new Date() && (
+                <DialogFooter>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setBookingToDelete(selectedBooking);
+                      setShowDeleteModal(true);
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Booking
+                  </Button>
+                </DialogFooter>
+              )}
+              {/* Show message for past bookings */}
+              {new Date(selectedBooking.start_time) <= new Date() && (
+                <div className="text-sm text-gray-500 italic border-t pt-3 mt-3">
+                  Past bookings cannot be deleted
+                </div>
+              )}
             </>
           )}
         </DialogContent>

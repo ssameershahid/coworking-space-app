@@ -1645,6 +1645,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking not found" });
       }
 
+      // Check if booking is in the past - cannot delete past bookings
+      const nowPakistan = getPakistanTime();
+      const bookingStartTime = convertToPakistanTime(new Date(booking.start_time));
+      
+      if (bookingStartTime <= nowPakistan) {
+        return res.status(400).json({ 
+          message: "Cannot delete past bookings. Only future bookings can be deleted." 
+        });
+      }
+
       // Track if booking was already cancelled (to avoid double refund)
       const wasAlreadyCancelled = booking.status === 'cancelled';
 
