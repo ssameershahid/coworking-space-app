@@ -6,7 +6,6 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;
 import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt, inArray } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 import * as schema from "@shared/schema";
 
 // Get DATABASE_URL with proper error handling
@@ -630,13 +629,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeetingBookings(userId?: number, orgId?: string, site?: string): Promise<any[]> {
-    const cancelledByUser = alias(schema.users, 'cancelled_by_user');
-    
     let query = db.select({
       id: schema.meeting_bookings.id,
-      user_id: schema.meeting_bookings.user_id,  // ← ADDED THIS!
-      room_id: schema.meeting_bookings.room_id,  // ← ADDED THIS TOO!
-      org_id: schema.meeting_bookings.org_id,    // ← AND THIS!
+      user_id: schema.meeting_bookings.user_id,
+      room_id: schema.meeting_bookings.room_id,
+      org_id: schema.meeting_bookings.org_id,
       start_time: schema.meeting_bookings.start_time,
       end_time: schema.meeting_bookings.end_time,
       credits_used: schema.meeting_bookings.credits_used,
@@ -645,7 +642,7 @@ export class DatabaseStorage implements IStorage {
       notes: schema.meeting_bookings.notes,
       cancelled_by: schema.meeting_bookings.cancelled_by,
       created_at: schema.meeting_bookings.created_at,
-      site: schema.meeting_bookings.site,        // ← AND THIS!
+      site: schema.meeting_bookings.site,
       user: {
         id: schema.users.id,
         first_name: schema.users.first_name,
@@ -660,16 +657,10 @@ export class DatabaseStorage implements IStorage {
       organization: {
         id: schema.organizations.id,
         name: schema.organizations.name,
-      },
-      cancelled_by_user: {
-        id: cancelledByUser.id,
-        first_name: cancelledByUser.first_name,
-        last_name: cancelledByUser.last_name,
       }
     })
     .from(schema.meeting_bookings)
     .leftJoin(schema.users, eq(schema.meeting_bookings.user_id, schema.users.id))
-    .leftJoin(cancelledByUser, eq(schema.meeting_bookings.cancelled_by, cancelledByUser.id))
     .leftJoin(schema.meeting_rooms, eq(schema.meeting_bookings.room_id, schema.meeting_rooms.id))
     .leftJoin(schema.organizations, eq(schema.meeting_bookings.org_id, schema.organizations.id));
 
@@ -697,8 +688,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeetingBookingById(id: number): Promise<any> {
-    const cancelledByUser = alias(schema.users, 'cancelled_by_user');
-    
     const [booking] = await db.select({
       id: schema.meeting_bookings.id,
       user_id: schema.meeting_bookings.user_id,
@@ -725,16 +714,10 @@ export class DatabaseStorage implements IStorage {
       organization: {
         id: schema.organizations.id,
         name: schema.organizations.name,
-      },
-      cancelled_by_user: {
-        id: cancelledByUser.id,
-        first_name: cancelledByUser.first_name,
-        last_name: cancelledByUser.last_name,
       }
     })
     .from(schema.meeting_bookings)
     .leftJoin(schema.users, eq(schema.meeting_bookings.user_id, schema.users.id))
-    .leftJoin(cancelledByUser, eq(schema.meeting_bookings.cancelled_by, cancelledByUser.id))
     .leftJoin(schema.meeting_rooms, eq(schema.meeting_bookings.room_id, schema.meeting_rooms.id))
     .leftJoin(schema.organizations, eq(schema.meeting_bookings.org_id, schema.organizations.id))
     .where(eq(schema.meeting_bookings.id, id));
