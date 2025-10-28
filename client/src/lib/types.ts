@@ -117,6 +117,7 @@ export interface MeetingBooking {
   billed_to: 'personal' | 'organization';
   org_id?: string;
   notes?: string;
+  cancelled_by?: number; // ID of admin/team user who cancelled the booking
   site: string;
   created_at: string;
   updated_at?: string;

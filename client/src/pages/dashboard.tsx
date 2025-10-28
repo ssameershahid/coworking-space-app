@@ -724,7 +724,9 @@ export default function Dashboard() {
                 </div>
                 {recentBookings
                   .slice((roomBookingsPage - 1) * roomBookingsPerPage, roomBookingsPage * roomBookingsPerPage)
-                  .map((booking) => (
+                  .map((booking) => {
+                    const cancelledByAdmin = booking.status === 'cancelled' && booking.cancelled_by && booking.cancelled_by !== user?.id;
+                    return (
                   <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <Calendar className="h-5 w-5 text-blue-600" />
@@ -748,7 +750,7 @@ export default function Dashboard() {
                             booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''
                           }
                         >
-                          {booking.status}
+                          {cancelledByAdmin ? 'Cancelled by Admin' : booking.status}
                         </Badge>
                         {/* Billing Badge */}
                         {booking.billed_to === 'organization' ? (
@@ -765,7 +767,8 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                ))}
+                    );
+                  })}
                 {recentBookings.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     No room bookings found

@@ -5,7 +5,7 @@ dotenv.config();
 import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;
-import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, or, isNull, gt, inArray, alias } from "drizzle-orm";
 import * as schema from "@shared/schema";
 
 // Get DATABASE_URL with proper error handling
@@ -106,7 +106,7 @@ export interface IStorage {
   createMeetingBooking(booking: schema.InsertMeetingBooking): Promise<schema.MeetingBooking>;
   getMeetingBookings(userId?: number, orgId?: string, site?: string): Promise<any[]>;
   getMeetingBookingById(id: number): Promise<any>;
-  updateMeetingBookingStatus(id: number, status: string): Promise<schema.MeetingBooking>;
+  updateMeetingBookingStatus(id: number, status: string, cancelledBy?: number): Promise<schema.MeetingBooking>;
   checkRoomAvailability(roomId: number, startTime: Date, endTime: Date): Promise<boolean>;
   
   // Announcements
@@ -629,6 +629,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeetingBookings(userId?: number, orgId?: string, site?: string): Promise<any[]> {
+    const cancelledByUser = alias(schema.users, 'cancelled_by_user');
+    
     let query = db.select({
       id: schema.meeting_bookings.id,
       user_id: schema.meeting_bookings.user_id,  // ← ADDED THIS!
@@ -640,6 +642,7 @@ export class DatabaseStorage implements IStorage {
       status: schema.meeting_bookings.status,
       billed_to: schema.meeting_bookings.billed_to,
       notes: schema.meeting_bookings.notes,
+      cancelled_by: schema.meeting_bookings.cancelled_by,
       created_at: schema.meeting_bookings.created_at,
       site: schema.meeting_bookings.site,        // ← AND THIS!
       user: {
@@ -656,10 +659,16 @@ export class DatabaseStorage implements IStorage {
       organization: {
         id: schema.organizations.id,
         name: schema.organizations.name,
+      },
+      cancelled_by_user: {
+        id: cancelledByUser.id,
+        first_name: cancelledByUser.first_name,
+        last_name: cancelledByUser.last_name,
       }
     })
     .from(schema.meeting_bookings)
     .leftJoin(schema.users, eq(schema.meeting_bookings.user_id, schema.users.id))
+    .leftJoin(cancelledByUser, eq(schema.meeting_bookings.cancelled_by, cancelledByUser.id))
     .leftJoin(schema.meeting_rooms, eq(schema.meeting_bookings.room_id, schema.meeting_rooms.id))
     .leftJoin(schema.organizations, eq(schema.meeting_bookings.org_id, schema.organizations.id));
 
@@ -687,6 +696,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeetingBookingById(id: number): Promise<any> {
+    const cancelledByUser = alias(schema.users, 'cancelled_by_user');
+    
     const [booking] = await db.select({
       id: schema.meeting_bookings.id,
       user_id: schema.meeting_bookings.user_id,
@@ -696,6 +707,7 @@ export class DatabaseStorage implements IStorage {
       status: schema.meeting_bookings.status,
       billed_to: schema.meeting_bookings.billed_to,
       notes: schema.meeting_bookings.notes,
+      cancelled_by: schema.meeting_bookings.cancelled_by,
       created_at: schema.meeting_bookings.created_at,
       user: {
         id: schema.users.id,
@@ -712,10 +724,16 @@ export class DatabaseStorage implements IStorage {
       organization: {
         id: schema.organizations.id,
         name: schema.organizations.name,
+      },
+      cancelled_by_user: {
+        id: cancelledByUser.id,
+        first_name: cancelledByUser.first_name,
+        last_name: cancelledByUser.last_name,
       }
     })
     .from(schema.meeting_bookings)
     .leftJoin(schema.users, eq(schema.meeting_bookings.user_id, schema.users.id))
+    .leftJoin(cancelledByUser, eq(schema.meeting_bookings.cancelled_by, cancelledByUser.id))
     .leftJoin(schema.meeting_rooms, eq(schema.meeting_bookings.room_id, schema.meeting_rooms.id))
     .leftJoin(schema.organizations, eq(schema.meeting_bookings.org_id, schema.organizations.id))
     .where(eq(schema.meeting_bookings.id, id));
@@ -723,8 +741,18 @@ export class DatabaseStorage implements IStorage {
     return booking;
   }
 
-  async updateMeetingBookingStatus(id: number, status: string): Promise<schema.MeetingBooking> {
-    const [updatedBooking] = await db.update(schema.meeting_bookings).set({ status: status as any, updated_at: new Date() }).where(eq(schema.meeting_bookings.id, id)).returning();
+  async updateMeetingBookingStatus(id: number, status: string, cancelledBy?: number): Promise<schema.MeetingBooking> {
+    const updateData: any = { 
+      status: status as any, 
+      updated_at: new Date() 
+    };
+    
+    // If cancelling and cancelled_by is provided, record who cancelled it
+    if (status === 'cancelled' && cancelledBy !== undefined) {
+      updateData.cancelled_by = cancelledBy;
+    }
+    
+    const [updatedBooking] = await db.update(schema.meeting_bookings).set(updateData).where(eq(schema.meeting_bookings.id, id)).returning();
     return updatedBooking;
   }
 

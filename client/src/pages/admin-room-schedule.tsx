@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SITES } from "@/lib/constants";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -21,10 +23,14 @@ function endOfMonth(d: Date) { const x = new Date(d.getFullYear(), d.getMonth()+
 
 export default function AdminRoomSchedulePage() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [view, setView] = useState<ViewMode>("day");
   const [cursor, setCursor] = useState<Date>(new Date());
   const [showExternalModal, setShowExternalModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState<any | null>(null);
   const [siteFilter, setSiteFilter] = useState<'all' | 'blue_area' | 'i_10'>('all');
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
@@ -36,6 +42,31 @@ export default function AdminRoomSchedulePage() {
 
   const { data: rooms = [] } = useQuery({ queryKey: ["/api/rooms"], staleTime: 60_000 });
   const { data: bookings = [] } = useQuery({ queryKey: [siteFilter === 'all' ? "/api/admin/bookings" : `/api/admin/bookings?site=${siteFilter}`], staleTime: 30_000 });
+
+  // Delete booking mutation
+  const deleteBookingMutation = useMutation({
+    mutationFn: async (bookingId: number) => {
+      return apiRequest('DELETE', `/api/admin/bookings/${bookingId}`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Booking Deleted",
+        description: "The booking has been deleted and credits have been refunded.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      setShowDeleteModal(false);
+      setSelectedBooking(null);
+      setBookingToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Deletion Failed",
+        description: error.message || "Failed to delete booking. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Extract all lifetime external bookings created by current admin/team user
   const externalBookings = useMemo(() => {
@@ -293,40 +324,93 @@ export default function AdminRoomSchedulePage() {
             <DialogTitle>Booking Details</DialogTitle>
           </DialogHeader>
           {selectedBooking && (
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="text-gray-500">Room</div>
-                <div className="font-medium">{selectedBooking.room?.name || '—'}</div>
-                <div className="text-gray-500">Start</div>
-                <div className="font-medium">{new Date(selectedBooking.start_time).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                <div className="text-gray-500">End</div>
-                <div className="font-medium">{new Date(selectedBooking.end_time).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                <div className="text-gray-500">Duration</div>
-                <div className="font-medium">{
-                  (() => {
-                    const ms = +new Date(selectedBooking.end_time) - +new Date(selectedBooking.start_time);
-                    const h = Math.floor(ms / 3600000);
-                    const m = Math.round((ms % 3600000) / 60000);
-                    return `${h}h ${m}m`;
-                  })()
-                }</div>
-                <div className="text-gray-500">Booked By</div>
-                <div className="font-medium">{selectedBooking.user?.first_name} {selectedBooking.user?.last_name}</div>
-                {selectedBooking.credits_used !== undefined && (
-                  <>
-                    <div className="text-gray-500">Credits Used</div>
-                    <div className="font-medium">{selectedBooking.credits_used}</div>
-                  </>
+            <>
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="text-gray-500">Room</div>
+                  <div className="font-medium">{selectedBooking.room?.name || '—'}</div>
+                  <div className="text-gray-500">Start</div>
+                  <div className="font-medium">{new Date(selectedBooking.start_time).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                  <div className="text-gray-500">End</div>
+                  <div className="font-medium">{new Date(selectedBooking.end_time).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                  <div className="text-gray-500">Duration</div>
+                  <div className="font-medium">{
+                    (() => {
+                      const ms = +new Date(selectedBooking.end_time) - +new Date(selectedBooking.start_time);
+                      const h = Math.floor(ms / 3600000);
+                      const m = Math.round((ms % 3600000) / 60000);
+                      return `${h}h ${m}m`;
+                    })()
+                  }</div>
+                  <div className="text-gray-500">Booked By</div>
+                  <div className="font-medium">{selectedBooking.user?.first_name} {selectedBooking.user?.last_name}</div>
+                  {selectedBooking.credits_used !== undefined && (
+                    <>
+                      <div className="text-gray-500">Credits Used</div>
+                      <div className="font-medium">{selectedBooking.credits_used}</div>
+                    </>
+                  )}
+                </div>
+                {selectedBooking.notes && (
+                  <div className="mt-3">
+                    <div className="text-gray-500 text-sm mb-1">Notes</div>
+                    <div className="text-sm whitespace-pre-wrap">{selectedBooking.notes}</div>
+                  </div>
                 )}
               </div>
-              {selectedBooking.notes && (
-                <div className="mt-3">
-                  <div className="text-gray-500 text-sm mb-1">Notes</div>
-                  <div className="text-sm whitespace-pre-wrap">{selectedBooking.notes}</div>
-                </div>
+              {selectedBooking.status !== 'cancelled' && (
+                <DialogFooter>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setBookingToDelete(selectedBooking);
+                      setShowDeleteModal(true);
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Booking
+                  </Button>
+                </DialogFooter>
               )}
-            </div>
+            </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete booking?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600">
+              This will remove the booking from the schedule. This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setBookingToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (bookingToDelete) {
+                  deleteBookingMutation.mutate(bookingToDelete.id);
+                }
+              }}
+              disabled={deleteBookingMutation.isPending}
+            >
+              {deleteBookingMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

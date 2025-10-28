@@ -120,10 +120,11 @@ export default function RoomsPage() {
   const [bookingsPage, setBookingsPage] = useState(1);
   const BOOKINGS_PAGE_SIZE = 5;
   
-  // Filter for UPCOMING bookings only (future meetings, exclude cancelled)
+  // Filter for UPCOMING bookings only (future meetings)
+  // Note: We now include cancelled bookings so users can see admin cancellations
   const now = new Date();
   const upcomingBookings = (myBookings || []).filter((booking: MeetingBooking) => {
-    return new Date(booking.start_time) > now && booking.status !== 'cancelled';
+    return new Date(booking.start_time) > now;
   });
   
   // Sort by nearest date first (ascending)
@@ -1600,6 +1601,8 @@ export default function RoomsPage() {
                   const isConfirmed = booking.status === 'confirmed';
                   const isCancelled = booking.status === 'cancelled';
                   const isCompleted = booking.status === 'completed';
+                  const cancelledByAdmin = isCancelled && booking.cancelled_by && booking.cancelled_by !== user?.id;
+                  
                   return (
                     <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
@@ -1627,7 +1630,9 @@ export default function RoomsPage() {
                             </Badge>
                           )}
                           {isCancelled && (
-                            <Badge variant="outline" className="bg-gray-100 text-gray-700">Cancelled</Badge>
+                            <Badge variant="outline" className={cancelledByAdmin ? "bg-red-50 text-red-700 border-red-200" : "bg-gray-100 text-gray-700"}>
+                              {cancelledByAdmin ? "Cancelled by Admin" : "Cancelled"}
+                            </Badge>
                           )}
                           {isCompleted && (
                             <Badge variant="outline" className="bg-blue-50 text-blue-700">Completed</Badge>
