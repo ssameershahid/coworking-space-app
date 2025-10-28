@@ -416,11 +416,13 @@ export default function AdminRoomSchedulePage() {
 
       {/* External bookings modal */}
       <Dialog open={showExternalModal} onOpenChange={setShowExternalModal}>
-        <DialogContent className="max-w-5xl w-[95vw]">
+        <DialogContent className="max-w-7xl w-[95vw] max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>External Client Bookings (All)</DialogTitle>
           </DialogHeader>
-          <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-end">
+          
+          {/* Filters - Fixed at top */}
+          <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:items-end flex-shrink-0">
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Site</label>
               <select
@@ -444,46 +446,55 @@ export default function AdminRoomSchedulePage() {
             <div className="flex-1" />
             <Button onClick={exportCSV}>Export CSV</Button>
           </div>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="whitespace-nowrap">Date</TableHead>
-                  <TableHead className="whitespace-nowrap">Start</TableHead>
-                  <TableHead className="whitespace-nowrap">End</TableHead>
-                  <TableHead className="whitespace-nowrap">Room</TableHead>
-                  <TableHead className="whitespace-nowrap">Credits</TableHead>
-                  <TableHead className="whitespace-nowrap">Guest Name</TableHead>
-                  <TableHead className="whitespace-nowrap">Guest Email</TableHead>
-                  <TableHead className="whitespace-nowrap">Guest Phone</TableHead>
-                  <TableHead className="whitespace-nowrap">Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredExternalBookings.length === 0 ? (
+          
+          {/* Scrollable table container */}
+          <div className="overflow-auto flex-1 border rounded-lg">
+            <div className="min-w-[1200px]">
+              <Table>
+                <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-gray-500">No external bookings found.</TableCell>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold">Date</TableHead>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold">Start</TableHead>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold">End</TableHead>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold">Room</TableHead>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold">Credits</TableHead>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold min-w-[180px]">Guest Name</TableHead>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold min-w-[220px]">Guest Email</TableHead>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold min-w-[140px]">Guest Phone</TableHead>
+                    <TableHead className="whitespace-nowrap border-b-2 font-semibold min-w-[300px]">Notes</TableHead>
                   </TableRow>
-                ) : (
-                  filteredExternalBookings.map((b: any) => {
-                    const g = parseExternalGuest(b.notes);
-                    return (
-                      <TableRow key={b.id}>
-                        <TableCell>{new Date(b.start_time).toLocaleDateString('en-GB')}</TableCell>
-                        <TableCell>{new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                        <TableCell>{new Date(b.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                        <TableCell>{b.room?.name || '-'}</TableCell>
-                        <TableCell>{b.credits_used}</TableCell>
-                        <TableCell className="max-w-[220px] truncate" title={g.name}>{g.name || '-'}</TableCell>
-                        <TableCell className="max-w-[240px] truncate" title={g.email}>{g.email || '-'}</TableCell>
-                        <TableCell className="max-w-[160px] truncate" title={g.phone}>{g.phone || '-'}</TableCell>
-                        <TableCell className="max-w-[320px] truncate" title={b.notes}>{b.notes?.replace(/\n/g, ' ') || '-'}</TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredExternalBookings.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center text-gray-500 py-8">No external bookings found.</TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredExternalBookings.map((b: any) => {
+                      const g = parseExternalGuest(b.notes);
+                      return (
+                        <TableRow key={b.id} className="hover:bg-gray-50">
+                          <TableCell className="whitespace-nowrap">{new Date(b.start_time).toLocaleDateString('en-GB')}</TableCell>
+                          <TableCell className="whitespace-nowrap">{new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                          <TableCell className="whitespace-nowrap">{new Date(b.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                          <TableCell className="whitespace-nowrap">{b.room?.name || '-'}</TableCell>
+                          <TableCell className="whitespace-nowrap">{b.credits_used}</TableCell>
+                          <TableCell className="min-w-[180px]" title={g.name}>{g.name || '-'}</TableCell>
+                          <TableCell className="min-w-[220px]" title={g.email}>{g.email || '-'}</TableCell>
+                          <TableCell className="min-w-[140px]" title={g.phone}>{g.phone || '-'}</TableCell>
+                          <TableCell className="min-w-[300px]" title={b.notes}>{b.notes?.replace(/\n/g, ' ') || '-'}</TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+          
+          {/* Results count */}
+          <div className="text-sm text-gray-600 mt-2 flex-shrink-0">
+            Showing {filteredExternalBookings.length} booking{filteredExternalBookings.length !== 1 ? 's' : ''}
           </div>
         </DialogContent>
       </Dialog>
