@@ -29,8 +29,8 @@ export function CafeManagerSSE() {
     disabled: !isCafeManager,
     onNewOrder: (order) => {
       if (!isCafeManager) return;
-      // refresh cafe orders list and any dashboards using it
-      queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders/all"] });
+      // Force immediate refetch of cafe orders list (not just invalidate)
+      queryClient.refetchQueries({ queryKey: ["/api/cafe/orders/all"] });
       toast({
         title: "🔔 NEW ORDER RECEIVED!",
         description: `Order #${order.id} • PKR ${order.total_amount}`,
@@ -40,7 +40,7 @@ export function CafeManagerSSE() {
     },
     onOrderStatusUpdate: () => {
       if (!isCafeManager) return;
-      queryClient.invalidateQueries({ queryKey: ["/api/cafe/orders/all"] });
+      queryClient.refetchQueries({ queryKey: ["/api/cafe/orders/all"] });
     },
   });
 

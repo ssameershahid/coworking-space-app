@@ -87,8 +87,8 @@ export default function CafeManagerDashboard() {
     endpoint: "/events",
     disabled: hasGlobalSSE || !(user?.role === 'cafe_manager'),
     onNewOrder: (order) => {
-      // Refresh orders list immediately
-      queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+      // Force immediate refetch of orders list (not just invalidate)
+      queryClient.refetchQueries({ queryKey: ['/api/cafe/orders/all'] });
       
       // Show prominent notification with audio
       toast({
@@ -99,7 +99,7 @@ export default function CafeManagerDashboard() {
       });
     },
     onOrderStatusUpdate: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/cafe/orders/all'] });
+      queryClient.refetchQueries({ queryKey: ['/api/cafe/orders/all'] });
     },
   });
 
