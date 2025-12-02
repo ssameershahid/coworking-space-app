@@ -1026,6 +1026,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filterSite = user.role === 'calmkaaj_admin' ? (site as string) : user.site;
       
       const orders = await storage.getCafeOrders(undefined, undefined, filterSite);
+      
+      // Disable ALL caching for real-time order updates
+      res.set({
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store',
+        'ETag': `"${Date.now()}"` // Unique ETag to prevent 304 responses
+      });
+      
       res.json(orders);
     } catch (error) {
       console.error("Error fetching all cafe orders:", error);
