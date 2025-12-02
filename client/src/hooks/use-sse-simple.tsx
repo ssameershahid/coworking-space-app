@@ -20,6 +20,20 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
   const lastHeartbeatRef = useRef<number>(Date.now());
   const { toast } = useToast();
 
+  // CRITICAL FIX: Store callbacks in refs to avoid stale closure issues
+  // This ensures the SSE message handler always calls the LATEST callback
+  // without needing to reconnect SSE when callbacks change
+  const onNewOrderRef = useRef(onNewOrder);
+  const onOrderStatusUpdateRef = useRef(onOrderStatusUpdate);
+  const onPaymentStatusUpdateRef = useRef(onPaymentStatusUpdate);
+
+  // Keep refs updated with latest callbacks on every render
+  useEffect(() => {
+    onNewOrderRef.current = onNewOrder;
+    onOrderStatusUpdateRef.current = onOrderStatusUpdate;
+    onPaymentStatusUpdateRef.current = onPaymentStatusUpdate;
+  });
+
   useEffect(() => {
     if (disabled) {
       // Ensure any previous connection is closed if we get disabled
@@ -83,11 +97,16 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
               break;
               
             case 'order.new':
-              if (onNewOrder && message.data) {
+              console.log('📦 SSE: New order received, calling callback...');
+              if (message.data) {
                 // Play audio notification for new orders
                 playNotificationSound();
                 
-                onNewOrder(message.data);
+                // CRITICAL: Use ref to get the LATEST callback, not stale closure
+                if (onNewOrderRef.current) {
+                  console.log('📦 SSE: Invoking onNewOrder callback for order #', message.data.id);
+                  onNewOrderRef.current(message.data);
+                }
                 toast({
                   title: "NEW CAFE ORDER!",
                   description: `Order #${message.data.id} from ${message.data.user?.first_name} ${message.data.user?.last_name} - PKR ${message.data.total_amount}`,
@@ -99,8 +118,13 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
               break;
             
             case 'order.update':
-              if (onOrderStatusUpdate && message.data) {
-                onOrderStatusUpdate(message.data);
+              console.log('📦 SSE: Order update received, calling callback...');
+              if (message.data) {
+                // CRITICAL: Use ref to get the LATEST callback, not stale closure
+                if (onOrderStatusUpdateRef.current) {
+                  console.log('📦 SSE: Invoking onOrderStatusUpdate callback for order #', message.data.id);
+                  onOrderStatusUpdateRef.current(message.data);
+                }
                 toast({
                   title: "Order Updated",
                   description: `Order #${message.data.id} is now ${message.data.status}`,

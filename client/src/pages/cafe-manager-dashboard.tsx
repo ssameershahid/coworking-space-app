@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,26 +81,38 @@ export default function CafeManagerDashboard() {
     }
   }, [user?.role]);
 
+  // CRITICAL FIX: Use useCallback to ensure stable callback references
+  // This prevents closure issues where queryClient or toast could be stale
+  const handleDashboardNewOrder = useCallback((order: any) => {
+    console.log('🔔 Dashboard: New order via SSE, triggering refetch for order #', order.id);
+    // Force immediate refetch of orders list (not just invalidate)
+    queryClient.refetchQueries({ queryKey: ['/api/cafe/orders/all'] })
+      .then(() => console.log('✅ Dashboard: Refetch completed'))
+      .catch((err) => console.error('❌ Dashboard: Refetch failed:', err));
+    
+    // Show prominent notification with audio
+    toast({
+      title: "🔔 NEW ORDER RECEIVED! 🔔",
+      description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${formatPrice(order.total_amount)}`,
+      duration: 30000,
+      variant: "destructive",
+    });
+  }, [queryClient, toast]);
+
+  const handleDashboardOrderUpdate = useCallback(() => {
+    console.log('📋 Dashboard: Order status update via SSE, triggering refetch');
+    queryClient.refetchQueries({ queryKey: ['/api/cafe/orders/all'] })
+      .then(() => console.log('✅ Dashboard: Refetch completed'))
+      .catch((err) => console.error('❌ Dashboard: Refetch failed:', err));
+  }, [queryClient]);
+
   // Always mount the hook (React hooks must not be conditional). Use disabled flag instead.
   const hasGlobalSSE = (typeof window !== 'undefined') && (window as any).__CK_GLOBAL_SSE_ACTIVE;
   useSSESimple({
     endpoint: "/events",
     disabled: hasGlobalSSE || !(user?.role === 'cafe_manager'),
-    onNewOrder: (order) => {
-      // Force immediate refetch of orders list (not just invalidate)
-      queryClient.refetchQueries({ queryKey: ['/api/cafe/orders/all'] });
-      
-      // Show prominent notification with audio
-      toast({
-        title: "🔔 NEW ORDER RECEIVED! 🔔",
-        description: `Order #${order.id} from ${order.user?.first_name} ${order.user?.last_name} - PKR ${formatPrice(order.total_amount)}`,
-        duration: 30000,
-        variant: "destructive",
-      });
-    },
-    onOrderStatusUpdate: () => {
-      queryClient.refetchQueries({ queryKey: ['/api/cafe/orders/all'] });
-    },
+    onNewOrder: handleDashboardNewOrder,
+    onOrderStatusUpdate: handleDashboardOrderUpdate,
   });
 
 
