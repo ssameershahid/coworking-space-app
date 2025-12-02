@@ -108,9 +108,14 @@ export default function CafeManagerDashboard() {
 
 
   // Fetch all orders for the cafe manager
+  // Use short polling interval (10 seconds) as a FAILSAFE for SSE connection issues
+  // This ensures orders are always up-to-date even if SSE breaks after Railway deployments
   const { data: ordersData, isLoading, dataUpdatedAt } = useQuery<CafeOrder[]>({
     queryKey: ['/api/cafe/orders/all'],
-    enabled: !!user && user.role === 'cafe_manager'
+    enabled: !!user && user.role === 'cafe_manager',
+    refetchInterval: 10000, // Poll every 10 seconds as SSE backup
+    refetchIntervalInBackground: false, // Don't poll when tab is not visible
+    staleTime: 5000, // Consider data stale after 5 seconds
   });
   const orders: CafeOrder[] = Array.isArray(ordersData) ? ordersData : [];
   

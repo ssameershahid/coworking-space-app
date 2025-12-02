@@ -10,9 +10,14 @@ interface SSEOptions {
   disabled?: boolean;
 }
 
+// Track heartbeat timeout - if no heartbeat in 60 seconds, connection is dead
+const HEARTBEAT_TIMEOUT = 60000; // 60 seconds (server sends every 20s)
+
 export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaymentStatusUpdate, disabled }: SSEOptions) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const heartbeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastHeartbeatRef = useRef<number>(Date.now());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -22,29 +27,61 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null as any;
       }
+      if (heartbeatTimeoutRef.current) {
+        clearTimeout(heartbeatTimeoutRef.current);
+        heartbeatTimeoutRef.current = null as any;
+      }
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
       return;
     }
+
+    const resetHeartbeatTimer = () => {
+      lastHeartbeatRef.current = Date.now();
+      if (heartbeatTimeoutRef.current) {
+        clearTimeout(heartbeatTimeoutRef.current);
+      }
+      // If no heartbeat received within timeout, force reconnect
+      heartbeatTimeoutRef.current = setTimeout(() => {
+        console.warn('⚠️ No heartbeat received in 60s - SSE connection may be dead, forcing reconnect...');
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close();
+          eventSourceRef.current = null;
+        }
+        connectSSE();
+      }, HEARTBEAT_TIMEOUT);
+    };
+
     const connectSSE = () => {
       // Clean up any existing connection
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
       }
       
+      console.log('🔌 Establishing SSE connection to:', endpoint);
       const eventSource = new EventSource(endpoint, {
         withCredentials: true
       });
 
       eventSourceRef.current = eventSource;
 
+      eventSource.onopen = () => {
+        console.log('✅ SSE connection established');
+        resetHeartbeatTimer();
+      };
+
       eventSource.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
 
           switch (message.type) {
+            case 'connected':
+              console.log('✅ SSE server confirmed connection');
+              resetHeartbeatTimer();
+              break;
+              
             case 'order.new':
               if (onNewOrder && message.data) {
                 // Play audio notification for new orders
@@ -58,6 +95,7 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
                   variant: "destructive",
                 });
               }
+              resetHeartbeatTimer();
               break;
             
             case 'order.update':
@@ -69,10 +107,12 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
                   duration: 4000,
                 });
               }
+              resetHeartbeatTimer();
               break;
             
             case 'heartbeat':
-              // Heartbeat - no action needed
+              // Heartbeat received - connection is alive
+              resetHeartbeatTimer();
               break;
           }
         } catch (error) {
@@ -100,6 +140,9 @@ export function useSSESimple({ endpoint, onNewOrder, onOrderStatusUpdate, onPaym
       console.log('🔌 Cleaning up SSE connection');
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (heartbeatTimeoutRef.current) {
+        clearTimeout(heartbeatTimeoutRef.current);
       }
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
