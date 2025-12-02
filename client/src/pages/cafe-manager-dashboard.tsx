@@ -115,7 +115,10 @@ export default function CafeManagerDashboard() {
     enabled: !!user && user.role === 'cafe_manager',
     refetchInterval: 10000, // Poll every 10 seconds as SSE backup
     refetchIntervalInBackground: false, // Don't poll when tab is not visible
-    staleTime: 5000, // Consider data stale after 5 seconds
+    staleTime: 0, // ALWAYS consider data stale - never use cache
+    gcTime: 0, // Don't cache results at all
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: 'always', // Always refetch when window regains focus
   });
   const orders: CafeOrder[] = Array.isArray(ordersData) ? ordersData : [];
   
