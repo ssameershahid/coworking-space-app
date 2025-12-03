@@ -10,14 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { FileText, Download, Calendar, DollarSign, Coffee, Users } from "lucide-react";
-import { getPakistanTime } from "@/lib/pakistan-time";
+import { getCurrentMonthInPakistan, getCurrentYearInPakistan, isInMonthPakistan } from "@/lib/pakistan-time";
 
 export default function InvoiceGeneration() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const pakistanNow = getPakistanTime();
-  const [selectedMonth, setSelectedMonth] = useState(pakistanNow.getMonth());
-  const [selectedYear, setSelectedYear] = useState(pakistanNow.getFullYear());
+  // CRITICAL FIX: Use proper timezone-aware month/year
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthInPakistan());
+  const [selectedYear, setSelectedYear] = useState(getCurrentYearInPakistan());
 
   const { data: orgOrders = [] } = useQuery({
     queryKey: ["/api/cafe/orders", user?.organization_id],
@@ -65,18 +65,13 @@ export default function InvoiceGeneration() {
   });
 
   // Filter orders and bookings for selected month/year (using Pakistan time)
+  // CRITICAL FIX: Use proper timezone-aware month comparison
   const filteredOrders = orgOrders.filter((order: any) => {
-    const orderDate = new Date(order.created_at);
-    // Convert to Pakistan time for month/year comparison
-    const orderPakistanTime = new Date(orderDate.getTime() + (5 * 60 * 60 * 1000));
-    return orderPakistanTime.getMonth() === selectedMonth && orderPakistanTime.getFullYear() === selectedYear;
+    return isInMonthPakistan(order.created_at, selectedMonth, selectedYear);
   });
 
   const filteredBookings = orgBookings.filter((booking: any) => {
-    const bookingDate = new Date(booking.created_at);
-    // Convert to Pakistan time for month/year comparison
-    const bookingPakistanTime = new Date(bookingDate.getTime() + (5 * 60 * 60 * 1000));
-    return bookingPakistanTime.getMonth() === selectedMonth && bookingPakistanTime.getFullYear() === selectedYear;
+    return isInMonthPakistan(booking.created_at, selectedMonth, selectedYear);
   });
 
   const totalCafeAmount = filteredOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);

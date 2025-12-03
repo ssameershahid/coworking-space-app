@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Users, Coins } from "lucide-react";
 import { MeetingRoom, Organization, MeetingBooking } from "@/lib/types";
-import { getPakistanTime } from "@/lib/pakistan-time";
+import { isThisMonthInPakistan } from "@/lib/pakistan-time";
 
 interface BookingModalProps {
   room: MeetingRoom | null;
@@ -48,17 +48,11 @@ export default function BookingModal({ room, bookingData, onClose }: BookingModa
   });
 
   // Calculate organization credits used this month (using Pakistan time)
-  const pakistanNow = getPakistanTime();
-  const currentMonth = pakistanNow.getMonth();
-  const currentYear = pakistanNow.getFullYear();
-  
+  // CRITICAL FIX: Use proper timezone-aware month comparison
   const orgBookingsThisMonth = allBookings.filter((booking: MeetingBooking) => {
     if (booking.billed_to !== 'organization') return false;
     if (booking.status === 'cancelled') return false;
-    const bookingDate = new Date(booking.created_at);
-    // Convert to Pakistan time for month/year comparison
-    const bookingPakistanTime = new Date(bookingDate.getTime() + (5 * 60 * 60 * 1000));
-    return bookingPakistanTime.getMonth() === currentMonth && bookingPakistanTime.getFullYear() === currentYear;
+    return isThisMonthInPakistan(booking.created_at);
   });
 
   const orgCreditsUsed = orgBookingsThisMonth.reduce((sum: number, booking: MeetingBooking) => {

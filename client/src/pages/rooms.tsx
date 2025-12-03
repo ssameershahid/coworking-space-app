@@ -46,7 +46,7 @@ import {
   DollarSign
 } from "lucide-react";
 import { MeetingRoom, MeetingBooking, Organization } from "@/lib/types";
-import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime } from "@/lib/pakistan-time";
+import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime, isThisMonthInPakistan, toDateStringInPakistan, getTodayPakistanDateString } from "@/lib/pakistan-time";
 import { format } from "date-fns";
 
 // Amenity icons mapping
@@ -504,17 +504,11 @@ export default function RoomsPage() {
   const { previousCredits, showAnimation } = useCreditAnimation(availableCredits);
 
   // Calculate organization credits used this month (using Pakistan time)
-  const pakistanNow = getPakistanTime();
-  const currentMonth = pakistanNow.getMonth();
-  const currentYear = pakistanNow.getFullYear();
-  
+  // CRITICAL FIX: Use proper timezone-aware month comparison
   const orgBookingsThisMonth = allBookings.filter((booking: MeetingBooking) => {
     if (booking.billed_to !== 'organization') return false;
     if (booking.status === 'cancelled') return false; // Don't count cancelled bookings
-    const bookingDate = new Date(booking.created_at);
-    // Convert to Pakistan time for month/year comparison
-    const bookingPakistanTime = new Date(bookingDate.getTime() + (5 * 60 * 60 * 1000));
-    return bookingPakistanTime.getMonth() === currentMonth && bookingPakistanTime.getFullYear() === currentYear;
+    return isThisMonthInPakistan(booking.created_at);
   });
   
   const orgCreditsUsed = orgBookingsThisMonth.reduce((sum: number, booking: any) => {
@@ -995,10 +989,11 @@ export default function RoomsPage() {
                           }
                         }}
                         disabled={(date) => {
-                          const pakistanNow = getPakistanTime();
-                          const pakistanDate = new Date(date.getTime() + (5 * 60 * 60 * 1000)); // Convert to Pakistan time
-                          const maxDate = new Date(pakistanNow.getTime() + (90 * 24 * 60 * 60 * 1000)); // 90 days (~3 months) from now
-                          return pakistanDate < pakistanNow || pakistanDate > maxDate;
+                          // CRITICAL FIX: Use proper timezone-aware date comparison
+                          const todayPakistan = getTodayPakistanDateString();
+                          const selectedDatePakistan = toDateStringInPakistan(date);
+                          const maxDatePakistan = toDateStringInPakistan(new Date(Date.now() + (90 * 24 * 60 * 60 * 1000))); // 90 days from now
+                          return selectedDatePakistan < todayPakistan || selectedDatePakistan > maxDatePakistan;
                         }}
                         initialFocus
                       />

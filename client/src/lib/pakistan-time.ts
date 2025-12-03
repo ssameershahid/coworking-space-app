@@ -65,6 +65,79 @@ export function isTodayInPakistan(date: Date | string): boolean {
   return todayPakistan === datePakistan;
 }
 
+/**
+ * Get current month (0-11) in Pakistan timezone
+ */
+export function getCurrentMonthInPakistan(): number {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Karachi',
+    month: 'numeric'
+  });
+  return parseInt(formatter.format(now)) - 1; // Convert 1-12 to 0-11
+}
+
+/**
+ * Get current year in Pakistan timezone
+ */
+export function getCurrentYearInPakistan(): number {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Karachi',
+    year: 'numeric'
+  });
+  return parseInt(formatter.format(now));
+}
+
+/**
+ * Get month (0-11) of a timestamp in Pakistan timezone
+ */
+export function getMonthInPakistan(date: Date | string): number {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Karachi',
+    month: 'numeric'
+  });
+  return parseInt(formatter.format(d)) - 1; // Convert 1-12 to 0-11
+}
+
+/**
+ * Get year of a timestamp in Pakistan timezone
+ */
+export function getYearInPakistan(date: Date | string): number {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Karachi',
+    year: 'numeric'
+  });
+  return parseInt(formatter.format(d));
+}
+
+/**
+ * Check if a timestamp is in the current month (Pakistan timezone)
+ * This is the CORRECT way to filter for "this month's" orders/bookings
+ */
+export function isThisMonthInPakistan(date: Date | string): boolean {
+  const currentMonth = getCurrentMonthInPakistan();
+  const currentYear = getCurrentYearInPakistan();
+  const dateMonth = getMonthInPakistan(date);
+  const dateYear = getYearInPakistan(date);
+  return dateMonth === currentMonth && dateYear === currentYear;
+}
+
+/**
+ * Check if a timestamp is in a specific month/year (Pakistan timezone)
+ * Use this for filtering by a selected month (e.g., invoice generation)
+ * @param date - The date to check
+ * @param month - Target month (0-11, like JavaScript Date.getMonth())
+ * @param year - Target year (e.g., 2024)
+ */
+export function isInMonthPakistan(date: Date | string, month: number, year: number): boolean {
+  const dateMonth = getMonthInPakistan(date);
+  const dateYear = getYearInPakistan(date);
+  return dateMonth === month && dateYear === year;
+}
+
 export function formatPakistanDate(dateOffset: number = 0): Date {
   // Get Pakistan time with optional date offset
   const pakistanTime = getPakistanTime();

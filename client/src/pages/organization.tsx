@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ShoppingCart, DollarSign, Users, Calendar, FileText, Building, Coffee, TrendingUp } from "lucide-react";
-import { getPakistanTime } from "@/lib/pakistan-time";
+import { isThisMonthInPakistan } from "@/lib/pakistan-time";
 
 export default function OrganizationPage() {
   const { user } = useAuth();
@@ -52,23 +52,14 @@ export default function OrganizationPage() {
     );
   }
 
+  // CRITICAL FIX: Use proper timezone-aware month comparison
   const monthlyOrders = orgOrders.filter((order: any) => {
-    const orderDate = new Date(order.created_at);
-    // Convert to Pakistan time for month/year comparison
-    const orderPakistanTime = new Date(orderDate.getTime() + (5 * 60 * 60 * 1000));
-    const pakistanNow = getPakistanTime();
-    return orderPakistanTime.getMonth() === pakistanNow.getMonth() && 
-           orderPakistanTime.getFullYear() === pakistanNow.getFullYear() &&
-           order.status !== 'deleted';
+    return isThisMonthInPakistan(order.created_at) && order.status !== 'deleted';
   });
 
+  // CRITICAL FIX: Use proper timezone-aware month comparison
   const monthlyBookings = orgBookings.filter((booking: any) => {
-    const bookingDate = new Date(booking.created_at);
-    // Convert to Pakistan time for month/year comparison
-    const bookingPakistanTime = new Date(bookingDate.getTime() + (5 * 60 * 60 * 1000));
-    const pakistanNow = getPakistanTime();
-    return bookingPakistanTime.getMonth() === pakistanNow.getMonth() && 
-           bookingPakistanTime.getFullYear() === pakistanNow.getFullYear() &&
+    return isThisMonthInPakistan(booking.created_at) &&
            booking.billed_to === 'organization' &&
            booking.status !== 'cancelled';
   });
