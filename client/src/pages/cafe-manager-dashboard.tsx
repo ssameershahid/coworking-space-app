@@ -14,7 +14,7 @@ import {
   initializeAudioNotifications, 
   playNotificationSound
 } from "@/lib/audio-notifications";
-import { getPakistanTime } from "@/lib/pakistan-time";
+import { isTodayInPakistan } from "@/lib/pakistan-time";
 
 
 
@@ -173,15 +173,12 @@ export default function CafeManagerDashboard() {
 
 
 
-  // Filter all orders to show only today's orders (using Pakistan time)
+  // Filter all orders to show only today's orders (using Pakistan timezone)
+  // CRITICAL FIX: Use proper timezone-aware date comparison to avoid evening/night bugs
   const safeOrders: CafeOrder[] = Array.isArray(orders) ? orders : [];
-  const pakistanNow = getPakistanTime();
   const todaysOrders = safeOrders.filter(order => {
-    // Convert order creation time to Pakistan time for comparison
-    const orderDate = new Date(order.created_at);
-    // Add 5 hours to convert to Pakistan time (UTC+5)
-    const orderPakistanTime = new Date(orderDate.getTime() + (5 * 60 * 60 * 1000));
-    return orderPakistanTime.toDateString() === pakistanNow.toDateString();
+    // Use timezone-aware comparison - this correctly handles all times of day
+    return isTodayInPakistan(order.created_at);
   });
   // Only count orders that have been accepted or progressed further
   const todaysCountedOrders = todaysOrders.filter(order => 

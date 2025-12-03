@@ -8,7 +8,7 @@ import UserManagement from "@/components/admin/user-management";
 import MenuManagement from "@/components/admin/menu-management";
 import RoomManagement from "@/components/admin/room-management";
 import { formatPriceWithCurrency } from "@/lib/format-price";
-import { getPakistanTime } from "@/lib/pakistan-time";
+import { isTodayInPakistan } from "@/lib/pakistan-time";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -46,12 +46,9 @@ export default function AdminPage() {
   }
 
   // Revenue calculations (only for calmkaaj_admin)
+  // CRITICAL FIX: Use proper timezone-aware date comparison
   const todaysOrders = user.role === "calmkaaj_admin" ? allOrders.filter((order: any) => {
-    const orderDate = new Date(order.created_at);
-    // Convert to Pakistan time for comparison
-    const orderPakistanTime = new Date(orderDate.getTime() + (5 * 60 * 60 * 1000));
-    const pakistanNow = getPakistanTime();
-    return orderPakistanTime.toDateString() === pakistanNow.toDateString();
+    return isTodayInPakistan(order.created_at);
   }) : [];
 
   const todaysRevenue = user.role === "calmkaaj_admin" ? todaysOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0) : 0;
