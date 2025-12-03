@@ -754,10 +754,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnnouncements(site?: string): Promise<schema.Announcement[]> {
-    // Everything in Pakistan time - no UTC conversions
-    const pakistanTime = new Date();
-    pakistanTime.setHours(pakistanTime.getHours() + 5); // Convert to Pakistan time
-    console.log("Current Pakistan time for filtering:", pakistanTime);
+    // SQL query uses NOW() AT TIME ZONE 'Asia/Karachi' for correct timezone handling
+    // FIXED: Use proper timezone formatting for debug log
+    const pakistanTimeStr = new Date().toLocaleString("en-PK", { timeZone: "Asia/Karachi" });
+    console.log("Current Pakistan time for filtering:", pakistanTimeStr);
     
     if (site) {
       const result = await db.select().from(schema.announcements)

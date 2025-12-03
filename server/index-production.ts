@@ -6,9 +6,9 @@ const app = express();
 
 // CRITICAL DEBUG: Log ALL requests at the very beginning
 app.use('*', (req, res, next) => {
-  const pakistanTime = new Date();
-  pakistanTime.setHours(pakistanTime.getHours() + 5); // Convert to Pakistan time
-  console.log(`🌍 RAW REQUEST: ${req.method} ${req.url} at ${pakistanTime.toISOString()}`);
+  // FIXED: Use toLocaleString with timezone for correct Pakistan time display
+  const pakistanTimeStr = new Date().toLocaleString("en-PK", { timeZone: "Asia/Karachi" });
+  console.log(`🌍 RAW REQUEST: ${req.method} ${req.url} at ${pakistanTimeStr}`);
   if (req.method === 'POST') {
     console.log(`🚨 RAW POST DETECTED: ${req.url}`);
     console.log(`📝 Raw body type:`, typeof req.body);

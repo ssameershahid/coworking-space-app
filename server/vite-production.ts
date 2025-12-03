@@ -4,9 +4,9 @@ import path from "path";
 import { type Server } from "http";
 
 export function log(message: string, source = "express") {
-  const pakistanTime = new Date();
-  pakistanTime.setHours(pakistanTime.getHours() + 5); // Convert to Pakistan time
-  const formattedTime = pakistanTime.toLocaleTimeString("en-PK", {
+  // FIXED: toLocaleTimeString with timeZone option handles conversion automatically
+  // The old code added 5 hours manually AND used timeZone option = double conversion bug!
+  const formattedTime = new Date().toLocaleTimeString("en-PK", {
     timeZone: "Asia/Karachi",
     hour: "numeric",
     minute: "2-digit",

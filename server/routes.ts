@@ -1604,14 +1604,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Booking is already cancelled" });
       }
 
-      // Check 5-minute rule - allow cancellation only up to 5 minutes before start time (Pakistan time)
-      const nowPakistan = getPakistanTime();
-      const startTime = convertToPakistanTime(new Date(booking.start_time));
+      // Check 5-minute rule - allow cancellation only up to 5 minutes before start time
+      // CRITICAL FIX: Use absolute timestamps for comparison - they're timezone-agnostic
+      const now = new Date();
+      const startTime = new Date(booking.start_time);
       const fiveMinutesBeforeStart = new Date(startTime.getTime() - 5 * 60 * 1000); // 5 minutes before start
       
-      console.log(`Cancellation check - Now: ${nowPakistan.toISOString()}, Start: ${startTime.toISOString()}, 5min before: ${fiveMinutesBeforeStart.toISOString()}`);
+      console.log(`Cancellation check - Now: ${now.toISOString()}, Start: ${startTime.toISOString()}, 5min before: ${fiveMinutesBeforeStart.toISOString()}`);
       
-      if (nowPakistan > fiveMinutesBeforeStart) {
+      if (now > fiveMinutesBeforeStart) {
         return res.status(400).json({ 
           message: "Cannot cancel booking within 5 minutes of start time" 
         });
@@ -1656,10 +1657,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if booking is in the past - cannot delete past bookings
-      const nowPakistan = getPakistanTime();
-      const bookingStartTime = convertToPakistanTime(new Date(booking.start_time));
+      // CRITICAL FIX: Use absolute timestamps for comparison - they're timezone-agnostic
+      const now = new Date();
+      const bookingStartTime = new Date(booking.start_time);
       
-      if (bookingStartTime <= nowPakistan) {
+      if (bookingStartTime <= now) {
         return res.status(400).json({ 
           message: "Cannot delete past bookings. Only future bookings can be deleted." 
         });
