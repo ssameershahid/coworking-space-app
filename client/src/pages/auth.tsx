@@ -48,11 +48,34 @@ export default function AuthPage() {
       return;
     }
 
-    toast({
-      title: "Password Reset",
-      description: "If an account with this email exists, you will receive password reset instructions.",
-    });
-    setShowForgotPassword(false);
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send reset email');
+      }
+
+      toast({
+        title: "Check Your Email",
+        description: "If an account with this email exists, you will receive password reset instructions.",
+      });
+      setShowForgotPassword(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (showForgotPassword) {
@@ -91,8 +114,16 @@ export default function AuthPage() {
             <Button 
               type="submit" 
               className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2.5 text-sm font-medium rounded-lg"
+              disabled={isLoading}
             >
-              Send Reset Instructions
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Sending...
+                </div>
+              ) : (
+                "Send Reset Instructions"
+              )}
             </Button>
           </form>
 

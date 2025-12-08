@@ -231,6 +231,174 @@ This is an automated message, please do not reply directly to this email.
     `.trim();
   }
 
+  async sendPasswordResetEmail(userEmail: string, firstName: string, resetToken: string): Promise<boolean> {
+    try {
+      const resetLink = `https://app.calmkaaj.org/reset-password?token=${resetToken}`;
+      
+      const { data, error } = await this.resend.emails.send({
+        from: 'CalmKaaj <noreply@mail.calmkaaj.org>',
+        to: [userEmail],
+        subject: 'CalmKaaj - Password Reset Request',
+        html: this.generatePasswordResetEmailHTML(firstName, resetLink),
+        text: this.generatePasswordResetEmailText(firstName, resetLink),
+      });
+
+      if (error) {
+        console.error('Error sending password reset email:', error);
+        return false;
+      }
+
+      console.log(`Password reset email sent successfully to ${userEmail}, ID: ${data?.id}`);
+      return true;
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      return false;
+    }
+  }
+
+  private generatePasswordResetEmailHTML(firstName: string, resetLink: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reset Your Password - CalmKaaj</title>
+        <style>
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f8fafc;
+          }
+          .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f8fafc;
+          }
+          .container { 
+            background: white; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+          }
+          .header { 
+            background: white; 
+            color: #333; 
+            padding: 40px 30px; 
+            text-align: center; 
+            border-bottom: 1px solid #e2e8f0;
+          }
+          .header h1 { margin: 0; font-size: 28px; font-weight: 700; color: #333; }
+          .header p { margin: 10px 0 0; font-size: 16px; color: #666; }
+          .content { padding: 40px 30px; }
+          .button { 
+            display: inline-block; 
+            background: #C66A29; 
+            color: white !important; 
+            padding: 14px 28px; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(198, 106, 41, 0.3);
+          }
+          a.button, a.button:visited, a.button:hover, a.button:active {
+            color: white !important;
+            text-decoration: none !important;
+          }
+          .warning { 
+            background: #fef3c7; 
+            padding: 20px; 
+            border-radius: 8px; 
+            border-left: 4px solid #f59e0b; 
+            margin: 24px 0; 
+          }
+          .warning-title { font-weight: 700; color: #92400e; margin: 0 0 8px; }
+          .info { 
+            background: #f0f9ff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            border-left: 4px solid #0ea5e9; 
+            margin: 24px 0; 
+          }
+          .footer { 
+            text-align: center; 
+            margin-top: 40px; 
+            color: #64748b; 
+            font-size: 14px; 
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+          }
+          .btn-center { text-align: center; margin: 32px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="email-wrapper">
+          <div class="container">
+            <div class="header">
+              <h1>🔐 Password Reset Request</h1>
+              <p>Reset your CalmKaaj account password</p>
+            </div>
+            
+            <div class="content">
+              <h2>Hello ${firstName}!</h2>
+              <p>We received a request to reset your password for your CalmKaaj account. Click the button below to set a new password:</p>
+              
+              <div class="btn-center">
+                <a href="${resetLink}" class="button" style="display: inline-block; background: #C66A29; color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Reset My Password</a>
+              </div>
+
+              <div class="warning">
+                <div class="warning-title">⏰ Link Expires in 1 Hour</div>
+                <p>For security reasons, this password reset link will expire in 1 hour. If you don't reset your password within this time, you'll need to request a new link.</p>
+              </div>
+
+              <div class="info">
+                <p><strong>Didn't request this?</strong></p>
+                <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+              </div>
+
+              <p style="font-size: 13px; color: #666; margin-top: 24px;">If the button doesn't work, copy and paste this link into your browser:<br>
+              <span style="word-break: break-all; color: #0ea5e9;">${resetLink}</span></p>
+            </div>
+
+            <div class="footer">
+              <p>© 2025 CalmKaaj. All rights reserved.</p>
+              <p>This is an automated message, please do not reply directly to this email.</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  private generatePasswordResetEmailText(firstName: string, resetLink: string): string {
+    return `
+Password Reset Request - CalmKaaj
+
+Hello ${firstName}!
+
+We received a request to reset your password for your CalmKaaj account.
+
+Click the link below to set a new password:
+${resetLink}
+
+IMPORTANT: This link will expire in 1 hour for security reasons.
+
+If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+
+© 2025 CalmKaaj. All rights reserved.
+This is an automated message, please do not reply directly to this email.
+    `.trim();
+  }
+
   async testConnection(): Promise<boolean> {
     try {
       // Resend doesn't have a direct verify method, but we can test with a simple API call

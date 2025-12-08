@@ -71,6 +71,11 @@ export interface IStorage {
   updateUser(id: number, updates: Partial<schema.User>): Promise<schema.User>;
   deleteUser(id: number): Promise<void>;
   
+  // Password Reset
+  setPasswordResetToken(userId: number, token: string, expires: Date): Promise<void>;
+  getUserByResetToken(token: string): Promise<schema.User | undefined>;
+  clearPasswordResetToken(userId: number): Promise<void>;
+  
   // Organizations
   getOrganizations(site?: string): Promise<schema.Organization[]>;
   getOrganizationById(id: string): Promise<schema.Organization | undefined>;
@@ -179,6 +184,37 @@ export class DatabaseStorage implements IStorage {
     
     // Finally, delete the user
     await db.delete(schema.users).where(eq(schema.users.id, id));
+  }
+
+  // Password Reset Methods
+  async setPasswordResetToken(userId: number, token: string, expires: Date): Promise<void> {
+    await db.update(schema.users)
+      .set({ 
+        password_reset_token: token,
+        password_reset_expires: expires
+      })
+      .where(eq(schema.users.id, userId));
+  }
+
+  async getUserByResetToken(token: string): Promise<schema.User | undefined> {
+    const [user] = await db.select()
+      .from(schema.users)
+      .where(
+        and(
+          eq(schema.users.password_reset_token, token),
+          sql`${schema.users.password_reset_expires} > NOW()`
+        )
+      );
+    return user;
+  }
+
+  async clearPasswordResetToken(userId: number): Promise<void> {
+    await db.update(schema.users)
+      .set({ 
+        password_reset_token: null,
+        password_reset_expires: null
+      })
+      .where(eq(schema.users.id, userId));
   }
 
   async getOrganizations(site?: string): Promise<schema.Organization[]> {

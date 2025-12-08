@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,6 +10,7 @@ import { NotificationSetup } from "./components/pwa/notification-setup";
 import { ErrorBoundary } from "./components/error-boundary";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth";
+import ResetPasswordPage from "@/pages/reset-password";
 import Dashboard from "@/pages/dashboard";
 import CafePage from "@/pages/cafe";
 import RoomsPage from "@/pages/rooms";
@@ -113,6 +114,21 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const [location] = useLocation();
+  
+  // Handle reset-password route without authentication
+  if (location.startsWith('/reset-password')) {
+    return <ResetPasswordPage />;
+  }
+  
+  return (
+    <ProtectedRoute>
+      <Router />
+    </ProtectedRoute>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -121,9 +137,7 @@ function App() {
           <AuthProvider>
             <CartProvider>
               <Toaster />
-              <ProtectedRoute>
-                <Router />
-              </ProtectedRoute>
+              <AppContent />
             </CartProvider>
           </AuthProvider>
           

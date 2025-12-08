@@ -711,6 +711,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Forgot password - request password reset email
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      
+      // Always return success to prevent email enumeration attacks
+      // But only send email if user exists
+      if (user) {
+        // Generate secure reset token
+        const crypto = await import('crypto');
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        
+        // Token expires in 1 hour
+        const expires = new Date(Date.now() + 60 * 60 * 1000);
+        
+        // Save token to database
+        await storage.setPasswordResetToken(user.id, resetToken, expires);
+        
+        // Send password reset email
+        if (process.env.RESEND_API_KEY) {
+          try {
+            await emailService.sendPasswordResetEmail(user.email, user.first_name, resetToken);
+            console.log(`📧 Password reset email sent to: ${user.email}`);
+          } catch (emailError) {
+            console.error("Failed to send password reset email:", emailError);
+            // Don't fail the request, just log the error
+          }
+        } else {
+          console.warn("⚠️ RESEND_API_KEY not configured - password reset email not sent");
+        }
+      } else {
+        console.log(`🔍 Password reset requested for non-existent email: ${email}`);
+      }
+      
+      // Always return success (security best practice)
+      res.json({ 
+        message: "If an account with this email exists, you will receive password reset instructions." 
+      });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "Failed to process password reset request" });
+    }
+  });
+
+  // Reset password with token
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+      
+      // Find user by reset token (also checks if token is expired)
+      const user = await storage.getUserByResetToken(token);
+      
+      if (!user) {
+        return res.status(400).json({ 
+          message: "Invalid or expired reset link. Please request a new password reset." 
+        });
+      }
+      
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update password and clear reset token
+      await storage.updateUser(user.id, { password: hashedPassword });
+      await storage.clearPasswordResetToken(user.id);
+      
+      console.log(`🔐 Password reset successful for user: ${user.email}`);
+      
+      res.json({ message: "Password has been reset successfully. You can now login with your new password." });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
+  // Verify reset token (to check if link is valid before showing reset form)
+  app.get("/api/auth/verify-reset-token", async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ valid: false, message: "Token is required" });
+      }
+      
+      const user = await storage.getUserByResetToken(token);
+      
+      if (!user) {
+        return res.json({ valid: false, message: "Invalid or expired reset link" });
+      }
+      
+      res.json({ valid: true, email: user.email });
+    } catch (error) {
+      console.error("Verify reset token error:", error);
+      res.status(500).json({ valid: false, message: "Failed to verify token" });
+    }
+  });
+
   app.get("/api/auth/me", requireAuth, (req, res) => {
     const { password, ...userWithoutPassword } = req.user as any;
     

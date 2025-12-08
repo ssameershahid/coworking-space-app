@@ -67,6 +67,14 @@ async function runMigration() {
       ADD COLUMN IF NOT EXISTS office_number TEXT;
     `);
     
+    // Add password reset columns to users
+    console.log("🔧 Adding password reset columns to users table...");
+    await db.execute(sql`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS password_reset_token TEXT,
+      ADD COLUMN IF NOT EXISTS password_reset_expires TIMESTAMP;
+    `);
+    
     // Verify the organizations migration
     console.log("✅ Verifying organizations migration...");
     const finalOrgColumns = await db.execute(sql`
@@ -85,10 +93,10 @@ async function runMigration() {
       SELECT column_name, data_type, is_nullable, column_default
       FROM information_schema.columns 
       WHERE table_name = 'users' 
-      AND column_name IN ('office_type', 'office_number')
+      AND column_name IN ('office_type', 'office_number', 'password_reset_token', 'password_reset_expires')
     `);
     
-    console.log("📊 Users office fields:");
+    console.log("📊 Users office and password reset fields:");
     console.table(finalUserColumns);
     
     // Check organizations count
