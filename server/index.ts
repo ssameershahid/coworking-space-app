@@ -140,6 +140,15 @@ app.use((req, res, next) => {
     const orgCount = await db.execute(sql`SELECT COUNT(*) as count FROM organizations`);
     console.log("📈 Organizations in database:", orgCount[0]?.count);
     
+    // Add password reset columns to users table
+    console.log("🔧 Adding password reset columns to users table...");
+    await db.execute(sql`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS password_reset_token TEXT,
+      ADD COLUMN IF NOT EXISTS password_reset_expires TIMESTAMP;
+    `);
+    console.log("✅ Password reset columns added/verified");
+    
     console.log("✅ Database migration completed successfully!");
   } catch (error) {
     console.error("❌ Database migration failed:", error);
