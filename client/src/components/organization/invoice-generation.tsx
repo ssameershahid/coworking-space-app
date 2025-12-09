@@ -83,7 +83,7 @@ export default function InvoiceGeneration() {
     "July", "August", "September", "October", "November", "December"
   ];
 
-  const years = Array.from({ length: 5 }, (_, i) => pakistanNow.getFullYear() - i);
+  const years = Array.from({ length: 5 }, (_, i) => getCurrentYearInPakistan() - i);
 
   const handleGenerateInvoice = () => {
     generateInvoiceMutation.mutate({
