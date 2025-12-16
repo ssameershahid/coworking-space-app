@@ -61,8 +61,9 @@ export default function CreateOrderOnBehalf() {
   // Location-specific delivery options
   const deliveryLocationsBysite = {
     blue_area: [
+      "Reception",
+      "Waiting Area",
       "Cafe",
-      "Reception - Blue Area",
       "Conference Room A",
       "Conference Room B", 
       "Executive Lounge",
@@ -74,6 +75,8 @@ export default function CreateOrderOnBehalf() {
       "Cafeteria - Blue Area"
     ],
     i_10: [
+      "Reception",
+      "Waiting Area",
       "Cafe",
       "Conference Room 1",
       "Conference Room 2",
