@@ -37,7 +37,6 @@ import {
   AlertCircle
 } from "lucide-react";
 import { CafeOrder, MeetingBooking, Announcement } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
 import { CreditAnimation, useCreditAnimation } from "@/components/ui/credit-animation";
 import { formatPriceWithCurrency } from "@/lib/format-price";
 import { getPakistanTime, isThisMonthInPakistan, getCurrentMonthInPakistan, getCurrentYearInPakistan, getMonthInPakistan, getYearInPakistan } from "@/lib/pakistan-time";
