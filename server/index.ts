@@ -87,18 +87,27 @@ app.use((req, res, next) => {
     
     // Check if organizations table exists
     console.log("🔍 Checking if organizations table exists...");
-    const tableExists = await db.execute(sql`
+    const tableExistsResult = await db.execute(sql`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_schema = 'public' 
         AND table_name = 'organizations'
       ) as exists
     `);
-    console.log("📋 Organizations table exists:", tableExists);
+    console.log("📋 Organizations table exists result:", tableExistsResult);
     
-    if (!tableExists || !Array.isArray(tableExists) || !tableExists[0]?.exists) {
+    // Handle different return types from Drizzle drivers (array vs object with rows)
+    // cast to any to avoid type issues with raw sql result
+    const result: any = tableExistsResult;
+    const rows = Array.isArray(result) ? result : result.rows;
+    
+    if (!rows || !rows.length || !rows[0]?.exists) {
       console.error("❌ Organizations table does not exist!");
-      return;
+      // If we are in dev, we might want to continue anyway as the schema might be pushed
+      if (process.env.NODE_ENV === 'production') {
+        return;
+      }
+      console.log("⚠️ Continuing anyway since we are in development mode...");
     }
     
     // Check if columns already exist first
@@ -137,8 +146,9 @@ app.use((req, res, next) => {
     console.table(finalColumns);
     
     // Check organizations count
-    const orgCount = await db.execute(sql`SELECT COUNT(*) as count FROM organizations`);
-    console.log("📈 Organizations in database:", orgCount[0]?.count);
+    const orgCountResult = await db.execute(sql`SELECT COUNT(*) as count FROM organizations`);
+    const orgCountRows = (orgCountResult as any).rows || orgCountResult;
+    console.log("📈 Organizations in database:", orgCountRows[0]?.count);
     
     // Add password reset columns to users table
     console.log("🔧 Adding password reset columns to users table...");
