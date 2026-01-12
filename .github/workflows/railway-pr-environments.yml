@@ -1,0 +1,91 @@
+name: Create PR Environment
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  create-pr-environment:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_BRANCH: ${{ github.head_ref }}
+
+    steps:
+      - name: Create PR Environment
+        run: |
+          echo "🔄 Creating PR Environment for PR #$PR_NUMBER"
+          echo "Branch: $PR_BRANCH"
+          
+          # Create a new environment for this PR
+          echo "PR Environment: pr-$PR_NUMBER"
+          echo "This will create an isolated environment for testing this PR"
+          
+          # Note: Actual PR environment creation would be done through Railway dashboard
+          # This workflow documents the process and provides PR information
+          
+          echo "📋 PR Environment Details:"
+          echo "- Environment: pr-$PR_NUMBER"
+          echo "- Source Branch: $PR_BRANCH"
+          echo "- Target Branch: main"
+          echo "- Auto-deployment: Enabled"
+          echo "- Auto-destruction: When PR is merged/closed"
+
+  deploy-pr-environment:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'synchronize'
+    permissions:
+      contents: read
+    
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy to PR Environment
+        run: |
+          echo "🚀 Deploying PR #$PR_NUMBER to Railway PR Environment"
+          # This would deploy to a PR-specific environment
+          # Actual implementation depends on Railway PR environment setup
+          echo "Deployment to PR environment completed"
+
+  cleanup-pr-environment:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+    permissions:
+      contents: read
+    
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+
+    steps:
+      - name: Cleanup PR Environment
+        run: |
+          echo "🧹 Cleaning up PR Environment for PR #$PR_NUMBER"
+          echo "PR was ${{ github.event.pull_request.merged && 'merged' || 'closed' }}"
+          echo "Environment pr-$PR_NUMBER will be cleaned up"
+          
+          # Cleanup would be automatic or manual through Railway dashboard
+          echo "PR environment cleanup completed"

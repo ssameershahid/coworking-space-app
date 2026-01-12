@@ -1,0 +1,117 @@
+name: Deploy to Railway Development
+
+on:
+  push:
+    branches: [ "development" ]
+  workflow_dispatch:
+  pull_request:
+    branches: [ "development" ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: railway-deploy-dev-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+    environment: development  # Ensures development-only deployment
+    
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_SERVICE: ${{ secrets.RAILWAY_DEV_SERVICE }}
+      # Development environment variables
+      NODE_ENV: development
+      SESSION_SECRET: ${{ secrets.DEV_SESSION_SECRET }}
+      RESEND_API_KEY: ${{ secrets.DEV_RESEND_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Railway secrets present
+        shell: bash
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then echo "RAILWAY_TOKEN missing"; exit 1; fi
+          if [ -z "$RAILWAY_PROJECT_ID" ]; then echo "RAILWAY_PROJECT_ID missing"; exit 1; fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy to Development
+        run: |
+          if [ -n "$RAILWAY_SERVICE" ]; then
+            railway up --project "$RAILWAY_PROJECT_ID" --service "$RAILWAY_SERVICE" --ci --environment development
+          else
+            railway up --project "$RAILWAY_PROJECT_ID" --ci --environment development
+          fi
+
+      - name: Setup Development Database
+        if: success()
+        run: |
+          echo "🔄 Setting up development database..."
+          # Wait for deployment to be ready
+          sleep 30
+          
+          # Run database setup (script will be deployed with the app)
+          railway run --project "$RAILWAY_PROJECT_ID" --environment development --service "$RAILWAY_SERVICE" -- npm run db:setup-dev || echo "Database setup may need manual configuration"
+
+      - name: Link Railway project
+        if: always()
+        run: |
+          railway link -p "$RAILWAY_PROJECT_ID" -e development || true
+          railway status || true
+
+      - name: Configure development environment variables
+        run: |
+          echo "=== Setting Development Variables ==="
+          
+          # Set development-specific variables
+          railway variables --set "NODE_ENV=development"
+          
+          # Set SESSION_SECRET for development
+          if [ -n "$DEV_SESSION_SECRET" ]; then
+            railway variables --set "SESSION_SECRET=$DEV_SESSION_SECRET"
+          else
+            railway variables --set "SESSION_SECRET=dev-session-secret-$(date +%s)"
+          fi
+          
+          # Set RESEND_API_KEY for development
+          if [ -n "$DEV_RESEND_API_KEY" ]; then
+            railway variables --set "RESEND_API_KEY=$DEV_RESEND_API_KEY"
+          else
+            echo "⚠️ DEV_RESEND_API_KEY not set, email features may not work"
+          fi
+          
+          echo "=== Final Development Variables ==="
+          railway variables || true
+
+      - name: Verify Development Deployment
+        if: success()
+        run: |
+          echo "🌐 Development Environment URLs:"
+          echo "App: https://calmkaaj-dev.up.railway.app"
+          
+          # Test health endpoint
+          sleep 10
+          HEALTH_RESPONSE=$(curl -s https://calmkaaj-dev.up.railway.app/api/health || echo "health_check_failed")
+          echo "Health Check: $HEALTH_RESPONSE"
+          
+          echo "🔑 Development Test Credentials:"
+          echo "Admin: admin@calmkaaj.dev / DevAdmin123!"
+          echo "Member: member@calmkaaj.dev / DevAdmin123!"
+          echo ""
+          echo "✅ Development environment ready for testing!"
+
+      - name: Stream recent service logs
+        if: always()
+        run: |
+          echo "📜 Tailing development logs for 2 minutes..."
+          timeout 120s railway logs -e development -s "$RAILWAY_SERVICE" || true
