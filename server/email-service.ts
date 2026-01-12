@@ -12,6 +12,11 @@ class EmailService {
 
   constructor() {
     if (!process.env.RESEND_API_KEY) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ RESEND_API_KEY is missing. Email service will be disabled in development mode.');
+        this.resend = new Resend('re_dummy_key_dev_mode');
+        return;
+      }
       throw new Error('RESEND_API_KEY environment variable is required');
     }
     this.resend = new Resend(process.env.RESEND_API_KEY);
