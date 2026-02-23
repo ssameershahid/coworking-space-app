@@ -75,7 +75,7 @@ export default function InvoiceGeneration() {
   });
 
   const totalCafeAmount = filteredOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
-  const totalRoomAmount = filteredBookings.reduce((sum: number, booking: any) => sum + booking.credits_used, 0);
+  const totalRoomAmount = filteredBookings.reduce((sum: number, booking: any) => sum + parseFloat(booking.credits_used || 0), 0);
   const totalAmount = totalCafeAmount + totalRoomAmount;
 
   const months = [
@@ -189,7 +189,7 @@ export default function InvoiceGeneration() {
                   <span className="text-sm">Room Bookings</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium">{totalRoomAmount} credits</div>
+                  <div className="text-sm font-medium">{parseFloat(totalRoomAmount.toFixed(2))} credits</div>
                   <div className="text-xs text-gray-500">{filteredBookings.length} bookings</div>
                 </div>
               </div>
@@ -201,7 +201,7 @@ export default function InvoiceGeneration() {
                     <span className="text-sm font-semibold">Total</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold">Rs. {totalCafeAmount.toFixed(2)} + {totalRoomAmount} credits</div>
+                    <div className="text-sm font-bold">Rs. {totalCafeAmount.toFixed(2)} + {parseFloat(totalRoomAmount.toFixed(2))} credits</div>
                   </div>
                 </div>
               </div>
@@ -244,7 +244,7 @@ export default function InvoiceGeneration() {
                 {filteredBookings.slice(0, 3).map((booking: any) => (
                   <div key={booking.id} className="flex items-center justify-between text-sm">
                     <span>{new Date(booking.created_at).toLocaleDateString()}</span>
-                    <span className="font-medium">{booking.credits_used} credits</span>
+                    <span className="font-medium">{parseFloat(parseFloat(booking.credits_used || 0).toFixed(2))} credits</span>
                   </div>
                 ))}
                 {filteredBookings.length === 0 && (
