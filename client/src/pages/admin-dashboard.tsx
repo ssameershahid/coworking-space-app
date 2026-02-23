@@ -933,9 +933,9 @@ export default function AdminDashboard() {
   const handleOpenDeductCredits = (user: User) => {
     setUserForDeduction(user);
     // Default billing type based on user type
-    const hasPersonalCredits = (user.credits ?? 0) > 0;
     const hasOrg = !!user.organization_id;
-    setDeductBilledTo(hasOrg && !hasPersonalCredits ? "organization" : "personal");
+    // Always default to org when user belongs to an org; personal only when no org
+    setDeductBilledTo(hasOrg ? "organization" : "personal");
     setDeductDate(""); setDeductStartTime(""); setDeductEndTime(""); setDeductRoomId("");
     setDeductCreditsDialog(true);
   };
@@ -3908,8 +3908,8 @@ export default function AdminDashboard() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="personal">Personal Credits (allocated: {userForDeduction.credits}, used: {parseFloat(userForDeduction.used_credits || "0")})</SelectItem>
                       <SelectItem value="organization">Organization Credits ({userForDeduction.organization?.name})</SelectItem>
+                      <SelectItem value="personal">Personal Credits (allocated: {userForDeduction.credits}, used: {parseFloat(userForDeduction.used_credits || "0")})</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
