@@ -8,12 +8,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ShoppingCart, DollarSign, Users, Calendar, FileText, Building, Coffee, TrendingUp } from "lucide-react";
-import { isThisMonthInPakistan } from "@/lib/pakistan-time";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ShoppingCart, DollarSign, Users, Calendar, FileText, Building, Coffee, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { isThisMonthInPakistan, getCurrentMonthInPakistan, getCurrentYearInPakistan, isInMonthPakistan } from "@/lib/pakistan-time";
+
+const ACTIVITY_PAGE_SIZE = 5;
+
+const months = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December"
+];
+
+const currentYear = getCurrentYearInPakistan();
+const yearOptions = Array.from({ length: 3 }, (_, i) => currentYear - i);
 
 export default function OrganizationPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Activity tab: month filter + pagination
+  const [activityMonth, setActivityMonth] = useState(getCurrentMonthInPakistan());
+  const [activityYear, setActivityYear] = useState(getCurrentYearInPakistan());
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [bookingsPage, setBookingsPage] = useState(1);
 
   const { data: employees = [] } = useQuery({
     queryKey: [user?.organization_id ? `/api/organizations/${user.organization_id}/employees` : ""],
@@ -198,93 +215,178 @@ export default function OrganizationPage() {
         </TabsContent>
 
         <TabsContent value="activity" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Organization Café Orders</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orgOrders
-                      .filter((order: any) => 
-                        order.status !== 'deleted' && 
-                        order.billed_to === 'organization'
-                      )
-                      .slice(0, 5)
-                      .map((order: any) => (
-                      <TableRow key={order.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{order.user?.first_name} {order.user?.last_name}</p>
-                            <p className="text-sm text-gray-500">{order.user?.email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                        <TableCell>Rs. {parseFloat(order.total_amount).toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {orgOrders.filter((order: any) => order.billed_to === 'organization').length === 0 && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-500">No organization café orders found</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Organization Room Bookings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>Room</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Credits</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orgBookings.filter((booking: any) => booking.billed_to === 'organization' && booking.status !== 'cancelled').slice(0, 5).map((booking: any) => (
-                      <TableRow key={booking.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{booking.user?.first_name} {booking.user?.last_name}</p>
-                            <p className="text-sm text-gray-500">{booking.user?.email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>{booking.room?.name}</TableCell>
-                        <TableCell>{new Date(booking.created_at).toLocaleDateString()}</TableCell>
-                        <TableCell>{booking.credits_used}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {orgBookings.length === 0 && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-500">No organization room bookings found</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          {/* Month / Year selector */}
+          <div className="flex items-center gap-3">
+            <Calendar className="h-4 w-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Viewing activity for:</span>
+            <Select
+              value={String(activityMonth)}
+              onValueChange={(v) => { setActivityMonth(Number(v)); setOrdersPage(1); setBookingsPage(1); }}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m, i) => (
+                  <SelectItem key={i} value={String(i)}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={String(activityYear)}
+              onValueChange={(v) => { setActivityYear(Number(v)); setOrdersPage(1); setBookingsPage(1); }}
+            >
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map((y) => (
+                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          {(() => {
+            // Filter by selected month/year
+            const filteredOrders = (orgOrders as any[]).filter((order: any) =>
+              order.status !== 'deleted' &&
+              order.billed_to === 'organization' &&
+              isInMonthPakistan(order.created_at, activityMonth, activityYear)
+            );
+            const filteredBookings = (orgBookings as any[]).filter((booking: any) =>
+              booking.billed_to === 'organization' &&
+              booking.status !== 'cancelled' &&
+              isInMonthPakistan(booking.created_at, activityMonth, activityYear)
+            );
+
+            const totalOrderPages = Math.max(1, Math.ceil(filteredOrders.length / ACTIVITY_PAGE_SIZE));
+            const totalBookingPages = Math.max(1, Math.ceil(filteredBookings.length / ACTIVITY_PAGE_SIZE));
+            const safeOrdersPage = Math.min(ordersPage, totalOrderPages);
+            const safeBookingsPage = Math.min(bookingsPage, totalBookingPages);
+            const pagedOrders = filteredOrders.slice((safeOrdersPage - 1) * ACTIVITY_PAGE_SIZE, safeOrdersPage * ACTIVITY_PAGE_SIZE);
+            const pagedBookings = filteredBookings.slice((safeBookingsPage - 1) * ACTIVITY_PAGE_SIZE, safeBookingsPage * ACTIVITY_PAGE_SIZE);
+
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Café Orders */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Organization Café Orders</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {filteredOrders.length === 0 ? (
+                      <p className="text-sm text-gray-500 py-4 text-center">No café orders for {months[activityMonth]} {activityYear}</p>
+                    ) : (
+                      <>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Employee</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {pagedOrders.map((order: any) => (
+                              <TableRow key={order.id}>
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{order.user?.first_name} {order.user?.last_name}</p>
+                                    <p className="text-sm text-gray-500">{order.user?.email}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                                <TableCell>Rs. {parseFloat(order.total_amount).toFixed(2)}</TableCell>
+                                <TableCell>
+                                  <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'}>
+                                    {order.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        {totalOrderPages > 1 && (
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-xs text-gray-500">
+                              {(safeOrdersPage - 1) * ACTIVITY_PAGE_SIZE + 1}–{Math.min(safeOrdersPage * ACTIVITY_PAGE_SIZE, filteredOrders.length)} of {filteredOrders.length}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => setOrdersPage(p => Math.max(1, p - 1))} disabled={safeOrdersPage === 1}>
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              <span className="text-xs px-1">{safeOrdersPage} / {totalOrderPages}</span>
+                              <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => setOrdersPage(p => Math.min(totalOrderPages, p + 1))} disabled={safeOrdersPage === totalOrderPages}>
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Room Bookings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Organization Room Bookings</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {filteredBookings.length === 0 ? (
+                      <p className="text-sm text-gray-500 py-4 text-center">No room bookings for {months[activityMonth]} {activityYear}</p>
+                    ) : (
+                      <>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Employee</TableHead>
+                              <TableHead>Room</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead>Credits</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {pagedBookings.map((booking: any) => (
+                              <TableRow key={booking.id}>
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{booking.user?.first_name} {booking.user?.last_name}</p>
+                                    <p className="text-sm text-gray-500">{booking.user?.email}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>{booking.room?.name}</TableCell>
+                                <TableCell>{new Date(booking.created_at).toLocaleDateString()}</TableCell>
+                                <TableCell>{parseFloat(parseFloat(booking.credits_used || 0).toFixed(2))}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        {totalBookingPages > 1 && (
+                          <div className="flex items-center justify-between mt-3">
+                            <span className="text-xs text-gray-500">
+                              {(safeBookingsPage - 1) * ACTIVITY_PAGE_SIZE + 1}–{Math.min(safeBookingsPage * ACTIVITY_PAGE_SIZE, filteredBookings.length)} of {filteredBookings.length}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => setBookingsPage(p => Math.max(1, p - 1))} disabled={safeBookingsPage === 1}>
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              <span className="text-xs px-1">{safeBookingsPage} / {totalBookingPages}</span>
+                              <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => setBookingsPage(p => Math.min(totalBookingPages, p + 1))} disabled={safeBookingsPage === totalBookingPages}>
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })()}
         </TabsContent>
 
         <TabsContent value="invoices">
