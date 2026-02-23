@@ -2491,6 +2491,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: manually deduct room credits from a user for unbooked room usage
+  app.post("/api/admin/deduct-credits/:userId", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
+    try {
+      const targetUserId = parseInt(req.params.userId);
+      const { room_id, date, start_time, end_time, billed_to } = req.body;
+
+      if (!room_id || !date || !start_time || !end_time || !billed_to) {
+        return res.status(400).json({ message: "room_id, date, start_time, end_time, and billed_to are required" });
+      }
+
+      // Parse start and end as Pakistan time (+05:00)
+      const startTime = new Date(`${date}T${start_time}:00+05:00`);
+      const endTime = new Date(`${date}T${end_time}:00+05:00`);
+
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        return res.status(400).json({ message: "Invalid date or time format" });
+      }
+      if (endTime <= startTime) {
+        return res.status(400).json({ message: "End time must be after start time" });
+      }
+
+      // Calculate credits (same formula as regular bookings)
+      const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+      const creditsUsed = Math.round(durationHours * 100) / 100;
+
+      // Get target user details
+      const targetUser = await storage.getUserById(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get room to confirm it exists and get site
+      const rooms = await storage.getMeetingRooms();
+      const room = rooms.find((r: any) => r.id === parseInt(room_id));
+      if (!room) {
+        return res.status(404).json({ message: "Room not found" });
+      }
+
+      // Determine org_id for organization billing
+      const orgId = billed_to === "organization" ? targetUser.organization_id : undefined;
+
+      // Create the booking record with booking_source = 'admin_detected'
+      const booking = await storage.createMeetingBooking({
+        user_id: targetUserId,
+        room_id: parseInt(room_id),
+        start_time: startTime,
+        end_time: endTime,
+        credits_used: creditsUsed.toString(),
+        status: "completed",
+        billed_to,
+        org_id: orgId ?? undefined,
+        notes: `[ADMIN DETECTED] Credits deducted by admin for unbooked room usage.`,
+        site: targetUser.site,
+        booking_source: "admin_detected",
+      } as any);
+
+      // Deduct personal credits if billed to personal
+      if (billed_to === "personal") {
+        await storage.updateUser(targetUserId, {
+          used_credits: (parseFloat(targetUser.used_credits || "0") + creditsUsed).toString(),
+        });
+      }
+      // Organization billing: no explicit deduction needed — org credit calc is automatic from bookings
+
+      res.status(201).json({ message: "Credits deducted successfully", booking, credits_used: creditsUsed });
+    } catch (error) {
+      console.error("Error deducting credits:", error);
+      res.status(500).json({ message: "Failed to deduct credits" });
+    }
+  });
+
   app.delete("/api/admin/organizations/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {
       const orgId = req.params.id;

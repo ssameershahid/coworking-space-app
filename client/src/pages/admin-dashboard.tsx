@@ -42,7 +42,8 @@ import {
   User as UserIcon,
   Ban,
   CheckCircle,
-  UserX
+  UserX,
+  CreditCard
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -78,6 +79,9 @@ interface User {
   };
   site: string;
   is_active: boolean;
+  credits?: number;
+  used_credits?: string;
+  can_charge_room_to_org?: boolean;
   start_date?: string;
   created_at: string;
 }
@@ -353,6 +357,15 @@ export default function AdminDashboard() {
   // Deactivate confirmation dialog states
   const [deactivateUserDialog, setDeactivateUserDialog] = useState(false);
   const [userToDeactivate, setUserToDeactivate] = useState<{ id: number; name: string; isActive: boolean } | null>(null);
+
+  // Deduct credits dialog states
+  const [deductCreditsDialog, setDeductCreditsDialog] = useState(false);
+  const [userForDeduction, setUserForDeduction] = useState<User | null>(null);
+  const [deductDate, setDeductDate] = useState("");
+  const [deductStartTime, setDeductStartTime] = useState("");
+  const [deductEndTime, setDeductEndTime] = useState("");
+  const [deductRoomId, setDeductRoomId] = useState("");
+  const [deductBilledTo, setDeductBilledTo] = useState<"personal" | "organization">("personal");
 
   // Handle "View As User" functionality
   const handleViewAsUser = async (userId: number) => {
@@ -892,6 +905,50 @@ export default function AdminDashboard() {
       setUserToDeactivate(null);
     }
   };
+
+  const deductCreditsMutation = useMutation({
+    mutationFn: async ({ userId, room_id, date, start_time, end_time, billed_to }: {
+      userId: number; room_id: string; date: string; start_time: string; end_time: string; billed_to: string;
+    }) => {
+      const response = await apiRequest('POST', `/api/admin/deduct-credits/${userId}`, { room_id, date, start_time, end_time, billed_to });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "Failed to deduct credits");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+      toast({ title: "Credits deducted", description: `${data.credits_used} credit(s) deducted successfully.` });
+      setDeductCreditsDialog(false);
+      setUserForDeduction(null);
+      setDeductDate(""); setDeductStartTime(""); setDeductEndTime(""); setDeductRoomId(""); setDeductBilledTo("personal");
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const handleOpenDeductCredits = (user: User) => {
+    setUserForDeduction(user);
+    // Default billing type based on user type
+    const hasPersonalCredits = (user.credits ?? 0) > 0;
+    const hasOrg = !!user.organization_id;
+    setDeductBilledTo(hasOrg && !hasPersonalCredits ? "organization" : "personal");
+    setDeductDate(""); setDeductStartTime(""); setDeductEndTime(""); setDeductRoomId("");
+    setDeductCreditsDialog(true);
+  };
+
+  // Calculate credits from deduction times
+  const deductCreditsAmount = (() => {
+    if (!deductStartTime || !deductEndTime) return 0;
+    const [sh, sm] = deductStartTime.split(":").map(Number);
+    const [eh, em] = deductEndTime.split(":").map(Number);
+    const durationHours = ((eh * 60 + em) - (sh * 60 + sm)) / 60;
+    if (durationHours <= 0) return 0;
+    return Math.round(durationHours * 100) / 100;
+  })();
 
   const handleDeleteOrganization = (orgId: string, orgName: string) => {
     setOrgToDelete({ id: orgId, name: orgName });
@@ -3077,6 +3134,19 @@ export default function AdminDashboard() {
                               </TooltipTrigger>
                               <TooltipContent>View As User</TooltipContent>
                             </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleOpenDeductCredits(user)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <CreditCard className="h-4 w-4 text-orange-500" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Deduct Room Credits</TooltipContent>
+                            </Tooltip>
                             <DropdownMenu>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -3744,6 +3814,141 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Delete User Confirmation Dialog */}
+      {/* Deduct Room Credits Dialog */}
+      <Dialog open={deductCreditsDialog} onOpenChange={(open) => {
+        if (!open) { setDeductCreditsDialog(false); setUserForDeduction(null); }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
+              <CreditCard className="h-5 w-5" />
+              Deduct Room Credits
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Deducting credits from <strong>{userForDeduction?.first_name} {userForDeduction?.last_name}</strong> for unbooked room usage.
+            </p>
+
+            {/* Date */}
+            <div className="space-y-1">
+              <Label htmlFor="deduct-date">Date</Label>
+              <Input
+                id="deduct-date"
+                type="date"
+                value={deductDate}
+                onChange={(e) => setDeductDate(e.target.value)}
+              />
+            </div>
+
+            {/* Start / End Time */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="deduct-start">Start Time</Label>
+                <Input
+                  id="deduct-start"
+                  type="time"
+                  value={deductStartTime}
+                  onChange={(e) => setDeductStartTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="deduct-end">End Time</Label>
+                <Input
+                  id="deduct-end"
+                  type="time"
+                  value={deductEndTime}
+                  onChange={(e) => setDeductEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Credits preview */}
+            {deductCreditsAmount > 0 && (
+              <div className="bg-orange-50 border border-orange-200 rounded-md px-3 py-2 text-sm text-orange-800">
+                <strong>{deductCreditsAmount}</strong> credit{deductCreditsAmount !== 1 ? "s" : ""} will be deducted
+                {deductCreditsAmount % 1 !== 0 && ` (${Math.floor(deductCreditsAmount)}h ${Math.round((deductCreditsAmount % 1) * 60)}min)`}
+              </div>
+            )}
+
+            {/* Room */}
+            <div className="space-y-1">
+              <Label htmlFor="deduct-room">Conference Room</Label>
+              <Select value={deductRoomId} onValueChange={setDeductRoomId}>
+                <SelectTrigger id="deduct-room">
+                  <SelectValue placeholder="Select a room" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rooms.map((room) => (
+                    <SelectItem key={room.id} value={String(room.id)}>
+                      {room.name} <span className="text-gray-400 ml-1">({room.site === 'blue_area' ? 'Blue Area' : 'I-10'})</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Credit type */}
+            {userForDeduction && (() => {
+              const hasPersonal = (userForDeduction.credits ?? 0) > 0;
+              const hasOrg = !!userForDeduction.organization_id && userForDeduction.can_charge_room_to_org !== false;
+              // If only one option, auto-select and show info text
+              if (!hasOrg) {
+                return <p className="text-xs text-gray-500">Billed to: <strong>Personal Credits</strong></p>;
+              }
+              if (!hasPersonal) {
+                return <p className="text-xs text-gray-500">Billed to: <strong>Organization Credits</strong> (no personal credits allocated)</p>;
+              }
+              // Both available — show selector
+              return (
+                <div className="space-y-1">
+                  <Label>Deduct From</Label>
+                  <Select value={deductBilledTo} onValueChange={(v) => setDeductBilledTo(v as "personal" | "organization")}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Personal Credits (allocated: {userForDeduction.credits}, used: {parseFloat(userForDeduction.used_credits || "0")})</SelectItem>
+                      <SelectItem value="organization">Organization Credits ({userForDeduction.organization?.name})</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })()}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => { setDeductCreditsDialog(false); setUserForDeduction(null); }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              className="bg-orange-600 hover:bg-orange-700"
+              disabled={!deductDate || !deductStartTime || !deductEndTime || !deductRoomId || deductCreditsAmount <= 0 || deductCreditsMutation.isPending}
+              onClick={() => {
+                if (!userForDeduction) return;
+                const hasPersonal = (userForDeduction.credits ?? 0) > 0;
+                const hasOrg = !!userForDeduction.organization_id && userForDeduction.can_charge_room_to_org !== false;
+                const effectiveBilledTo = !hasOrg ? "personal" : !hasPersonal ? "organization" : deductBilledTo;
+                deductCreditsMutation.mutate({
+                  userId: userForDeduction.id,
+                  room_id: deductRoomId,
+                  date: deductDate,
+                  start_time: deductStartTime,
+                  end_time: deductEndTime,
+                  billed_to: effectiveBilledTo,
+                });
+              }}
+            >
+              {deductCreditsMutation.isPending ? "Deducting..." : `Deduct ${deductCreditsAmount > 0 ? deductCreditsAmount : ""} Credits`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Deactivate/Activate User Confirmation Dialog */}
       <Dialog open={deactivateUserDialog} onOpenChange={setDeactivateUserDialog}>
         <DialogContent className="max-w-md">

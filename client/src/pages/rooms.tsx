@@ -43,7 +43,8 @@ import {
   Projector,
   Sun,
   Moon,
-  DollarSign
+  DollarSign,
+  ShieldAlert
 } from "lucide-react";
 import { MeetingRoom, MeetingBooking, Organization } from "@/lib/types";
 import { getPakistanDateString, formatPakistanDateString, formatPakistanDate, isPastTimePakistan, getPakistanTime, isThisMonthInPakistan, toDateStringInPakistan, getTodayPakistanDateString } from "@/lib/pakistan-time";
@@ -126,7 +127,7 @@ export default function RoomsPage() {
   const upcomingBookings = (myBookings || []).filter((booking: MeetingBooking) => {
     return new Date(booking.start_time) > now;
   });
-  
+
   // Sort by nearest date first (ascending)
   const sortedAllBookings = upcomingBookings.slice().sort((a, b) => {
     return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
@@ -137,12 +138,25 @@ export default function RoomsPage() {
     bookingsPage * BOOKINGS_PAGE_SIZE
   );
 
+  // Past bookings: completed or admin-detected (past start_time), most recent first
+  const [historyPage, setHistoryPage] = useState(1);
+  const HISTORY_PAGE_SIZE = 5;
+  const pastBookings = (myBookings || [])
+    .filter((booking: MeetingBooking) => new Date(booking.start_time) <= now)
+    .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+  const totalHistoryPages = Math.max(1, Math.ceil(pastBookings.length / HISTORY_PAGE_SIZE));
+  const pagedHistory = pastBookings.slice((historyPage - 1) * HISTORY_PAGE_SIZE, historyPage * HISTORY_PAGE_SIZE);
+
   // Keep page in range if data changes
   useEffect(() => {
     if (bookingsPage > totalBookingPages) {
       setBookingsPage(totalBookingPages);
     }
   }, [totalBookingPages, bookingsPage]);
+
+  useEffect(() => {
+    if (historyPage > totalHistoryPages) setHistoryPage(totalHistoryPages);
+  }, [totalHistoryPages, historyPage]);
 
   // WebSocket for real-time booking updates
   useWebSocket({
@@ -1595,25 +1609,25 @@ export default function RoomsPage() {
                 {pagedBookings.map((booking) => {
                   const isConfirmed = booking.status === 'confirmed';
                   const isCancelled = booking.status === 'cancelled';
-                  const isCompleted = booking.status === 'completed';
                   const cancelledByAdmin = isCancelled && booking.cancelled_by && booking.cancelled_by !== user?.id;
-                  
+                  const displayNotes = booking.notes?.replace(/^\[ADMIN DETECTED\]\s*/, '') || '';
+
                   return (
                     <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <h4 className="font-medium">{booking.room?.name}</h4>
                         <p className="text-sm text-gray-600">
-                          {new Date(booking.start_time).toLocaleDateString('en-GB', { 
-                            day: '2-digit', 
-                            month: '2-digit', 
-                            year: 'numeric' 
+                          {new Date(booking.start_time).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
                           })} • {' '}
                           {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
                           {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                         <p className="text-sm text-gray-500">{booking.credits_used} credit{booking.credits_used === 1 ? '' : 's'}</p>
-                        {booking.notes && (
-                          <p className="text-sm text-gray-600 mt-1 italic">Notes: {booking.notes}</p>
+                        {displayNotes && (
+                          <p className="text-sm text-gray-600 mt-1 italic">Notes: {displayNotes}</p>
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-2">
@@ -1628,9 +1642,6 @@ export default function RoomsPage() {
                             <Badge variant="outline" className={cancelledByAdmin ? "bg-red-50 text-red-700 border-red-200" : "bg-gray-100 text-gray-700"}>
                               {cancelledByAdmin ? "Cancelled by Admin" : "Cancelled"}
                             </Badge>
-                          )}
-                          {isCompleted && (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700">Completed</Badge>
                           )}
                           {isConfirmed && canCancelBooking(booking) ? (
                             <Button
@@ -1694,6 +1705,98 @@ export default function RoomsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Booking History (past bookings) */}
+      {pastBookings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              Booking History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pagedHistory.map((booking) => {
+                const isAdminDetected = booking.booking_source === 'admin_detected';
+                const isCancelled = booking.status === 'cancelled';
+                const cancelledByAdmin = isCancelled && booking.cancelled_by && booking.cancelled_by !== user?.id;
+                const displayNotes = booking.notes
+                  ?.replace(/^\[ADMIN DETECTED\]\s*/, '')
+                  ?.replace(/Credits deducted by admin for unbooked room usage\.?\s*/, '') || '';
+
+                return (
+                  <div key={booking.id} className={`flex items-center justify-between p-4 border rounded-lg ${isAdminDetected ? 'border-amber-200 bg-amber-50' : ''}`}>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h4 className="font-medium">{booking.room?.name}</h4>
+                        {isAdminDetected && (
+                          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 flex items-center gap-1 text-xs">
+                            <ShieldAlert className="h-3 w-3" />
+                            Recorded by Admin
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {new Date(booking.start_time).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })} • {' '}
+                        {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {' '}
+                        {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      <p className="text-sm text-gray-500">{booking.credits_used} credit{booking.credits_used === 1 ? '' : 's'} deducted</p>
+                      {isAdminDetected && (
+                        <p className="text-xs text-amber-700 mt-1">Credits deducted for unbooked room usage</p>
+                      )}
+                      {displayNotes && (
+                        <p className="text-sm text-gray-600 mt-1 italic">Notes: {displayNotes}</p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-2">
+                        {isCancelled && (
+                          <Badge variant="outline" className={cancelledByAdmin ? "bg-red-50 text-red-700 border-red-200" : "bg-gray-100 text-gray-700"}>
+                            {cancelledByAdmin ? "Cancelled by Admin" : "Cancelled"}
+                          </Badge>
+                        )}
+                        {!isCancelled && !isAdminDetected && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700">Completed</Badge>
+                        )}
+                      </div>
+                      {booking.billed_to === 'organization' ? (
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-800 flex items-center gap-1">
+                          <Building className="h-3 w-3" />
+                          Charged to Organization
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 flex items-center gap-1">
+                          <CreditCard className="h-3 w-3" />
+                          Charged to Personal Credits
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {totalHistoryPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="text-sm text-gray-600">
+                  Showing {(historyPage - 1) * HISTORY_PAGE_SIZE + 1}–{Math.min(historyPage * HISTORY_PAGE_SIZE, pastBookings.length)} of {pastBookings.length}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setHistoryPage(p => Math.max(1, p - 1))} disabled={historyPage === 1}>Previous</Button>
+                  <div className="text-sm">Page {historyPage} / {totalHistoryPages}</div>
+                  <Button variant="outline" size="sm" onClick={() => setHistoryPage(p => Math.min(totalHistoryPages, p + 1))} disabled={historyPage === totalHistoryPages}>Next</Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

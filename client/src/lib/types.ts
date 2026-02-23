@@ -119,6 +119,7 @@ export interface MeetingBooking {
   notes?: string;
   cancelled_by?: number; // ID of admin/team user who cancelled the booking
   site: string;
+  booking_source?: string; // 'member' | 'admin_detected'
   created_at: string;
   updated_at?: string;
   user?: {

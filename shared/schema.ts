@@ -141,6 +141,7 @@ export const meeting_bookings = pgTable("meeting_bookings", {
   notes: text("notes"),
   cancelled_by: integer("cancelled_by").references(() => users.id), // Admin/team user who cancelled the booking
   site: siteEnum("site").notNull().default("blue_area"),
+  booking_source: text("booking_source").default("member").notNull(), // 'member' | 'admin_detected'
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

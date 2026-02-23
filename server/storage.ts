@@ -679,6 +679,7 @@ export class DatabaseStorage implements IStorage {
       cancelled_by: schema.meeting_bookings.cancelled_by,
       created_at: schema.meeting_bookings.created_at,
       site: schema.meeting_bookings.site,
+      booking_source: schema.meeting_bookings.booking_source,
       user: {
         id: schema.users.id,
         first_name: schema.users.first_name,
