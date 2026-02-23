@@ -45,6 +45,7 @@ import {
   UserX
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SimpleMenuEdit } from "@/components/simple-menu-edit";
 import { format } from "date-fns";
 import { formatLargeCurrencyAmount } from "@/lib/format-price";
@@ -348,6 +349,10 @@ export default function AdminDashboard() {
   const [deleteOrgDialog, setDeleteOrgDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<{ id: number; name: string } | null>(null);
   const [orgToDelete, setOrgToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  // Deactivate confirmation dialog states
+  const [deactivateUserDialog, setDeactivateUserDialog] = useState(false);
+  const [userToDeactivate, setUserToDeactivate] = useState<{ id: number; name: string; isActive: boolean } | null>(null);
 
   // Handle "View As User" functionality
   const handleViewAsUser = async (userId: number) => {
@@ -873,6 +878,19 @@ export default function AdminDashboard() {
   const handleDeleteUser = (userId: number, userName: string) => {
     setUserToDelete({ id: userId, name: userName });
     setDeleteUserDialog(true);
+  };
+
+  const handleDeactivateUser = (userId: number, userName: string, isActive: boolean) => {
+    setUserToDeactivate({ id: userId, name: userName, isActive });
+    setDeactivateUserDialog(true);
+  };
+
+  const confirmDeactivateUser = () => {
+    if (userToDeactivate) {
+      toggleUserStatus.mutate({ userId: userToDeactivate.id, isActive: !userToDeactivate.isActive });
+      setDeactivateUserDialog(false);
+      setUserToDeactivate(null);
+    }
   };
 
   const handleDeleteOrganization = (orgId: string, orgName: string) => {
@@ -3059,32 +3077,35 @@ export default function AdminDashboard() {
                               </TooltipTrigger>
                               <TooltipContent>View As User</TooltipContent>
                             </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => toggleUserStatus.mutate({ userId: user.id, isActive: !user.is_active })}
-                                  className="h-8 w-8 p-0"
+                            <DropdownMenu>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent>Actions</TooltipContent>
+                              </Tooltip>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleDeactivateUser(user.id, `${user.first_name} ${user.last_name}`, user.is_active)}
+                                  className="gap-2 cursor-pointer"
                                 >
-                                  {user.is_active ? <Ban className="h-4 w-4 text-red-500" /> : <CheckCircle className="h-4 w-4 text-green-500" />}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{user.is_active ? "Deactivate" : "Activate"}</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
+                                  {user.is_active
+                                    ? <><Ban className="h-4 w-4 text-orange-500" /> Deactivate</>
+                                    : <><CheckCircle className="h-4 w-4 text-green-500" /> Activate</>
+                                  }
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
                                   onClick={() => handleDeleteUser(user.id, `${user.first_name} ${user.last_name}`)}
-                                  className="h-8 w-8 p-0"
+                                  className="gap-2 cursor-pointer text-red-600 focus:text-red-600"
                                 >
-                                  <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Delete User</TooltipContent>
-                            </Tooltip>
+                                  <Trash2 className="h-4 w-4" /> Delete User
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </TooltipProvider>
                       </TableCell>
@@ -3723,6 +3744,43 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Delete User Confirmation Dialog */}
+      {/* Deactivate/Activate User Confirmation Dialog */}
+      <Dialog open={deactivateUserDialog} onOpenChange={setDeactivateUserDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
+              {userToDeactivate?.isActive ? <Ban className="h-5 w-5" /> : <CheckCircle className="h-5 w-5" />}
+              {userToDeactivate?.isActive ? "Deactivate" : "Activate"} User Confirmation
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to {userToDeactivate?.isActive ? "deactivate" : "activate"} user "<strong>{userToDeactivate?.name}</strong>"?
+              {userToDeactivate?.isActive
+                ? " They will lose access to the platform but their data will be preserved."
+                : " They will regain access to the platform."}
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => { setDeactivateUserDialog(false); setUserToDeactivate(null); }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={userToDeactivate?.isActive ? "destructive" : "default"}
+              onClick={confirmDeactivateUser}
+              disabled={toggleUserStatus.isPending}
+            >
+              {toggleUserStatus.isPending
+                ? (userToDeactivate?.isActive ? "Deactivating..." : "Activating...")
+                : (userToDeactivate?.isActive ? "Yes, Deactivate" : "Yes, Activate")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={deleteUserDialog} onOpenChange={setDeleteUserDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
