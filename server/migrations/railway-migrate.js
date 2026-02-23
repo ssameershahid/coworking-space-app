@@ -1,6 +1,7 @@
 // Railway Database Migration Script
 // This script adds missing columns to the organizations table
 
+import 'dotenv/config';
 import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;
