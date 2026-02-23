@@ -343,6 +343,8 @@ export default function AdminDashboard() {
   const [newMenuItemDialog, setNewMenuItemDialog] = useState(false);
   const [editMenuItemDialog, setEditMenuItemDialog] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<any>(null);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatSite, setNewCatSite] = useState("both");
   const [editRoomDialog, setEditRoomDialog] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [editAnnouncementDialog, setEditAnnouncementDialog] = useState(false);
@@ -516,6 +518,11 @@ export default function AdminDashboard() {
       }
     },
     enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team')
+  });
+
+  const { data: menuCategories = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/menu/categories'],
+    enabled: !!user && (user.role === 'calmkaaj_admin' || user.role === 'calmkaaj_team'),
   });
 
   const { data: rooms = [] } = useQuery<MeetingRoom[]>({
@@ -768,6 +775,35 @@ export default function AdminDashboard() {
         variant: "destructive"
       });
     }
+  });
+
+  const createCategory = useMutation({
+    mutationFn: async (data: { name: string; site: string }) => {
+      const response = await apiRequest('POST', '/api/admin/menu/categories', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/menu/categories'] });
+      toast({ title: "Category created successfully!" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to create category", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteCategory = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest('DELETE', `/api/admin/menu/categories/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/menu/categories'] });
+      toast({ title: "Category deleted." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to delete category", description: error.message, variant: "destructive" });
+    },
   });
 
   const updateOrg = useMutation({
@@ -3425,6 +3461,85 @@ export default function AdminDashboard() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+
+          {/* Category Management */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-base">Category Management</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Create new category */}
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Label className="text-xs text-gray-500 mb-1 block">New category name</Label>
+                  <Input
+                    placeholder="e.g. Cold Drinks"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newCatName.trim()) {
+                        createCategory.mutate({ name: newCatName.trim(), site: newCatSite });
+                        setNewCatName("");
+                      }
+                    }}
+                    className="h-9"
+                  />
+                </div>
+                <div className="w-36">
+                  <Label className="text-xs text-gray-500 mb-1 block">Site</Label>
+                  <Select value={newCatSite} onValueChange={setNewCatSite}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="both">Both Sites</SelectItem>
+                      <SelectItem value="blue_area">Blue Area</SelectItem>
+                      <SelectItem value="i_10">I-10</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  size="sm"
+                  className="h-9"
+                  onClick={() => {
+                    if (newCatName.trim()) {
+                      createCategory.mutate({ name: newCatName.trim(), site: newCatSite });
+                      setNewCatName("");
+                    }
+                  }}
+                  disabled={!newCatName.trim() || createCategory.isPending}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+
+              {/* Existing categories list */}
+              <div className="flex flex-wrap gap-2">
+                {menuCategories.length === 0 && (
+                  <p className="text-sm text-gray-500">No categories yet.</p>
+                )}
+                {menuCategories.map((cat: any) => (
+                  <div key={cat.id} className="flex items-center gap-1 bg-gray-100 rounded-full px-3 py-1 text-sm">
+                    <span>{cat.name}</span>
+                    <span className="text-xs text-gray-400">
+                      ({cat.site === "both" ? "Both" : cat.site === "blue_area" ? "BA" : "I10"})
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Delete category "${cat.name}"? Items in this category will become uncategorized.`)) {
+                          deleteCategory.mutate(cat.id);
+                        }
+                      }}
+                      className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

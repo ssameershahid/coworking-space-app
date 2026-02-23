@@ -887,6 +887,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Create menu category
+  app.post("/api/admin/menu/categories", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
+    try {
+      const { name, site } = req.body;
+      if (!name?.trim() || !site) {
+        return res.status(400).json({ message: "Name and site are required" });
+      }
+      const category = await storage.createMenuCategory({ name: name.trim(), site });
+      res.json(category);
+    } catch (error) {
+      console.error("Error creating menu category:", error);
+      res.status(500).json({ message: "Failed to create menu category" });
+    }
+  });
+
+  // Admin: Delete (deactivate) menu category
+  app.delete("/api/admin/menu/categories/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteMenuCategory(id);
+      res.json({ message: "Category deleted" });
+    } catch (error) {
+      console.error("Error deleting menu category:", error);
+      res.status(500).json({ message: "Failed to delete menu category" });
+    }
+  });
+
   // Daily specials endpoint
   app.get("/api/menu/daily-specials", requireAuth, async (req, res) => {
     try {

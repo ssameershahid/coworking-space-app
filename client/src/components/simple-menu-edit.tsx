@@ -7,7 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Plus, X } from "lucide-react";
 
 interface MenuItemEditProps {
   isOpen: boolean;
@@ -17,6 +21,10 @@ interface MenuItemEditProps {
 }
 
 export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -26,9 +34,36 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
   const [isAvailable, setIsAvailable] = useState(true);
   const [isDailySpecial, setIsDailySpecial] = useState(false);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["/api/menu/categories"],
+  // New category form state
+  const [showNewCatForm, setShowNewCatForm] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatSite, setNewCatSite] = useState("both");
+
+  const isAdmin = user?.role === "calmkaaj_admin" || user?.role === "calmkaaj_team";
+
+  // Admins fetch all categories across all sites; regular users fetch by their site
+  const categoriesEndpoint = isAdmin ? "/api/admin/menu/categories" : "/api/menu/categories";
+  const { data: categories = [] } = useQuery<any[]>({
+    queryKey: [categoriesEndpoint],
     enabled: isOpen,
+  });
+
+  const createCategoryMutation = useMutation({
+    mutationFn: async (data: { name: string; site: string }) => {
+      const res = await apiRequest("POST", "/api/admin/menu/categories", data);
+      return res.json();
+    },
+    onSuccess: (newCat: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/categories"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/menu/categories"] });
+      setCategoryId(newCat.id.toString());
+      setNewCatName("");
+      setShowNewCatForm(false);
+      toast({ title: "Category created", description: `"${newCat.name}" has been added.` });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to create category", variant: "destructive" });
+    },
   });
 
   useEffect(() => {
@@ -38,14 +73,14 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
       setPrice(item.price?.toString() || "");
       setImageUrl(item.image_url || "");
       setCategoryId(item.category_id?.toString() || "");
-      
+
       // Convert site value to selectedSites array
       if (item.site === "both") {
         setSelectedSites(["blue_area", "i_10"]);
       } else {
         setSelectedSites([item.site || "blue_area"]);
       }
-      
+
       setIsAvailable(item.is_available ?? true);
       setIsDailySpecial(item.is_daily_special ?? false);
     } else {
@@ -58,6 +93,8 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
       setIsAvailable(true);
       setIsDailySpecial(false);
     }
+    setShowNewCatForm(false);
+    setNewCatName("");
   }, [item, isOpen]);
 
   const handleSave = () => {
@@ -65,7 +102,7 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
     if (selectedSites.length === 0) {
       return; // Don't save if no sites selected
     }
-    
+
     // Convert selectedSites array back to site string for backend compatibility
     let site: string;
     if (selectedSites.length === 2 && selectedSites.includes("blue_area") && selectedSites.includes("i_10")) {
@@ -75,7 +112,7 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
     } else {
       site = "blue_area"; // fallback
     }
-    
+
     const data: any = {
       name,
       description,
@@ -86,11 +123,11 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
       is_available: isAvailable,
       is_daily_special: isDailySpecial,
     };
-    
+
     if (item?.id) {
       data.id = item.id;
     }
-    
+
     onSave(data);
     onClose();
   };
@@ -103,13 +140,18 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
     }
   };
 
+  const handleCreateCategory = () => {
+    if (!newCatName.trim()) return;
+    createCategoryMutation.mutate({ name: newCatName.trim(), site: newCatSite });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Menu Item</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div>
             <Label htmlFor="name">Name</Label>
@@ -152,7 +194,19 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
           </div>
 
           <div>
-            <Label htmlFor="category">Category</Label>
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="category">Category</Label>
+              {isAdmin && !showNewCatForm && (
+                <button
+                  type="button"
+                  onClick={() => setShowNewCatForm(true)}
+                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                >
+                  <Plus className="h-3 w-3" />
+                  New category
+                </button>
+              )}
+            </div>
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
@@ -161,10 +215,57 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
                 {categories.map((cat: any) => (
                   <SelectItem key={cat.id} value={cat.id.toString()}>
                     {cat.name}
+                    {isAdmin && cat.site !== "both" && (
+                      <span className="ml-1 text-xs text-gray-400">
+                        ({cat.site === "blue_area" ? "Blue Area" : "I-10"})
+                      </span>
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Inline new category form */}
+            {isAdmin && showNewCatForm && (
+              <div className="mt-2 p-3 border rounded-lg bg-blue-50 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-blue-800">Create new category</span>
+                  <button
+                    type="button"
+                    onClick={() => { setShowNewCatForm(false); setNewCatName(""); }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+                <Input
+                  placeholder="Category name (e.g. Cold Drinks)"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateCategory(); } }}
+                  className="h-8 text-sm"
+                />
+                <Select value={newCatSite} onValueChange={setNewCatSite}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">Both Sites</SelectItem>
+                    <SelectItem value="blue_area">Blue Area only</SelectItem>
+                    <SelectItem value="i_10">I-10 only</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="w-full h-8"
+                  onClick={handleCreateCategory}
+                  disabled={!newCatName.trim() || createCategoryMutation.isPending}
+                >
+                  {createCategoryMutation.isPending ? "Creating..." : "Create Category"}
+                </Button>
+              </div>
+            )}
           </div>
 
           <div>

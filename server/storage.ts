@@ -85,6 +85,8 @@ export interface IStorage {
   
   // Menu
   getMenuCategories(site?: string): Promise<schema.MenuCategory[]>;
+  createMenuCategory(data: { name: string; site: string; display_order?: number }): Promise<schema.MenuCategory>;
+  deleteMenuCategory(id: number): Promise<void>;
   getMenuItems(site?: string): Promise<schema.MenuItem[]>;
   getAllMenuItems(site?: string): Promise<schema.MenuItem[]>;
   getMenuItemById(id: number): Promise<schema.MenuItem | undefined>;
@@ -350,6 +352,22 @@ export class DatabaseStorage implements IStorage {
         .where(eq(schema.menu_categories.is_active, true))
         .orderBy(asc(schema.menu_categories.display_order));
     }
+  }
+
+  async createMenuCategory(data: { name: string; site: string; display_order?: number }): Promise<schema.MenuCategory> {
+    const [category] = await db.insert(schema.menu_categories).values({
+      name: data.name,
+      site: data.site as any,
+      display_order: data.display_order ?? 0,
+      is_active: true,
+    }).returning();
+    return category;
+  }
+
+  async deleteMenuCategory(id: number): Promise<void> {
+    await db.update(schema.menu_categories)
+      .set({ is_active: false })
+      .where(eq(schema.menu_categories.id, id));
   }
 
   async getMenuItems(site?: string): Promise<schema.MenuItem[]> {
