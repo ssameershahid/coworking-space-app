@@ -2,6 +2,49 @@ import { Instagram, Twitter, Facebook, MapPin, Phone, Mail, Linkedin } from "luc
 import { SiSpotify } from "react-icons/si";
 import { useAuth } from "@/hooks/use-auth";
 
+const artyealEmojis = [
+  { e: "🎨", x: "-28px", y: "-32px", delay: "0ms" },
+  { e: "✨", x: "0px",   y: "-36px", delay: "40ms" },
+  { e: "🚀", x: "28px",  y: "-30px", delay: "80ms" },
+  { e: "💡", x: "-22px", y: "-20px", delay: "20ms" },
+  { e: "🌟", x: "22px",  y: "-18px", delay: "60ms" },
+  { e: "🎯", x: "-14px", y: "-38px", delay: "100ms" },
+];
+
+function ArtyealLink() {
+  return (
+    <>
+      <style>{`
+        @keyframes emoji-pop {
+          0%   { opacity: 0; transform: translate(0, 0) scale(0.4); }
+          40%  { opacity: 1; transform: translate(var(--ex), var(--ey)) scale(1.1); }
+          100% { opacity: 0; transform: translate(var(--ex), calc(var(--ey) - 8px)) scale(0.8); }
+        }
+        .artyreal-wrap:hover .artyreal-emoji {
+          animation: emoji-pop 0.7s ease-out forwards;
+        }
+      `}</style>
+      <span className="artyreal-wrap relative inline-block">
+        {artyealEmojis.map(({ e, x, y, delay }, i) => (
+          <span
+            key={i}
+            className="artyreal-emoji pointer-events-none absolute text-[11px] opacity-0 select-none"
+            style={{ left: "50%", top: "50%", "--ex": x, "--ey": y, animationDelay: delay } as React.CSSProperties}
+          >{e}</span>
+        ))}
+        <a
+          href="https://www.artyreal.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gray-500 hover:text-gray-800 transition-colors font-medium"
+        >
+          Artyreal
+        </a>
+      </span>
+    </>
+  );
+}
+
 export default function Footer() {
   const { user } = useAuth();
   
@@ -134,7 +177,7 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-gray-200 mt-4 pt-4 pb-6 md:mt-8 md:pt-6 md:pb-0 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 space-y-2 md:space-y-0">
           <p>© 2025 CalmKaaj. All rights reserved.</p>
-          <p>App developed with 🧡 by Artyreal</p>
+          <p>App developed with 🧡 by <ArtyealLink /></p>
         </div>
       </div>
     </footer>
