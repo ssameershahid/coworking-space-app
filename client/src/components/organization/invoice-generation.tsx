@@ -71,7 +71,9 @@ export default function InvoiceGeneration() {
   });
 
   const filteredBookings = orgBookings.filter((booking: any) => {
-    return isInMonthPakistan(booking.created_at, selectedMonth, selectedYear);
+    return isInMonthPakistan(booking.created_at, selectedMonth, selectedYear) &&
+           booking.billed_to === 'organization' &&
+           booking.status !== 'cancelled';
   });
 
   const totalCafeAmount = filteredOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);

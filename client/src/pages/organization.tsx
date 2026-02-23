@@ -52,12 +52,6 @@ export default function OrganizationPage() {
     enabled: !!user?.organization_id,
   });
 
-  // Credits charged calculation for current month - only count organization-billed bookings (exclude cancelled)
-  const orgBilledBookings = orgBookings.filter((b: any) => b.billed_to === 'organization' && b.status !== 'cancelled');
-  const totalCreditsThisMonth = orgBilledBookings.reduce((sum: number, b: any) => sum + parseFloat(b.credits_used || 0), 0);
-  const monthlyIncluded = organization?.monthly_credits ?? 30;
-  const creditsCharged = Math.max(0, totalCreditsThisMonth - monthlyIncluded);
-
   if (!user?.organization_id) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -85,7 +79,9 @@ export default function OrganizationPage() {
     .filter((order: any) => order.billed_to === 'organization')
     .reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0);
   const totalCreditsUsed = monthlyBookings.reduce((sum: number, booking: any) => sum + parseFloat(booking.credits_used || 0), 0);
-  const activeMembers = employees.filter((emp: any) => emp.is_active).length;
+  const monthlyIncluded = (organization as any)?.monthly_credits ?? 30;
+  const creditsCharged = Math.max(0, totalCreditsUsed - monthlyIncluded);
+  const activeMembers = (employees as any[]).filter((emp: any) => emp.is_active).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
