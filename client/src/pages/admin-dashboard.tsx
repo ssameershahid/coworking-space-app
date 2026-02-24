@@ -3016,11 +3016,11 @@ export default function AdminDashboard() {
                 onClick={async () => {
                   try {
                     const res = await fetch('/api/admin/billing-sso-token', { credentials: 'include' });
-                    if (!res.ok) throw new Error('Failed to generate token');
-                    const { token } = await res.json();
-                    window.open(`https://ckinvoice.vercel.app/api/auth/sso?token=${token}`, '_blank');
-                  } catch (err) {
-                    toast({ title: 'Error', description: 'Could not open billing portal. Please try again.', variant: 'destructive' });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || 'Failed to generate token');
+                    window.open(`https://ckinvoice.vercel.app/api/auth/sso?token=${data.token}`, '_blank');
+                  } catch (err: any) {
+                    toast({ title: 'Error', description: err.message || 'Could not open billing portal.', variant: 'destructive' });
                   }
                 }}
               >
