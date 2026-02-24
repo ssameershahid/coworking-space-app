@@ -18,6 +18,7 @@ import webpush from "web-push";
 import { fileURLToPath } from 'url';
 import { getPakistanTime, parseDateInPakistanTime, convertToPakistanTime } from "./utils/pakistan-time.js";
 import { broadcaster, handleSSEConnection } from './realtime';
+import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -884,6 +885,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching all menu categories:", error);
       res.status(500).json({ message: "Failed to fetch all menu categories" });
+    }
+  });
+
+  // Billing portal SSO — generate a short-lived token for calmkaaj_admin only
+  app.get("/api/admin/billing-sso-token", requireAuth, requireRole(["calmkaaj_admin"]), async (req, res) => {
+    try {
+      const secret = process.env.BILLING_SSO_SECRET;
+      if (!secret) {
+        return res.status(500).json({ message: "Billing SSO not configured" });
+      }
+      const user = req.user as schema.User;
+      const token = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role },
+        secret,
+        { algorithm: "HS256", expiresIn: "5m" }
+      );
+      res.json({ token });
+    } catch (error) {
+      console.error("Error generating billing SSO token:", error);
+      res.status(500).json({ message: "Failed to generate SSO token" });
     }
   });
 

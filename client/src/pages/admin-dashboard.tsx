@@ -46,7 +46,8 @@ import {
   CreditCard,
   Pencil,
   Check,
-  X
+  X,
+  ExternalLink
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -3008,6 +3009,25 @@ export default function AdminDashboard() {
             <p className="text-gray-600">Complete system oversight and analytics</p>
           </div>
           <div className="flex items-center gap-4">
+            {user.role === 'calmkaaj_admin' && (
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-400"
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/admin/billing-sso-token', { credentials: 'include' });
+                    if (!res.ok) throw new Error('Failed to generate token');
+                    const { token } = await res.json();
+                    window.open(`https://ckinvoice.vercel.app/api/auth/sso?token=${token}`, '_blank');
+                  } catch (err) {
+                    toast({ title: 'Error', description: 'Could not open billing portal. Please try again.', variant: 'destructive' });
+                  }
+                }}
+              >
+                <ExternalLink className="h-4 w-4" />
+                Open Billing Portal
+              </Button>
+            )}
             <Select value={selectedSite} onValueChange={setSelectedSite}>
               <SelectTrigger className="w-48">
                 <SelectValue />
