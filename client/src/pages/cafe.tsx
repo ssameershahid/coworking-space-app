@@ -319,7 +319,7 @@ export default function CafePage() {
         )}
       </div>
 
-      {/* Category Tabs */}
+      {/* Category Tabs — only show categories with at least 1 available item */}
       <div className="flex space-x-2 mb-8 overflow-x-auto pb-2">
         <Button
           variant={selectedCategory === "all" ? "default" : "outline"}
@@ -328,16 +328,18 @@ export default function CafePage() {
         >
           All Items
         </Button>
-        {categories.map((category) => (
-          <Button
-            key={category.id}
-            variant={selectedCategory === category.id.toString() ? "default" : "outline"}
-            onClick={() => setSelectedCategory(category.id.toString())}
-            className="whitespace-nowrap"
-          >
-            {category.name}
-          </Button>
-        ))}
+        {categories
+          .filter((cat) => menuItems.some((item) => item.category_id === cat.id))
+          .map((category) => (
+            <Button
+              key={category.id}
+              variant={selectedCategory === category.id.toString() ? "default" : "outline"}
+              onClick={() => setSelectedCategory(category.id.toString())}
+              className="whitespace-nowrap"
+            >
+              {category.name}
+            </Button>
+          ))}
       </div>
 
       {/* Menu Grid - Compact Design */}
