@@ -3090,12 +3090,13 @@ export default function AdminDashboard() {
 
       {/* Management Tabs */}
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className={`grid w-full ${user.role === 'calmkaaj_admin' ? 'grid-cols-7' : 'grid-cols-6'}`}>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="organizations">Organizations</TabsTrigger>
           <TabsTrigger value="menu">Cafe Menu</TabsTrigger>
           <TabsTrigger value="rooms">Meeting Rooms</TabsTrigger>
           <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
           {/* Only show Analytics tab for CalmKaaj Admin */}
           {user.role === 'calmkaaj_admin' && (
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -3817,6 +3818,20 @@ export default function AdminDashboard() {
         {/* Community */}
         <TabsContent value="community">
           <CommunitySection />
+        </TabsContent>
+
+        {/* Analytics - Only show for CalmKaaj Admin */}
+        {/* Inventory */}
+        <TabsContent value="inventory">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-24 space-y-4">
+              <div className="text-6xl">🏗️</div>
+              <h2 className="text-2xl font-bold text-gray-800">Coming Soon</h2>
+              <p className="text-gray-500 text-center max-w-sm">
+                The Inventory module is under development. Check back soon!
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Analytics - Only show for CalmKaaj Admin */}
