@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Pencil, Check } from "lucide-react";
 
 interface MenuItemEditProps {
   isOpen: boolean;
@@ -34,19 +34,25 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
   const [isAvailable, setIsAvailable] = useState(true);
   const [isDailySpecial, setIsDailySpecial] = useState(false);
 
-  // New category form state
-  const [showNewCatForm, setShowNewCatForm] = useState(false);
+  // Category management state
+  const [showCatPanel, setShowCatPanel] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [newCatSite, setNewCatSite] = useState("both");
+  const [editingCatId, setEditingCatId] = useState<number | null>(null);
+  const [editingCatName, setEditingCatName] = useState("");
 
   const isAdmin = user?.role === "calmkaaj_admin" || user?.role === "calmkaaj_team";
 
-  // Admins fetch all categories across all sites; regular users fetch by their site
   const categoriesEndpoint = isAdmin ? "/api/admin/menu/categories" : "/api/menu/categories";
   const { data: categories = [] } = useQuery<any[]>({
     queryKey: [categoriesEndpoint],
     enabled: isOpen,
   });
+
+  const invalidateCategories = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/categories"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/menu/categories"] });
+  };
 
   const createCategoryMutation = useMutation({
     mutationFn: async (data: { name: string; site: string }) => {
@@ -54,15 +60,44 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
       return res.json();
     },
     onSuccess: (newCat: any) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/menu/categories"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/menu/categories"] });
+      invalidateCategories();
       setCategoryId(newCat.id.toString());
       setNewCatName("");
-      setShowNewCatForm(false);
-      toast({ title: "Category created", description: `"${newCat.name}" has been added.` });
+      toast({ title: "Category created", description: `"${newCat.name}" added.` });
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to create category", variant: "destructive" });
+    },
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+      const res = await apiRequest("PATCH", `/api/admin/menu/categories/${id}`, { name });
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateCategories();
+      setEditingCatId(null);
+      setEditingCatName("");
+      toast({ title: "Category renamed." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to rename category", variant: "destructive" });
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/admin/menu/categories/${id}`);
+    },
+    onSuccess: (_, id) => {
+      invalidateCategories();
+      // If the deleted category was selected, clear selection
+      if (categoryId === id.toString()) setCategoryId("");
+      toast({ title: "Category deleted." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to delete category", variant: "destructive" });
     },
   });
 
@@ -73,61 +108,37 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
       setPrice(item.price?.toString() || "");
       setImageUrl(item.image_url || "");
       setCategoryId(item.category_id?.toString() || "");
-
-      // Convert site value to selectedSites array
       if (item.site === "both") {
         setSelectedSites(["blue_area", "i_10"]);
       } else {
         setSelectedSites([item.site || "blue_area"]);
       }
-
       setIsAvailable(item.is_available ?? true);
       setIsDailySpecial(item.is_daily_special ?? false);
     } else {
-      setName("");
-      setDescription("");
-      setPrice("");
-      setImageUrl("");
-      setCategoryId("");
-      setSelectedSites(["blue_area"]);
-      setIsAvailable(true);
-      setIsDailySpecial(false);
+      setName(""); setDescription(""); setPrice(""); setImageUrl(""); setCategoryId("");
+      setSelectedSites(["blue_area"]); setIsAvailable(true); setIsDailySpecial(false);
     }
-    setShowNewCatForm(false);
+    setShowCatPanel(false);
     setNewCatName("");
+    setEditingCatId(null);
   }, [item, isOpen]);
 
   const handleSave = () => {
-    // Validate that at least one site is selected
-    if (selectedSites.length === 0) {
-      return; // Don't save if no sites selected
-    }
-
-    // Convert selectedSites array back to site string for backend compatibility
+    if (selectedSites.length === 0) return;
     let site: string;
     if (selectedSites.length === 2 && selectedSites.includes("blue_area") && selectedSites.includes("i_10")) {
       site = "both";
     } else if (selectedSites.length === 1) {
       site = selectedSites[0];
     } else {
-      site = "blue_area"; // fallback
+      site = "blue_area";
     }
-
     const data: any = {
-      name,
-      description,
-      price: price, // Keep as string for decimal validation
-      image_url: imageUrl,
-      category_id: parseInt(categoryId),
-      site,
-      is_available: isAvailable,
-      is_daily_special: isDailySpecial,
+      name, description, price, image_url: imageUrl,
+      category_id: parseInt(categoryId), site, is_available: isAvailable, is_daily_special: isDailySpecial,
     };
-
-    if (item?.id) {
-      data.id = item.id;
-    }
-
+    if (item?.id) data.id = item.id;
     onSave(data);
     onClose();
   };
@@ -140,14 +151,11 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
     }
   };
 
-  const handleCreateCategory = () => {
-    if (!newCatName.trim()) return;
-    createCategoryMutation.mutate({ name: newCatName.trim(), site: newCatSite });
-  };
+  const siteLabelShort = (s: string) => s === "both" ? "Both" : s === "blue_area" ? "Blue Area" : "I-10";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Menu Item</DialogTitle>
         </DialogHeader>
@@ -155,58 +163,40 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
         <div className="space-y-4">
           <div>
             <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
           <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
 
           <div>
             <Label htmlFor="price">Price (Rs.)</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
+            <Input id="price" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
           </div>
 
           <div>
             <Label htmlFor="imageUrl">Image URL</Label>
-            <Input
-              id="imageUrl"
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
-            />
+            <Input id="imageUrl" type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
           </div>
 
+          {/* Category field */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <Label htmlFor="category">Category</Label>
-              {isAdmin && !showNewCatForm && (
+              {isAdmin && (
                 <button
                   type="button"
-                  onClick={() => setShowNewCatForm(true)}
+                  onClick={() => setShowCatPanel(v => !v)}
                   className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
                 >
-                  <Plus className="h-3 w-3" />
-                  New category
+                  {showCatPanel ? <X className="h-3 w-3" /> : <Pencil className="h-3 w-3" />}
+                  {showCatPanel ? "Close" : "Manage categories"}
                 </button>
               )}
             </div>
+
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
@@ -216,54 +206,124 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
                   <SelectItem key={cat.id} value={cat.id.toString()}>
                     {cat.name}
                     {isAdmin && cat.site !== "both" && (
-                      <span className="ml-1 text-xs text-gray-400">
-                        ({cat.site === "blue_area" ? "Blue Area" : "I-10"})
-                      </span>
+                      <span className="ml-1 text-xs text-gray-400">({siteLabelShort(cat.site)})</span>
                     )}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            {/* Inline new category form */}
-            {isAdmin && showNewCatForm && (
-              <div className="mt-2 p-3 border rounded-lg bg-blue-50 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-blue-800">Create new category</span>
-                  <button
-                    type="button"
-                    onClick={() => { setShowNewCatForm(false); setNewCatName(""); }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+            {/* Category management panel */}
+            {isAdmin && showCatPanel && (
+              <div className="mt-2 border rounded-lg bg-gray-50 p-3 space-y-3">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Manage Categories</p>
+
+                {/* Existing categories */}
+                <div className="space-y-1.5">
+                  {categories.length === 0 && (
+                    <p className="text-xs text-gray-400">No categories yet.</p>
+                  )}
+                  {categories.map((cat: any) => (
+                    <div key={cat.id} className="flex items-center gap-1.5 bg-white border rounded-md px-2 py-1">
+                      {editingCatId === cat.id ? (
+                        <>
+                          <Input
+                            value={editingCatName}
+                            onChange={(e) => setEditingCatName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && editingCatName.trim()) {
+                                updateCategoryMutation.mutate({ id: cat.id, name: editingCatName });
+                              }
+                              if (e.key === "Escape") { setEditingCatId(null); setEditingCatName(""); }
+                            }}
+                            className="h-6 text-xs flex-1 px-1"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => {
+                              if (editingCatName.trim()) updateCategoryMutation.mutate({ id: cat.id, name: editingCatName });
+                            }}
+                            className="text-green-600 hover:text-green-800"
+                            title="Save rename"
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => { setEditingCatId(null); setEditingCatName(""); }}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xs flex-1 font-medium">{cat.name}</span>
+                          <span className="text-xs text-gray-400">({siteLabelShort(cat.site)})</span>
+                          <button
+                            onClick={() => { setEditingCatId(cat.id); setEditingCatName(cat.name); }}
+                            className="text-gray-400 hover:text-blue-600 ml-1"
+                            title="Rename"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete category "${cat.name}"? Items in this category will become uncategorized.`)) {
+                                deleteCategoryMutation.mutate(cat.id);
+                              }
+                            }}
+                            className="text-gray-400 hover:text-red-500"
+                            title="Delete"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <Input
-                  placeholder="Category name (e.g. Cold Drinks)"
-                  value={newCatName}
-                  onChange={(e) => setNewCatName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateCategory(); } }}
-                  className="h-8 text-sm"
-                />
-                <Select value={newCatSite} onValueChange={setNewCatSite}>
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="both">Both Sites</SelectItem>
-                    <SelectItem value="blue_area">Blue Area only</SelectItem>
-                    <SelectItem value="i_10">I-10 only</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="w-full h-8"
-                  onClick={handleCreateCategory}
-                  disabled={!newCatName.trim() || createCategoryMutation.isPending}
-                >
-                  {createCategoryMutation.isPending ? "Creating..." : "Create Category"}
-                </Button>
+
+                {/* Create new category */}
+                <div className="border-t pt-2 space-y-1.5">
+                  <p className="text-xs text-gray-500 font-medium">Add new category</p>
+                  <Input
+                    placeholder="Category name (e.g. Cold Drinks)"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newCatName.trim()) {
+                        createCategoryMutation.mutate({ name: newCatName.trim(), site: newCatSite });
+                      }
+                    }}
+                    className="h-7 text-xs"
+                  />
+                  <div className="flex gap-1.5">
+                    <Select value={newCatSite} onValueChange={setNewCatSite}>
+                      <SelectTrigger className="h-7 text-xs flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="both">Both Sites</SelectItem>
+                        <SelectItem value="blue_area">Blue Area only</SelectItem>
+                        <SelectItem value="i_10">I-10 only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-7 px-3 text-xs"
+                      onClick={() => {
+                        if (newCatName.trim()) {
+                          createCategoryMutation.mutate({ name: newCatName.trim(), site: newCatSite });
+                        }
+                      }}
+                      disabled={!newCatName.trim() || createCategoryMutation.isPending}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -301,31 +361,19 @@ export function SimpleMenuEdit({ isOpen, onClose, item, onSave }: MenuItemEditPr
           </div>
 
           <div className="flex items-center space-x-2">
-            <Switch
-              id="available"
-              checked={isAvailable}
-              onCheckedChange={setIsAvailable}
-            />
+            <Switch id="available" checked={isAvailable} onCheckedChange={setIsAvailable} />
             <Label htmlFor="available">Available</Label>
           </div>
 
           <div className="flex items-center space-x-2">
-            <Switch
-              id="special"
-              checked={isDailySpecial}
-              onCheckedChange={setIsDailySpecial}
-            />
+            <Switch id="special" checked={isDailySpecial} onCheckedChange={setIsDailySpecial} />
             <Label htmlFor="special">Daily Special</Label>
           </div>
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            Save
-          </Button>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSave}>Save</Button>
         </div>
       </DialogContent>
     </Dialog>

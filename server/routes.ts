@@ -902,6 +902,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Update (rename/re-site) menu category
+  app.patch("/api/admin/menu/categories/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, site } = req.body;
+      if (!name?.trim() && !site) {
+        return res.status(400).json({ message: "Nothing to update" });
+      }
+      const updates: any = {};
+      if (name?.trim()) updates.name = name.trim();
+      if (site) updates.site = site;
+      const category = await storage.updateMenuCategory(id, updates);
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating menu category:", error);
+      res.status(500).json({ message: "Failed to update menu category" });
+    }
+  });
+
   // Admin: Delete (deactivate) menu category
   app.delete("/api/admin/menu/categories/:id", requireAuth, requireRole(["calmkaaj_admin", "calmkaaj_team"]), async (req, res) => {
     try {

@@ -43,7 +43,10 @@ import {
   Ban,
   CheckCircle,
   UserX,
-  CreditCard
+  CreditCard,
+  Pencil,
+  Check,
+  X
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -345,6 +348,8 @@ export default function AdminDashboard() {
   const [selectedMenuItem, setSelectedMenuItem] = useState<any>(null);
   const [newCatName, setNewCatName] = useState("");
   const [newCatSite, setNewCatSite] = useState("both");
+  const [editingCatId, setEditingCatId] = useState<number | null>(null);
+  const [editingCatName, setEditingCatName] = useState("");
   const [editRoomDialog, setEditRoomDialog] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [editAnnouncementDialog, setEditAnnouncementDialog] = useState(false);
@@ -789,6 +794,23 @@ export default function AdminDashboard() {
     },
     onError: (error: any) => {
       toast({ title: "Failed to create category", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateCategory = useMutation({
+    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+      const response = await apiRequest('PATCH', `/api/admin/menu/categories/${id}`, { name });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/menu/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/menu/categories'] });
+      setEditingCatId(null);
+      setEditingCatName("");
+      toast({ title: "Category renamed." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to rename category", description: error.message, variant: "destructive" });
     },
   });
 
@@ -3517,26 +3539,64 @@ export default function AdminDashboard() {
               </div>
 
               {/* Existing categories list */}
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {menuCategories.length === 0 && (
                   <p className="text-sm text-gray-500">No categories yet.</p>
                 )}
                 {menuCategories.map((cat: any) => (
-                  <div key={cat.id} className="flex items-center gap-1 bg-gray-100 rounded-full px-3 py-1 text-sm">
-                    <span>{cat.name}</span>
-                    <span className="text-xs text-gray-400">
-                      ({cat.site === "both" ? "Both" : cat.site === "blue_area" ? "BA" : "I10"})
-                    </span>
-                    <button
-                      onClick={() => {
-                        if (confirm(`Delete category "${cat.name}"? Items in this category will become uncategorized.`)) {
-                          deleteCategory.mutate(cat.id);
-                        }
-                      }}
-                      className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                  <div key={cat.id} className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 text-sm">
+                    {editingCatId === cat.id ? (
+                      <>
+                        <Input
+                          value={editingCatName}
+                          onChange={(e) => setEditingCatName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && editingCatName.trim()) updateCategory.mutate({ id: cat.id, name: editingCatName });
+                            if (e.key === "Escape") { setEditingCatId(null); setEditingCatName(""); }
+                          }}
+                          className="h-7 text-sm flex-1"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => { if (editingCatName.trim()) updateCategory.mutate({ id: cat.id, name: editingCatName }); }}
+                          className="text-green-600 hover:text-green-800"
+                          title="Save"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => { setEditingCatId(null); setEditingCatName(""); }}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="flex-1 font-medium">{cat.name}</span>
+                        <span className="text-xs text-gray-400">
+                          {cat.site === "both" ? "Both Sites" : cat.site === "blue_area" ? "Blue Area" : "I-10"}
+                        </span>
+                        <button
+                          onClick={() => { setEditingCatId(cat.id); setEditingCatName(cat.name); }}
+                          className="text-gray-400 hover:text-blue-600 transition-colors"
+                          title="Rename"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete category "${cat.name}"? Items in this category will become uncategorized.`)) {
+                              deleteCategory.mutate(cat.id);
+                            }
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
